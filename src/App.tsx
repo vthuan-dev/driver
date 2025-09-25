@@ -40,6 +40,7 @@ function getInitial(name: string): string {
 
 function App() {
   const [showModal, setShowModal] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -63,8 +64,8 @@ function App() {
     const current = JSON.parse(localStorage.getItem(key) || '[]') as any[]
     const entry = { ...form, route: routeCombined, createdAt: new Date().toISOString() }
     localStorage.setItem(key, JSON.stringify([entry, ...current].slice(0, 50)))
-
-    alert(`Đã nhận đăng kí!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${routeCombined}\nGiá: ${form.price}`)
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 2200)
     setShowModal(false)
     setForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '' })
   }
@@ -183,6 +184,20 @@ function App() {
           </motion.div>
         </div>
       )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div className="toast"
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 60, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          >
+            <span className="toast__icon">✔</span>
+            <span>Đăng kí thành công</span>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   )

@@ -154,3 +154,21 @@
   width: 100%; border: 0; background: #00b14f; color: #fff; font-weight: 800; padding: 14px 16px; border-radius: 14px; cursor: pointer;
 }
 .submit:hover { filter: brightness(1.03); }
+
+/* Toast success */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #00b14f;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 999px;
+  box-shadow: 0 12px 30px rgba(0,177,79,.35);
+  font-weight: 700;
+}
+.toast__icon { width: 20px; height: 20px; display: grid; place-items: center; background: rgba(255,255,255,.18); border-radius: 999px; }
