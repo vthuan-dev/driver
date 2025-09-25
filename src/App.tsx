@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
 
 type DriverPost = {
@@ -17,6 +18,16 @@ const posts: DriverPost[] = [
   { id: 'p6', name: 'Chị Linh', phone: '0355555999', route: 'Hà Đông ⇄ Phú Thọ' },
 ]
 
+const provincesVN34 = [
+  'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
+  'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Ninh', 'Bến Tre',
+  'Bình Dương', 'Bình Định', 'Bình Thuận', 'Cà Mau', 'Cao Bằng',
+  'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
+  'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Tĩnh', 'Hưng Yên',
+  'Khánh Hòa', 'Kiên Giang', 'Lâm Đồng', 'Lào Cai', 'Long An',
+  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ'
+]
+
 function maskPhone(phone: string): string {
   if (phone.length < 3) return phone
   return phone.slice(0, phone.length - 3) + '***'
@@ -32,7 +43,8 @@ function App() {
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    route: '',
+    startPoint: '',
+    endPoint: '',
     price: '',
     note: '',
   })
@@ -45,15 +57,16 @@ function App() {
   }
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const routeCombined = form.startPoint && form.endPoint ? `${form.startPoint} ⇄ ${form.endPoint}` : ''
     // save to localStorage
     const key = 'driver_waiting_requests'
     const current = JSON.parse(localStorage.getItem(key) || '[]') as any[]
-    const entry = { ...form, createdAt: new Date().toISOString() }
+    const entry = { ...form, route: routeCombined, createdAt: new Date().toISOString() }
     localStorage.setItem(key, JSON.stringify([entry, ...current].slice(0, 50)))
 
-    alert(`Đã nhận đăng kí!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${form.route}\nGiá: ${form.price}`)
+    alert(`Đã nhận đăng kí!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${routeCombined}\nGiá: ${form.price}`)
     setShowModal(false)
-    setForm({ name: '', phone: '', route: '', price: '', note: '' })
+    setForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '' })
   }
 
   return (
@@ -101,10 +114,20 @@ function App() {
         <span className="chevron">›</span>
       </button>
 
+      <AnimatePresence>
       {showModal && (
         <div className="modal" role="dialog" aria-modal="true">
-          <div className="modal__backdrop" onClick={closeModal} />
-          <div className="modal__panel">
+          <motion.div className="modal__backdrop" onClick={closeModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div className="modal__panel"
+            initial={{ opacity: 0, y: 40, scale: .98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: .98 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+          >
             <div className="modal__header">
               <div className="modal__title">Đăng kí chờ cuốc xe</div>
               <button className="modal__close" onClick={closeModal} aria-label="Đóng">✕</button>
@@ -118,18 +141,30 @@ function App() {
                 <span>Số điện thoại</span>
                 <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
               </label>
-              <label className="field">
-                <span>Tuyến đường/Khu vực</span>
-                <select name="route" value={form.route} onChange={(e) => onChange(e as any)} required>
-                  <option value="" disabled>Chọn tuyến</option>
-                  <option>Hà Nội ⇄ Ninh Bình</option>
-                  <option>Hà Nội ⇄ Lào Cai</option>
-                  <option>Mỹ Đình ⇄ Nội Bài</option>
-                  <option>Cầu Giấy ⇄ Hải Phòng</option>
-                  <option>Long Biên ⇄ Hạ Long</option>
-                  <option>Hà Đông ⇄ Phú Thọ</option>
-                </select>
-              </label>
+              <div className="field" style={{gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '12px'}}>
+                <label className="field">
+                  <span>Điểm xuất phát</span>
+                  <motion.select name="startPoint" value={form.startPoint} onChange={(e) => onChange(e as any)} required
+                    whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                  >
+                    <option value="" disabled>Chọn tỉnh/thành</option>
+                    {provincesVN34.map((p) => (
+                      <option key={'s-'+p} value={p}>{p}</option>
+                    ))}
+                  </motion.select>
+                </label>
+                <label className="field">
+                  <span>Điểm đến</span>
+                  <motion.select name="endPoint" value={form.endPoint} onChange={(e) => onChange(e as any)} required
+                    whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                  >
+                    <option value="" disabled>Chọn tỉnh/thành</option>
+                    {provincesVN34.map((p) => (
+                      <option key={'e-'+p} value={p}>{p}</option>
+                    ))}
+                  </motion.select>
+                </label>
+              </div>
               <label className="field">
                 <span>Giá dự kiến (VND)</span>
                 <input name="price" value={form.price} onChange={onChange} placeholder="VD: 800000" inputMode="numeric" pattern="[0-9]*" />
@@ -138,11 +173,17 @@ function App() {
                 <span>Ghi chú</span>
                 <textarea name="note" value={form.note} onChange={onChange} placeholder="Giờ giấc, loại xe..." rows={3} />
               </label>
-              <button type="submit" className="submit">GỬI ĐĂNG KÍ</button>
+              <motion.button type="submit" className="submit"
+                whileTap={{ scale: 0.98 }}
+                whileHover={{ filter: 'brightness(1.05)' }}
+              >
+                GỬI ĐĂNG KÍ
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
