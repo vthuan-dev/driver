@@ -41,6 +41,11 @@ function getInitial(name: string): string {
 function App() {
   const [showModal, setShowModal] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null)
+  const [user, setUser] = useState<{name: string; phone: string} | null>(() => {
+    try { return JSON.parse(localStorage.getItem('driver_user') || 'null') } catch { return null }
+  })
+  const [authForm, setAuthForm] = useState({ name: '', phone: '' })
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -72,6 +77,22 @@ function App() {
 
   return (
     <div className="app">
+      <div className="topbar">
+        <button className="hamburger" aria-label="Menu">≡ MENU</button>
+        <div className="topbar__actions">
+          {user ? (
+            <>
+              <span className="hello">👋 {user.name || maskPhone(user.phone)}</span>
+              <button className="btn ghost" onClick={() => { localStorage.removeItem('driver_user'); setUser(null) }}>Đăng xuất</button>
+            </>
+          ) : (
+            <>
+              <button className="btn ghost" onClick={() => setAuthModal('login')}>Đăng nhập</button>
+              <button className="btn warn" onClick={() => setAuthModal('register')}>Đăng ký</button>
+            </>
+          )}
+        </div>
+      </div>
       <header className="ticker">
         <div className="ticker__track">
           {posts.slice(0, 6).map((p) => (
@@ -197,6 +218,38 @@ function App() {
             <span className="toast__icon">✔</span>
             <span>Đăng kí thành công</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {!!authModal && (
+          <div className="modal" role="dialog" aria-modal="true">
+            <motion.div className="modal__backdrop" onClick={() => setAuthModal(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
+            <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
+              <div className="modal__header">
+                <div className="modal__title">{authModal === 'login' ? 'Đăng nhập' : 'Đăng ký thành viên nhóm'}</div>
+                <button className="modal__close" onClick={() => setAuthModal(null)} aria-label="Đóng">✕</button>
+              </div>
+              <form className="form" onSubmit={(e) => {
+                e.preventDefault();
+                localStorage.setItem('driver_user', JSON.stringify(authForm));
+                setUser(authForm);
+                setAuthModal(null);
+                setAuthForm({ name: '', phone: '' })
+                setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1800);
+              }}>
+                <label className="field">
+                  <span>Họ và tên</span>
+                  <input name="name" value={authForm.name} onChange={(e)=>setAuthForm({...authForm, name: e.target.value})} placeholder="VD: Nguyễn Văn A" required />
+                </label>
+                <label className="field">
+                  <span>Số điện thoại</span>
+                  <input name="phone" value={authForm.phone} onChange={(e)=>setAuthForm({...authForm, phone: e.target.value})} inputMode="tel" pattern="[0-9]{9,11}" placeholder="VD: 09xxxxxxx" required />
+                </label>
+                <motion.button type="submit" className="submit" whileTap={{scale:.98}}>XÁC NHẬN</motion.button>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
