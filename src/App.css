@@ -18,6 +18,10 @@
 .btn.warn { background: #fbbf24; color: #1f2937; }
 .hello { font-weight: 700; color: #334155; margin-right: 6px; }
 
+.menu-popover { position: absolute; left: 8px; top: 48px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.08); padding: 8px; display: grid; gap: 6px; }
+.menu-item { appearance: none; border: 0; background: #f3f4f6; color: #111827; padding: 10px 12px; border-radius: 10px; text-align: left; font-weight: 700; }
+.menu-item:hover { background: #e5e7eb; }
+
 /* Ticker */
 .ticker {
   position: sticky;

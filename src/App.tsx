@@ -46,6 +46,7 @@ function App() {
     try { return JSON.parse(localStorage.getItem('driver_user') || 'null') } catch { return null }
   })
   const [authForm, setAuthForm] = useState({ name: '', phone: '' })
+  const [menuOpen, setMenuOpen] = useState(false)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -78,20 +79,25 @@ function App() {
   return (
     <div className="app">
       <div className="topbar">
-        <button className="hamburger" aria-label="Menu">≡ MENU</button>
+        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}>≡ MENU</button>
         <div className="topbar__actions">
-          {user ? (
-            <>
-              <span className="hello">👋 {user.name || maskPhone(user.phone)}</span>
-              <button className="btn ghost" onClick={() => { localStorage.removeItem('driver_user'); setUser(null) }}>Đăng xuất</button>
-            </>
-          ) : (
-            <>
-              <button className="btn ghost" onClick={() => setAuthModal('login')}>Đăng nhập</button>
-              <button className="btn warn" onClick={() => setAuthModal('register')}>Đăng ký</button>
-            </>
-          )}
+          {user && <span className="hello">👋 {user.name || maskPhone(user.phone)}</span>}
         </div>
+        {menuOpen && (
+          <div className="menu-popover">
+            {!user && (
+              <>
+                <button className="menu-item" onClick={() => { setAuthModal('register'); setMenuOpen(false) }}>Đăng ký thành viên</button>
+                <button className="menu-item" onClick={() => { setAuthModal('login'); setMenuOpen(false) }}>Đăng nhập</button>
+              </>
+            )}
+            {user && (
+              <>
+                <button className="menu-item" onClick={() => { localStorage.removeItem('driver_user'); setUser(null); setMenuOpen(false) }}>Đăng xuất</button>
+              </>
+            )}
+          </div>
+        )}
       </div>
       <header className="ticker">
         <div className="ticker__track">
@@ -131,7 +137,10 @@ function App() {
         ))}
       </main>
 
-      <button className="floating-cta" onClick={openModal}>
+      <button className="floating-cta" onClick={() => {
+        if (!user) { setAuthModal('register'); return }
+        openModal()
+      }}>
         ĐĂNG KÍ CHỜ CUỐC XE
         <span className="chevron">›</span>
       </button>
@@ -232,11 +241,20 @@ function App() {
               </div>
               <form className="form" onSubmit={(e) => {
                 e.preventDefault();
-                localStorage.setItem('driver_user', JSON.stringify(authForm));
-                setUser(authForm);
-                setAuthModal(null);
+                if (authModal === 'register') {
+                  localStorage.setItem('driver_registered', JSON.stringify(authForm));
+                  setAuthModal(null);
+                  setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1600);
+                } else {
+                  const reg = JSON.parse(localStorage.getItem('driver_registered') || 'null');
+                  if (!reg) { alert('Bạn chưa đăng ký thành viên. Hãy đăng ký trước.'); return }
+                  if (reg.phone !== authForm.phone) { alert('Số điện thoại không khớp hồ sơ đã đăng ký.'); return }
+                  localStorage.setItem('driver_user', JSON.stringify(reg));
+                  setUser(reg);
+                  setAuthModal(null);
+                  setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1600);
+                }
                 setAuthForm({ name: '', phone: '' })
-                setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1800);
               }}>
                 <label className="field">
                   <span>Họ và tên</span>
