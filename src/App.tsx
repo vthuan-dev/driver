@@ -56,9 +56,10 @@ function App() {
   const [user, setUser] = useState<{name: string; phone: string} | null>(() => {
     try { return JSON.parse(localStorage.getItem('driver_user') || 'null') } catch { return null }
   })
-  const [authForm, setAuthForm] = useState({ name: '', phone: '' })
+  const [authForm, setAuthForm] = useState({ name: '', phone: '', password: '' })
   const [menuOpen, setMenuOpen] = useState(false)
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
+  const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -141,7 +142,12 @@ function App() {
               <div className="driver-route">{p.route}</div>
             </div>
             <button className="call-btn" aria-label="Gọi tài xế" onClick={() => {
-              if (!user) { setAuthModal('register'); return }
+              if (!user) {
+                setPendingAction({ type: 'call', phone: p.phone })
+                const reg = localStorage.getItem('driver_registered')
+                setAuthModal(reg ? 'login' : 'register')
+                return
+              }
               setCallSheet({ phone: p.phone })
             }}>
               <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
@@ -153,7 +159,12 @@ function App() {
       </main>
 
       <button className="floating-cta" onClick={() => {
-        if (!user) { setAuthModal('register'); return }
+        if (!user) {
+          setPendingAction({ type: 'wait' })
+          const reg = localStorage.getItem('driver_registered')
+          setAuthModal(reg ? 'login' : 'register')
+          return
+        }
         openModal()
       }}>
         ĐĂNG KÍ CHỜ CUỐC XE
@@ -272,20 +283,29 @@ function App() {
               </div>
               <form className="form" onSubmit={(e) => {
                 e.preventDefault();
+                let loggedIn: {name: string; phone: string} | null = null
                 if (authModal === 'register') {
                   localStorage.setItem('driver_registered', JSON.stringify(authForm));
-                  setAuthModal(null);
-                  setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1600);
+                  localStorage.setItem('driver_user', JSON.stringify({ name: authForm.name, phone: authForm.phone }));
+                  loggedIn = { name: authForm.name, phone: authForm.phone }
                 } else {
                   const reg = JSON.parse(localStorage.getItem('driver_registered') || 'null');
                   if (!reg) { alert('Bạn chưa đăng ký thành viên. Hãy đăng ký trước.'); return }
                   if (reg.phone !== authForm.phone) { alert('Số điện thoại không khớp hồ sơ đã đăng ký.'); return }
-                  localStorage.setItem('driver_user', JSON.stringify(reg));
-                  setUser(reg);
-                  setAuthModal(null);
-                  setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1600);
+                  if (reg.password !== authForm.password) { alert('Mật khẩu không đúng.'); return }
+                  localStorage.setItem('driver_user', JSON.stringify({ name: reg.name, phone: reg.phone }));
+                  loggedIn = { name: reg.name, phone: reg.phone }
                 }
-                setAuthForm({ name: '', phone: '' })
+                setUser(loggedIn)
+                setAuthModal(null)
+                setShowSuccess(true); setTimeout(()=>setShowSuccess(false), 1600);
+                // perform pending action
+                if (pendingAction) {
+                  if (pendingAction.type === 'wait') openModal()
+                  if (pendingAction.type === 'call') setCallSheet({ phone: pendingAction.phone })
+                  setPendingAction(null)
+                }
+                setAuthForm({ name: '', phone: '', password: '' })
               }}>
                 <label className="field">
                   <span>Họ và tên</span>
@@ -294,6 +314,10 @@ function App() {
                 <label className="field">
                   <span>Số điện thoại</span>
                   <input name="phone" value={authForm.phone} onChange={(e)=>setAuthForm({...authForm, phone: e.target.value})} inputMode="tel" pattern="[0-9]{9,11}" placeholder="VD: 09xxxxxxx" required />
+                </label>
+                <label className="field">
+                  <span>Mật khẩu</span>
+                  <input type="password" name="password" value={authForm.password} onChange={(e)=>setAuthForm({...authForm, password: e.target.value})} placeholder="Ít nhất 4 ký tự" required />
                 </label>
                 <motion.button type="submit" className="submit" whileTap={{scale:.98}}>XÁC NHẬN</motion.button>
               </form>
