@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './App.css'
 
 type DriverPost = {
@@ -27,6 +28,27 @@ function getInitial(name: string): string {
 }
 
 function App() {
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    route: '',
+    note: '',
+  })
+
+  const openModal = () => setShowModal(true)
+  const closeModal = () => setShowModal(false)
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setForm((p) => ({ ...p, [name]: value }))
+  }
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    alert(`Đã nhận đăng kí chờ cuốc xe!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${form.route}`)
+    setShowModal(false)
+    setForm({ name: '', phone: '', route: '', note: '' })
+  }
+
   return (
     <div className="app">
       <header className="ticker">
@@ -67,10 +89,41 @@ function App() {
         ))}
       </main>
 
-      <a className="floating-cta" href="#dang-ky" role="button">
+      <button className="floating-cta" onClick={openModal}>
         ĐĂNG KÍ CHỜ CUỐC XE
         <span className="chevron">›</span>
-      </a>
+      </button>
+
+      {showModal && (
+        <div className="modal" role="dialog" aria-modal="true">
+          <div className="modal__backdrop" onClick={closeModal} />
+          <div className="modal__panel">
+            <div className="modal__header">
+              <div className="modal__title">Đăng kí chờ cuốc xe</div>
+              <button className="modal__close" onClick={closeModal} aria-label="Đóng">✕</button>
+            </div>
+            <form className="form" onSubmit={onSubmit}>
+              <label className="field">
+                <span>Họ và tên</span>
+                <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyễn Văn A" required />
+              </label>
+              <label className="field">
+                <span>Số điện thoại</span>
+                <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
+              </label>
+              <label className="field">
+                <span>Tuyến đường/Khu vực</span>
+                <input name="route" value={form.route} onChange={onChange} placeholder="VD: Hà Nội ⇄ Ninh Bình" required />
+              </label>
+              <label className="field">
+                <span>Ghi chú</span>
+                <textarea name="note" value={form.note} onChange={onChange} placeholder="Giờ giấc, loại xe..." rows={3} />
+              </label>
+              <button type="submit" className="submit">GỬI ĐĂNG KÍ</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
