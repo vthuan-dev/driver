@@ -94,6 +94,8 @@
   display: grid;
   place-items: center;
   box-shadow: 0 8px 18px rgba(0, 177, 79, 0.35);
+  border: 0;
+  cursor: pointer;
 }
 
 /* CTA */
@@ -185,3 +187,13 @@
   font-weight: 700;
 }
 .toast__icon { width: 20px; height: 20px; display: grid; place-items: center; background: rgba(255,255,255,.18); border-radius: 999px; }
+
+/* Call sheet */
+.sheet { position: fixed; inset: 0; z-index: 60; }
+.sheet__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+.sheet__panel { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top-left-radius: 18px; border-top-right-radius: 18px; padding: 16px; box-shadow: 0 -20px 40px rgba(0,0,0,.2); }
+.sheet__row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sheet__label { color: #64748b; font-weight: 700; }
+.sheet__phone { font-size: 18px; }
+.sheet__call { display: block; text-align: center; font-weight: 800; color: #fff; background: #00b14f; padding: 14px; border-radius: 12px; text-decoration: none; margin-bottom: 10px; }
+.sheet__cancel { width: 100%; border: 0; background: #e5e7eb; color: #111827; padding: 12px; border-radius: 12px; font-weight: 700; }

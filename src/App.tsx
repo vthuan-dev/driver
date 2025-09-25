@@ -16,6 +16,12 @@ const posts: DriverPost[] = [
   { id: 'p4', name: 'Anh Hoàng', phone: '0968888777', route: 'Cầu Giấy ⇄ Hải Phòng' },
   { id: 'p5', name: 'Anh Nam', phone: '0977123456', route: 'Long Biên ⇄ Hạ Long' },
   { id: 'p6', name: 'Chị Linh', phone: '0355555999', route: 'Hà Đông ⇄ Phú Thọ' },
+  { id: 'p7', name: 'Tài xế 1', phone: '0927735274', route: 'Giáp Bát ⇄ Ninh Bình' },
+  { id: 'p8', name: 'Tài xế 2', phone: '0924649610', route: 'Hà Nội ⇄ Hải Dương' },
+  { id: 'p9', name: 'Tài xế 3', phone: '0844657330', route: 'Hà Nội ⇄ Bắc Ninh' },
+  { id: 'p10', name: 'Tài xế 4', phone: '0779966349', route: 'Mỹ Đình ⇄ Nội Bài' },
+  { id: 'p11', name: 'Tài xế 5', phone: '0889345121', route: 'Hà Nội ⇄ Nam Định' },
+  { id: 'p12', name: 'Tài xế 6', phone: '0325463415', route: 'Cầu Giấy ⇄ Hưng Yên' },
 ]
 
 const provincesVN34 = [
@@ -33,6 +39,11 @@ function maskPhone(phone: string): string {
   return phone.slice(0, phone.length - 3) + '***'
 }
 
+function maskPhoneStrict(phone: string): string {
+  const last4 = phone.slice(-4)
+  return `xxxx ${last4}`
+}
+
 function getInitial(name: string): string {
   const parts = name.trim().split(/\s+/)
   return parts[parts.length - 1].slice(0, 1).toUpperCase()
@@ -47,6 +58,7 @@ function App() {
   })
   const [authForm, setAuthForm] = useState({ name: '', phone: '' })
   const [menuOpen, setMenuOpen] = useState(false)
+  const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -125,14 +137,17 @@ function App() {
           <article className="driver-card" key={p.id}>
             <div className="avatar">{getInitial(p.name)}</div>
             <div className="driver-info">
-              <div className="driver-phone">{maskPhone(p.phone)}</div>
+              <div className="driver-phone">{maskPhoneStrict(p.phone)}</div>
               <div className="driver-route">{p.route}</div>
             </div>
-            <a className="call-btn" href={`tel:${p.phone}`} aria-label="Gọi tài xế">
+            <button className="call-btn" aria-label="Gọi tài xế" onClick={() => {
+              if (!user) { setAuthModal('register'); return }
+              setCallSheet({ phone: p.phone })
+            }}>
               <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
                 <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z"/>
               </svg>
-            </a>
+            </button>
           </article>
         ))}
       </main>
@@ -227,6 +242,22 @@ function App() {
             <span className="toast__icon">✔</span>
             <span>Đăng kí thành công</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {callSheet && (
+          <div className="sheet" role="dialog" aria-modal="true">
+            <motion.div className="sheet__backdrop" onClick={() => setCallSheet(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
+            <motion.div className="sheet__panel" initial={{y: 240}} animate={{y:0}} exit={{y:240}} transition={{ type:'spring', stiffness:400, damping:34 }}>
+              <div className="sheet__row">
+                <span className="sheet__label">Gọi</span>
+                <strong className="sheet__phone">{maskPhoneStrict(callSheet.phone)}</strong>
+              </div>
+              <a className="sheet__call" href={`tel:${callSheet.phone}`}>GỌI NGAY</a>
+              <button className="sheet__cancel" onClick={() => setCallSheet(null)}>Hủy</button>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
