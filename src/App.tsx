@@ -33,6 +33,7 @@ function App() {
     name: '',
     phone: '',
     route: '',
+    price: '',
     note: '',
   })
 
@@ -44,9 +45,15 @@ function App() {
   }
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    alert(`Đã nhận đăng kí chờ cuốc xe!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${form.route}`)
+    // save to localStorage
+    const key = 'driver_waiting_requests'
+    const current = JSON.parse(localStorage.getItem(key) || '[]') as any[]
+    const entry = { ...form, createdAt: new Date().toISOString() }
+    localStorage.setItem(key, JSON.stringify([entry, ...current].slice(0, 50)))
+
+    alert(`Đã nhận đăng kí!\nTên: ${form.name}\nSĐT: ${form.phone}\nTuyến: ${form.route}\nGiá: ${form.price}`)
     setShowModal(false)
-    setForm({ name: '', phone: '', route: '', note: '' })
+    setForm({ name: '', phone: '', route: '', price: '', note: '' })
   }
 
   return (
@@ -113,7 +120,19 @@ function App() {
               </label>
               <label className="field">
                 <span>Tuyến đường/Khu vực</span>
-                <input name="route" value={form.route} onChange={onChange} placeholder="VD: Hà Nội ⇄ Ninh Bình" required />
+                <select name="route" value={form.route} onChange={(e) => onChange(e as any)} required>
+                  <option value="" disabled>Chọn tuyến</option>
+                  <option>Hà Nội ⇄ Ninh Bình</option>
+                  <option>Hà Nội ⇄ Lào Cai</option>
+                  <option>Mỹ Đình ⇄ Nội Bài</option>
+                  <option>Cầu Giấy ⇄ Hải Phòng</option>
+                  <option>Long Biên ⇄ Hạ Long</option>
+                  <option>Hà Đông ⇄ Phú Thọ</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Giá dự kiến (VND)</span>
+                <input name="price" value={form.price} onChange={onChange} placeholder="VD: 800000" inputMode="numeric" pattern="[0-9]*" />
               </label>
               <label className="field">
                 <span>Ghi chú</span>
