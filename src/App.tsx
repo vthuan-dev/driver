@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
 
+// Load avatar images from ../driver directory
+const avatarModules = import.meta.glob('../driver/*.{jpg,jpeg,png}', { eager: true }) as Record<string, any>
+const avatarImages: string[] = Object.values(avatarModules).map((m: any) => m.default || m)
+
 type DriverPost = {
   id: string
   name: string
@@ -44,10 +48,7 @@ function maskPhoneStrict(phone: string): string {
   return `xxxx ${last4}`
 }
 
-function getInitial(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  return parts[parts.length - 1].slice(0, 1).toUpperCase()
-}
+//
 
 function App() {
   const [showModal, setShowModal] = useState(false)
@@ -134,9 +135,11 @@ function App() {
       </header>
 
       <main className="content">
-        {posts.map((p) => (
+        {posts.map((p, idx) => (
           <article className="driver-card" key={p.id}>
-            <div className="avatar">{getInitial(p.name)}</div>
+            <div className="avatar">
+              <img src={avatarImages[idx % avatarImages.length]} alt={p.name} />
+            </div>
             <div className="driver-info">
               <div className="driver-phone">{maskPhoneStrict(p.phone)}</div>
               <div className="driver-route">{p.route}</div>
