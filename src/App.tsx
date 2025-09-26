@@ -38,10 +38,7 @@ const provincesVN34 = [
   'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ'
 ]
 
-function maskPhone(phone: string): string {
-  if (phone.length < 3) return phone
-  return phone.slice(0, phone.length - 3) + '***'
-}
+//
 
 function maskPhoneStrict(phone: string): string {
   const last4 = phone.slice(-4)
@@ -95,7 +92,7 @@ function App() {
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}>≡ MENU</button>
         <div className="topbar__actions">
-          {user && <span className="hello">👋 {user.name || maskPhone(user.phone)}</span>}
+          {user && <span className="hello">👋 {user.name || maskPhoneStrict(user.phone)}</span>}
         </div>
         {menuOpen && (
           <div className="menu-popover">
@@ -119,7 +116,7 @@ function App() {
             <div className="ticker__item" key={p.id}>
               <span className="dot" />
               <span className="ticker__text">
-                {p.name} đăng nhờ: {p.route} • Liên hệ {maskPhone(p.phone)}
+                {p.name} đăng nhờ: {p.route} • Liên hệ {maskPhoneStrict(p.phone)}
               </span>
             </div>
           ))}
@@ -127,7 +124,7 @@ function App() {
             <div className="ticker__item" key={p.id + '-dup'}>
               <span className="dot" />
               <span className="ticker__text">
-                {p.name} đăng nhờ: {p.route} • Liên hệ {maskPhone(p.phone)}
+                {p.name} đăng nhờ: {p.route} • Liên hệ {maskPhoneStrict(p.phone)}
               </span>
             </div>
           ))}
