@@ -30,18 +30,18 @@ type User = {
 }
 
 const posts: DriverPost[] = [
-  { id: 'p1', name: 'Anh Tuấn', phone: '0912345678', route: 'Hà Nội ⇄ Lào Cai' },
-  { id: 'p2', name: 'Chị Hạnh', phone: '0987654321', route: 'Hà Nội ⇄ Ninh Bình' },
-  { id: 'p3', name: 'Anh Dũng', phone: '0901234567', route: 'Mỹ Đình ⇄ Nội Bài' },
-  { id: 'p4', name: 'Anh Hoàng', phone: '0968888777', route: 'Cầu Giấy ⇄ Hải Phòng' },
-  { id: 'p5', name: 'Anh Nam', phone: '0977123456', route: 'Long Biên ⇄ Hạ Long' },
-  { id: 'p6', name: 'Chị Linh', phone: '0355555999', route: 'Hà Đông ⇄ Phú Thọ' },
-  { id: 'p7', name: 'Tài xế 1', phone: '0927735274', route: 'Giáp Bát ⇄ Ninh Bình' },
-  { id: 'p8', name: 'Tài xế 2', phone: '0924649610', route: 'Hà Nội ⇄ Hải Dương' },
-  { id: 'p9', name: 'Tài xế 3', phone: '0844657330', route: 'Hà Nội ⇄ Bắc Ninh' },
-  { id: 'p10', name: 'Tài xế 4', phone: '0779966349', route: 'Mỹ Đình ⇄ Nội Bài' },
-  { id: 'p11', name: 'Tài xế 5', phone: '0889345121', route: 'Hà Nội ⇄ Nam Định' },
-  { id: 'p12', name: 'Tài xế 6', phone: '0325463415', route: 'Cầu Giấy ⇄ Hưng Yên' },
+  { _id: 'p1', name: 'Anh Tuấn', phone: '0912345678', route: 'Hà Nội ⇄ Lào Cai', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p2', name: 'Chị Hạnh', phone: '0987654321', route: 'Hà Nội ⇄ Ninh Bình', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p3', name: 'Anh Dũng', phone: '0901234567', route: 'Mỹ Đình ⇄ Nội Bài', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p4', name: 'Anh Hoàng', phone: '0968888777', route: 'Cầu Giấy ⇄ Hải Phòng', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p5', name: 'Anh Nam', phone: '0977123456', route: 'Long Biên ⇄ Hạ Long', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p6', name: 'Chị Linh', phone: '0355555999', route: 'Hà Đông ⇄ Phú Thọ', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p7', name: 'Tài xế 1', phone: '0927735274', route: 'Giáp Bát ⇄ Ninh Bình', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p8', name: 'Tài xế 2', phone: '0924649610', route: 'Hà Nội ⇄ Hải Dương', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p9', name: 'Tài xế 3', phone: '0844657330', route: 'Hà Nội ⇄ Bắc Ninh', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p10', name: 'Tài xế 4', phone: '0779966349', route: 'Mỹ Đình ⇄ Nội Bài', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p11', name: 'Tài xế 5', phone: '0889345121', route: 'Hà Nội ⇄ Nam Định', isActive: true, createdAt: new Date().toISOString() },
+  { _id: 'p12', name: 'Tài xế 6', phone: '0325463415', route: 'Cầu Giấy ⇄ Hưng Yên', isActive: true, createdAt: new Date().toISOString() },
 ]
 
 const provincesVN34 = [
@@ -51,7 +51,7 @@ const provincesVN34 = [
   'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
   'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Tĩnh', 'Hưng Yên',
   'Khánh Hòa', 'Kiên Giang', 'Lâm Đồng', 'Lào Cai', 'Long An',
-  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ'
+  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Sơn La'
 ]
 
 //
@@ -414,7 +414,7 @@ function MainApp() {
                       return
                     }
                     
-                    const response = await authAPI.register({
+                    await authAPI.register({
                       name: authForm.name,
                       phone: authForm.phone,
                       password: authForm.password,

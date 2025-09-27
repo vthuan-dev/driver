@@ -34,9 +34,9 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  adminLogin: (credentials) => api.post('/auth/admin/login', credentials),
+  register: (userData: any) => api.post('/auth/register', userData),
+  login: (credentials: any) => api.post('/auth/login', credentials),
+  adminLogin: (credentials: any) => api.post('/auth/admin/login', credentials),
   getMe: () => api.get('/auth/me'),
 };
 
@@ -44,24 +44,24 @@ export const authAPI = {
 export const usersAPI = {
   getPendingUsers: () => api.get('/users/pending'),
   getAllUsers: () => api.get('/users'),
-  approveUser: (id) => api.put(`/users/${id}/approve`),
-  rejectUser: (id) => api.put(`/users/${id}/reject`),
+  approveUser: (id: string) => api.put(`/users/${id}/approve`),
+  rejectUser: (id: string) => api.put(`/users/${id}/reject`),
 };
 
 // Drivers API
 export const driversAPI = {
   getDrivers: () => api.get('/drivers'),
-  createDriver: (driverData) => api.post('/drivers', driverData),
-  updateDriver: (id, driverData) => api.put(`/drivers/${id}`, driverData),
-  deleteDriver: (id) => api.delete(`/drivers/${id}`),
+  createDriver: (driverData: any) => api.post('/drivers', driverData),
+  updateDriver: (id: string, driverData: any) => api.put(`/drivers/${id}`, driverData),
+  deleteDriver: (id: string) => api.delete(`/drivers/${id}`),
 };
 
 // Requests API
 export const requestsAPI = {
-  createRequest: (requestData) => api.post('/requests', requestData),
+  createRequest: (requestData: any) => api.post('/requests', requestData),
   getMyRequests: () => api.get('/requests/my-requests'),
   getAllRequests: () => api.get('/requests'),
-  updateRequest: (id, status) => api.put(`/requests/${id}`, { status }),
+  updateRequest: (id: string, status: string) => api.put(`/requests/${id}`, { status }),
 };
 
 export default api;
