@@ -92,6 +92,8 @@ function AdminApp() {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
     setAdmin(null);
+    // Redirect to admin login page
+    window.location.href = '/admin';
   };
 
   if (loading) {
@@ -199,7 +201,22 @@ function MainApp() {
       <div className="topbar">
         <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}>≡ MENU</button>
         <div className="topbar__actions">
-          {user && <span className="hello">👋 {user.name || maskPhoneStrict(user.phone)}</span>}
+          {user && (
+            <div className="user-info">
+              <span className="hello">👋 {user.name || maskPhoneStrict(user.phone)}</span>
+              <button 
+                className="logout-btn"
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('driver_user');
+                  setUser(null);
+                  setMenuOpen(false);
+                }}
+              >
+                🚪 Đăng xuất
+              </button>
+            </div>
+          )}
         </div>
         {menuOpen && (
           <div className="menu-popover">
