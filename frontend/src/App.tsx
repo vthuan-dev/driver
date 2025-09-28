@@ -204,7 +204,7 @@ function MainApp() {
           {user && (
             <div className="user-info">
               <span className="hello">👋 {user.name || maskPhoneStrict(user.phone)}</span>
-              <button 
+              {/* <button 
                 className="logout-btn"
                 onClick={() => {
                   localStorage.removeItem('token');
@@ -214,7 +214,7 @@ function MainApp() {
                 }}
               >
                 🚪 Đăng xuất
-              </button>
+              </button> */}
             </div>
           )}
         </div>
