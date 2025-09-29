@@ -199,6 +199,7 @@ function MainApp() {
   const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string }>>([])
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
+  const [activeView, setActiveView] = useState<'home' | 'requests'>('home')
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -294,9 +295,9 @@ function MainApp() {
 
   // If URL hash points to requests, scroll to it on mount
   useEffect(() => {
-    const shouldScroll = location.hash === '#requests' || new URLSearchParams(location.search).get('show') === 'requests'
-    if (shouldScroll) {
-      // Wait a tick for layout
+    const shouldOpen = location.hash === '#requests' || new URLSearchParams(location.search).get('show') === 'requests'
+    if (shouldOpen) {
+      setActiveView('requests')
       setTimeout(() => {
         document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
@@ -393,11 +394,7 @@ function MainApp() {
               </>
             )}
             <button className="menu-item" onClick={() => {
-              if (location.pathname !== '/') {
-                window.location.href = '/#requests'
-              } else {
-                document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' })
-              }
+              setActiveView('requests')
               setMenuOpen(false)
             }}>Xem yêu cầu cuốc xe</button>
             {user && (
@@ -430,7 +427,12 @@ function MainApp() {
       </header>
 
       <main className="content">
+        {activeView === 'requests' && (
         <section className="requests-section" id="requests">
+          <div className="section-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 8}}>
+            <h2 className="requests-heading" style={{margin: 0}}>Yêu cầu chở cuốc xe</h2>
+            <button className="menu-item" onClick={() => setActiveView('home')}>‹ Quay về</button>
+          </div>
           <h2 className="requests-heading">Yêu cầu chở cuốc xe</h2>
           {requests.length === 0 && (
             <div className="empty-state">Chưa có yêu cầu nào.</div>
@@ -450,6 +452,9 @@ function MainApp() {
             </div>
           ))}
         </section>
+        )}
+        {activeView === 'home' && (
+        <>
         <div className="region-tabs">
           {(['north', 'central', 'south'] as Region[]).map((region) => (
             <button
@@ -500,6 +505,8 @@ function MainApp() {
             </article>
           )
         })}
+        </>
+        )}
       </main>
 
       <button className="floating-cta" onClick={() => {
