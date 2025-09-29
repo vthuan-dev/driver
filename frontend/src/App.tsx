@@ -32,6 +32,7 @@ type User = {
 }
 
 const fallbackDriversTuples: Array<[string, string, string, string, Region]> = [
+  // North (Miền Bắc)
   ['north-1', 'Anh Tuan', '0912345678', 'Ha Noi <-> Lao Cai', 'north'],
   ['north-2', 'Chi Hanh', '0987654321', 'Ha Noi <-> Ninh Binh', 'north'],
   ['north-3', 'Anh Duong', '0901234567', 'My Dinh <-> Noi Bai', 'north'],
@@ -42,16 +43,34 @@ const fallbackDriversTuples: Array<[string, string, string, string, Region]> = [
   ['north-8', 'Anh Thang', '0945678123', 'Ha Noi <-> Son La', 'north'],
   ['north-9', 'Anh Vinh', '0911222333', 'Ha Noi <-> Ha Giang', 'north'],
   ['north-10', 'Anh Tam', '0977333555', 'Ha Noi <-> Yen Bai', 'north'],
+  ['north-11', 'Anh Duc', '0915667788', 'Ha Noi <-> Tuyen Quang', 'north'],
+  ['north-12', 'Anh Hieu', '0982334455', 'Ha Noi <-> Bac Kan', 'north'],
+  ['north-13', 'Chi Mai', '0978665544', 'Ha Noi <-> Thai Nguyen', 'north'],
+  ['north-14', 'Anh Quang', '0964111222', 'Ha Noi <-> Lang Son', 'north'],
+
+  // Central (Miền Trung)
   ['central-1', 'Anh Khoa', '0934567890', 'Da Nang <-> Hue', 'central'],
   ['central-2', 'Anh Tho', '0905671234', 'Da Nang <-> Quang Nam', 'central'],
   ['central-3', 'Anh Hung', '0978112233', 'Quy Nhon <-> Pleiku', 'central'],
   ['central-4', 'Anh Minh', '0965123789', 'Nha Trang <-> Da Lat', 'central'],
   ['central-5', 'Chi Yen', '0923456781', 'Hue <-> Quang Tri', 'central'],
+  ['central-6', 'Anh Phuc', '0907788991', 'Da Nang <-> Quang Ngai', 'central'],
+  ['central-7', 'Anh Son', '0935111222', 'Da Nang <-> Quang Binh', 'central'],
+  ['central-8', 'Anh Tien', '0978999111', 'Nha Trang <-> Phan Rang', 'central'],
+  ['central-9', 'Anh Long', '0965222333', 'Quy Nhon <-> Kon Tum', 'central'],
+  ['central-10', 'Chi Ha', '0924666888', 'Hue <-> Da Nang', 'central'],
+
+  // South (Miền Nam)
   ['south-1', 'Anh Khai', '0903456789', 'TP HCM <-> Vung Tau', 'south'],
   ['south-2', 'Anh Phuong', '0939345123', 'TP HCM <-> Can Tho', 'south'],
   ['south-3', 'Anh Cuong', '0988123456', 'Bien Hoa <-> Long An', 'south'],
   ['south-4', 'Chi Trang', '0977456123', 'TP HCM <-> Tay Ninh', 'south'],
   ['south-5', 'Anh Loc', '0911778899', 'Can Tho <-> Ca Mau', 'south'],
+  ['south-6', 'Anh Viet', '0906677889', 'TP HCM <-> Vinh Long', 'south'],
+  ['south-7', 'Anh Danh', '0938222333', 'TP HCM <-> Tien Giang', 'south'],
+  ['south-8', 'Anh Bao', '0977555333', 'TP HCM <-> Ben Tre', 'south'],
+  ['south-9', 'Anh Phat', '0965222444', 'TP HCM <-> Binh Duong', 'south'],
+  ['south-10', 'Chi Nhi', '0924333444', 'Can Tho <-> Kien Giang', 'south'],
 ];
 
 const posts: DriverPost[] = fallbackDriversTuples.map(([id, name, phone, route, region]) => ({
@@ -257,6 +276,17 @@ function MainApp() {
     loadRequests()
   }, [])
 
+  // If URL hash points to requests, scroll to it on mount
+  useEffect(() => {
+    const shouldScroll = location.hash === '#requests' || new URLSearchParams(location.search).get('show') === 'requests'
+    if (shouldScroll) {
+      // Wait a tick for layout
+      setTimeout(() => {
+        document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    }
+  }, [])
+
 
   const openModal = () => setShowModal(true)
   const closeModal = () => setShowModal(false)
@@ -346,9 +376,16 @@ function MainApp() {
                 <button className="menu-item" onClick={() => { setAuthModal('login'); setMenuOpen(false) }}>Đăng nhập</button>
               </>
             )}
+            <button className="menu-item" onClick={() => {
+              if (location.pathname !== '/') {
+                window.location.href = '/#requests'
+              } else {
+                document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' })
+              }
+              setMenuOpen(false)
+            }}>Xem yêu cầu cuốc xe</button>
             {user && (
               <>
-                <button className="menu-item" onClick={() => { document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false) }}>Xem yêu cầu cuốc xe</button>
                 <button className="menu-item" onClick={() => { localStorage.removeItem('driver_user'); localStorage.removeItem('token'); localStorage.removeItem('driver_registered'); setUser(null); setMenuOpen(false) }}>Đăng xuất</button>
               </>
             )}

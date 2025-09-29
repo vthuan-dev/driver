@@ -96,6 +96,7 @@
 /* Requests section */
 .requests-section { margin-bottom: 12px; }
 .requests-heading { font-size: 18px; font-weight: 800; margin: 8px 0 10px; }
+.requests-heading::before { content: none !important; }
 .request-card { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.06); margin-bottom: 10px; }
 .request-main { display: grid; gap: 4px; }
 .request-name { font-weight: 700; }
