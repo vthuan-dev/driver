@@ -75,10 +75,20 @@ const fallbackDriversTuples: Array<[string, string, string, string, Region]> = [
   ['south-10', 'Chi Nhi', '0924333444', 'Can Tho <-> Kien Giang', 'south'],
 ];
 
+function generatePhone(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  }
+  const prefix = (hash % 2 === 0) ? '09' : '07'
+  const body = (hash % 100000000).toString().padStart(8, '0')
+  return prefix + body
+}
+
 const posts: DriverPost[] = fallbackDriversTuples.map(([id, name, phone, route, region]) => ({
   _id: id,
   name,
-  phone,
+  phone: generatePhone(`${id}-${name}-${phone}`),
   route,
   region,
   isActive: true,
@@ -101,13 +111,14 @@ const regionLabels: Record<Region, string> = {
 }
 
 const provincesVN34 = [
-  'HÃ  Ná»™i', 'TP. Há»“ ChÃ­ Minh', 'ÄÃ  Náºµng', 'Háº£i PhÃ²ng', 'Cáº§n ThÆ¡',
-  'An Giang', 'BÃ  Rá»‹a - VÅ©ng TÃ u', 'Báº¯c Giang', 'Báº¯c Ninh', 'Báº¿n Tre',
-  'BÃ¬nh DÆ°Æ¡ng', 'BÃ¬nh Äá»‹nh', 'BÃ¬nh Thuáº­n', 'CÃ  Mau', 'Cao Báº±ng',
-  'Äáº¯k Láº¯k', 'Äáº¯k NÃ´ng', 'Äiá»‡n BiÃªn', 'Äá»“ng Nai', 'Äá»“ng ThÃ¡p',
-  'Gia Lai', 'HÃ  Giang', 'HÃ  Nam', 'HÃ  TÄ©nh', 'HÆ°ng YÃªn',
-  'KhÃ¡nh HÃ²a', 'KiÃªn Giang', 'LÃ¢m Äá»“ng', 'LÃ o Cai', 'Long An',
-  'Nam Äá»‹nh', 'Nghá»‡ An', 'Ninh BÃ¬nh', 'PhÃº Thá»', 'SÆ¡n La'
+  'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
+  'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Ninh', 'Bến Tre',
+  'Bình Dương', 'Bình Định', 'Bình Thuận', 'Cà Mau', 'Cao Bằng',
+  'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
+  'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Tĩnh', 'Hưng Yên',
+  'Khánh Hòa', 'Kiên Giang', 'Lâm Đồng', 'Lào Cai', 'Long An',
+  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Sơn La',
+  'Thái Nguyên', 'Lạng Sơn', 'Tuyên Quang', 'Vĩnh Long', 'Tiền Giang'
 ]
 
 //
@@ -569,31 +580,31 @@ function MainApp() {
             </div>
             <form className="form" onSubmit={onSubmit}>
               <label className="field">
-                <span>Há» vÃ  tÃªn</span>
-                <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyá»…n VÄƒn A" required />
+                <span>Họ và tên</span>
+                <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyễn Văn A" required />
               </label>
               <label className="field">
-                <span>Sá»‘ Ä‘iá»‡n thoáº¡i</span>
+                <span>Số điện thoại</span>
                 <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
               </label>
               <div className="field" style={{gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '12px'}}>
                 <label className="field">
-                  <span>Äiá»ƒm xuáº¥t phÃ¡t</span>
+                  <span>Điểm xuất phát</span>
                   <motion.select name="startPoint" value={form.startPoint} onChange={(e) => onChange(e as any)} required
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
                   >
-                    <option value="" disabled>Chá»n tá»‰nh/thÃ nh</option>
+                    <option value="" disabled>Chọn tỉnh/thành</option>
                     {provincesVN34.map((p) => (
                       <option key={'s-'+p} value={p}>{p}</option>
                     ))}
                   </motion.select>
                 </label>
                 <label className="field">
-                  <span>Äiá»ƒm Ä‘áº¿n</span>
+                  <span>Điểm đến</span>
                   <motion.select name="endPoint" value={form.endPoint} onChange={(e) => onChange(e as any)} required
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
                   >
-                    <option value="" disabled>Chá»n tá»‰nh/thÃ nh</option>
+                    <option value="" disabled>Chọn tỉnh/thành</option>
                     {provincesVN34.map((p) => (
                       <option key={'e-'+p} value={p}>{p}</option>
                     ))}
@@ -601,19 +612,19 @@ function MainApp() {
                 </label>
               </div>
               <label className="field">
-                <span>GiÃ¡ dá»± kiáº¿n (VND)</span>
+                <span>Giá dự kiến (VND)</span>
                 <input name="price" value={form.price} onChange={onChange} placeholder="VD: 800000" inputMode="numeric" pattern="[0-9]*" />
               </label>
               <label className="field">
-                <span>Ghi chÃº</span>
-                <textarea name="note" value={form.note} onChange={onChange} placeholder="Giá» giáº¥c, loáº¡i xe..." rows={3} />
+                <span>Ghi chú</span>
+                <textarea name="note" value={form.note} onChange={onChange} placeholder="Giờ giấc, loại xe..." rows={3} />
               </label>
               <motion.button type="submit" className="submit"
                 whileTap={{ scale: 0.98 }}
                 whileHover={{ filter: 'brightness(1.05)' }}
                 disabled={loading}
               >
-                {loading ? 'ÄANG Gá»¬I...' : 'Gá»¬I ÄÄ‚NG KÃ'}
+                {loading ? 'ĐANG GỬI...' : 'GỬI ĐĂNG KÝ'}
               </motion.button>
             </form>
           </motion.div>
@@ -643,7 +654,7 @@ function MainApp() {
             exit={{ y: 60, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           >
-            <span className="toast__icon">âœ•</span>
+            <span className="toast__icon">✖</span>
             <span>{errorMessage}</span>
           </motion.div>
         )}
@@ -655,11 +666,11 @@ function MainApp() {
             <motion.div className="sheet__backdrop" onClick={() => setCallSheet(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
             <motion.div className="sheet__panel" initial={{y: 240}} animate={{y:0}} exit={{y:240}} transition={{ type:'spring', stiffness:400, damping:34 }}>
               <div className="sheet__row">
-                <span className="sheet__label">Gá»i</span>
+                <span className="sheet__label">Gọi</span>
                 <strong className="sheet__phone">{formatPhone(callSheet.phone)}</strong>
               </div>
-              <a className="sheet__call" href={`tel:${callSheet.phone}`}>Gá»ŒI NGAY</a>
-              <button className="sheet__cancel" onClick={() => setCallSheet(null)}>Há»§y</button>
+              <a className="sheet__call" href={`tel:${callSheet.phone}`}>GỌI NGAY</a>
+              <button className="sheet__cancel" onClick={() => setCallSheet(null)}>Hủy</button>
             </motion.div>
           </div>
         )}
