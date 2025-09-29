@@ -227,18 +227,33 @@ function MainApp() {
     return (first + last).toUpperCase() || 'TX'
   }
 
-  const pickAvatarIndex = (name: string, region: Region) => {
+  const pickAvatarIndex = (name: string, phone: string, region: Region) => {
     if (avatarImages.length === 0) return -1
-    // Hash by name+region for stable selection
-    const base = `${name}-${region}`
+    // Split global pool into 3 region-specific sub-pools to reduce cross-region duplicates
+    const regionOffset = region === 'north' ? 0 : region === 'central' ? 1 : 2
+    const regionPool = avatarImages.filter((_, i) => i % 3 === regionOffset)
+    const pool = regionPool.length > 0 ? regionPool : avatarImages
+
+    // Hash by name+phone for stable selection inside the pool
+    const base = `${name}-${phone}`
     let hash = 0
     for (let i = 0; i < base.length; i++) {
       hash = (hash * 31 + base.charCodeAt(i)) >>> 0
     }
-    // Offset ranges per region so each region prefers a different subset
-    const regionOffset = region === 'north' ? 0 : region === 'central' ? 1 : 2
-    const idx = Math.abs(hash + regionOffset) % avatarImages.length
-    return idx
+
+    const idxInPool = Math.abs(hash) % pool.length
+
+    // Map index-in-pool back to global index for rendering
+    if (pool === avatarImages) return idxInPool
+    // find nth matching index where i % 3 === regionOffset
+    let count = -1
+    for (let i = 0; i < avatarImages.length; i++) {
+      if (i % 3 === regionOffset) {
+        count++
+        if (count === idxInPool) return i
+      }
+    }
+    return idxInPool % avatarImages.length
   }
 
   // Load drivers from API
@@ -471,12 +486,22 @@ function MainApp() {
           <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
         )}
 
-        {displayedDrivers.map((p) => {
+        {(() => { const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
           return (
             <article className="driver-card" key={p._id}>
               <div className="avatar" aria-label={p.name} title={p.name}>
                 {(() => {
-                  const idx = pickAvatarIndex(p.name, (p.region as Region) || 'north')
+                  let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
+                  if (idx >= 0 && usedAvatarIdx.has(idx)) {
+                    // try next candidates within same region pool (step by 3 keeps region bucket)
+                    let tries = 0
+                    while (tries < avatarImages.length) {
+                      idx = (idx + 3) % avatarImages.length
+                      if (!usedAvatarIdx.has(idx)) break
+                      tries++
+                    }
+                  }
+                  if (idx >= 0) usedAvatarIdx.add(idx)
                   const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
                   // In case new images are added/removed, ensure index stays in range
                   if (!chosen) return <span>{toInitials(p.name)}</span>
@@ -506,7 +531,7 @@ function MainApp() {
               </button>
             </article>
           )
-        })}
+        })})()}
         </>
         )}
       </main>
@@ -539,8 +564,8 @@ function MainApp() {
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
           >
             <div className="modal__header">
-              <div className="modal__title">ÄÄƒng kÃ­ chá» cuá»‘c xe</div>
-              <button className="modal__close" onClick={closeModal} aria-label="ÄÃ³ng">âœ•</button>
+              <div className="modal__title">Đăng ký chở cuốc xe</div>
+              <button className="modal__close" onClick={closeModal} aria-label="Đóng">×</button>
             </div>
             <form className="form" onSubmit={onSubmit}>
               <label className="field">
@@ -604,8 +629,8 @@ function MainApp() {
             exit={{ y: 60, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           >
-            <span className="toast__icon">âœ”</span>
-            <span>ÄÄƒng kÃ­ thÃ nh cÃ´ng</span>
+            <span className="toast__icon">✔</span>
+            <span>Đăng ký thành công</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -646,8 +671,8 @@ function MainApp() {
             <motion.div className="modal__backdrop" onClick={() => setAuthModal(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
             <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
               <div className="modal__header">
-                <div className="modal__title">{authModal === 'login' ? 'ÄÄƒng nháº­p' : 'ÄÄƒng kÃ½ thÃ nh viÃªn nhÃ³m'}</div>
-                <button className="modal__close" onClick={() => setAuthModal(null)} aria-label="ÄÃ³ng">âœ•</button>
+                <div className="modal__title">{authModal === 'login' ? 'Đăng nhập' : 'Đăng ký thành viên nhóm'}</div>
+                <button className="modal__close" onClick={() => setAuthModal(null)} aria-label="Đóng">×</button>
               </div>
               <form className="form" onSubmit={async (e) => {
                 e.preventDefault();
@@ -678,7 +703,7 @@ function MainApp() {
                     })
 
                     localStorage.setItem('driver_registered', '1')
-                    alert('Dang ky thanh cong! Vui long doi admin phe duyet.')
+                    alert('Đăng ký thành công! Vui lòng đợi admin phê duyệt.')
                     setAuthModal(null)
                   } else {
                     const response = await authAPI.login({
@@ -702,7 +727,7 @@ function MainApp() {
                   }
                 } catch (error: any) {
                   console.error('Auth error:', error)
-                  const errorMsg = error.response?.data?.message || 'Co loi xay ra'
+                  const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra'
                   setErrorMessage(errorMsg)
                   setShowError(true)
                   setTimeout(() => setShowError(false), 3000)
@@ -714,26 +739,26 @@ function MainApp() {
               }}>
                 {authModal === 'register' && (
                   <label className="field">
-                    <span>H��? vA� tA�n</span>
-                    <input name="name" value={authForm.name} onChange={(e)=>setAuthForm({...authForm, name: e.target.value})} placeholder="VD: Nguy��.n V��n A" required />
+                    <span>Họ và tên</span>
+                    <input name="name" value={authForm.name} onChange={(e)=>setAuthForm({...authForm, name: e.target.value})} placeholder="VD: Nguyễn Văn A" required />
                   </label>
                 )}
                 <label className="field">
-                  <span>S��` �`i���n tho���i</span>
+                  <span>Số điện thoại</span>
                   <input name="phone" value={authForm.phone} onChange={(e)=>setAuthForm({...authForm, phone: e.target.value})} inputMode="tel" pattern="[0-9]{9,11}" placeholder="VD: 09xxxxxxx" required />
                 </label>
                 {authModal === 'register' && (
                   <>
                     <label className="field">
-                      <span>Lo���i xe</span>
+                      <span>Loại xe</span>
                       <input name="carType" value={authForm.carType} onChange={(e)=>setAuthForm({...authForm, carType: e.target.value})} placeholder="VD: Toyota Camry, Honda Civic..." required />
                     </label>
                     <label className="field">
-                      <span>�?��?i xe</span>
+                      <span>Đời xe</span>
                       <input name="carYear" value={authForm.carYear} onChange={(e)=>setAuthForm({...authForm, carYear: e.target.value})} placeholder="VD: 2020, 2021..." required />
                     </label>
                     <label className="field">
-                      <span>Anh xe (toi da 2MB)</span>
+                      <span>Ảnh xe (tối đa 2MB)</span>
                       <input
                         key={carImagePreview ? 'car-image-set' : 'car-image-empty'}
                         type="file"
@@ -743,24 +768,24 @@ function MainApp() {
                       />
                       {carImagePreview && (
                         <div className="image-preview">
-                          <img src={carImagePreview} alt="Anh xe" />
+                          <img src={carImagePreview} alt="Ảnh xe" />
                         </div>
                       )}
                     </label>
                   </>
                 )}
                 <label className="field">
-                  <span>M��-t kh��cu</span>
-                  <input type="password" name="password" value={authForm.password} onChange={(e)=>setAuthForm({...authForm, password: e.target.value})} placeholder="A?t nh���t 4 kA� t���" required />
+                  <span>Mật khẩu</span>
+                  <input type="password" name="password" value={authForm.password} onChange={(e)=>setAuthForm({...authForm, password: e.target.value})} placeholder="Ít nhất 4 ký tự" required />
                 </label>
                 {authModal === 'register' && (
                   <label className="field">
-                    <span>XA�c nh��-n l���i m��-t kh��cu</span>
-                    <input type="password" name="confirmPassword" value={authForm.confirmPassword} onChange={(e)=>setAuthForm({...authForm, confirmPassword: e.target.value})} placeholder="Nh��-p l���i m��-t kh��cu" required />
+                    <span>Xác nhận lại mật khẩu</span>
+                    <input type="password" name="confirmPassword" value={authForm.confirmPassword} onChange={(e)=>setAuthForm({...authForm, confirmPassword: e.target.value})} placeholder="Nhập lại mật khẩu" required />
                   </label>
                 )}
                 <motion.button type="submit" className="submit" whileTap={{scale:.98}} disabled={loading}>
-                  {loading ? '�?ANG X��� LA?...' : 'XA?C NH���N'}
+                  {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN'}
                 </motion.button>
               </form>
             </motion.div>
