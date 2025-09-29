@@ -1052,26 +1052,5 @@ body {
   }
 }
 
-
-  
-  .tab-content {
-    padding: 15px 10px;
-  }
-  
-  .user-card,
-  .request-card {
-    padding: 12px;
-  }
-  
-  .user-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .approve-btn,
-  .reject-btn {
-    width: 100%;
-    padding: 10px;
-  }
-}
+ 
 
