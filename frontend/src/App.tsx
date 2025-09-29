@@ -6,7 +6,9 @@ import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 
-// Avatars: we render initials when no avatar image is provided
+// Avatar images from folder; we will deterministically map driver+region to an image
+const avatarModules = import.meta.glob('../driver/*.{jpg,jpeg,png}', { eager: true }) as Record<string, any>
+const avatarImages: string[] = Object.values(avatarModules).map((m: any) => m.default || m)
 
 type Region = 'north' | 'central' | 'south'
 
@@ -222,6 +224,20 @@ function MainApp() {
     const first = parts[0]?.[0] || ''
     const last = parts.length > 1 ? parts[parts.length - 1][0] : ''
     return (first + last).toUpperCase() || 'TX'
+  }
+
+  const pickAvatarFor = (name: string, region: Region) => {
+    if (avatarImages.length === 0) return null
+    // Hash by name+region for stable selection
+    const base = `${name}-${region}`
+    let hash = 0
+    for (let i = 0; i < base.length; i++) {
+      hash = (hash * 31 + base.charCodeAt(i)) >>> 0
+    }
+    // Offset ranges per region so each region prefers a different subset
+    const regionOffset = region === 'north' ? 0 : region === 'central' ? 1 : 2
+    const idx = Math.abs(hash + regionOffset) % avatarImages.length
+    return avatarImages[idx]
   }
 
   // Load drivers from API
@@ -455,11 +471,10 @@ function MainApp() {
           return (
             <article className="driver-card" key={p._id}>
               <div className="avatar" aria-label={p.name} title={p.name}>
-                {p.avatar ? (
-                  <img src={p.avatar} alt={p.name} />
-                ) : (
-                  <span>{toInitials(p.name)}</span>
-                )}
+                {(() => {
+                  const chosen = p.avatar || pickAvatarFor(p.name, (p.region as Region) || 'north')
+                  return chosen ? <img src={chosen} alt={p.name} /> : <span>{toInitials(p.name)}</span>
+                })()}
               </div>
               <div className="driver-info">
                 <div className="driver-phone">{formatPhone(p.phone)}</div>
