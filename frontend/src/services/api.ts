@@ -60,7 +60,8 @@ export const driversAPI = {
 export const requestsAPI = {
   createRequest: (requestData: any) => api.post('/requests', requestData),
   getMyRequests: () => api.get('/requests/my-requests'),
-  getAllRequests: () => api.get('/requests'),
+  // Optional params to fetch public waiting requests for homepage
+  getAllRequests: (params?: { status?: string; limit?: number }) => api.get('/requests', { params }),
   updateRequest: (id: string, status: string) => api.put(`/requests/${id}`, { status }),
 };
 

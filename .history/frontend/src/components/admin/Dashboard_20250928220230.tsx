@@ -9,7 +9,6 @@ type User = {
   phone: string;
   carType: string;
   carYear: string;
-  carImage?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   approvedAt?: string;
@@ -28,12 +27,34 @@ type Request = {
   createdAt: string;
 };
 
+type DriverContact = {
+  _id: string;
+  phone: string;
+  route: string;
+  avatar: string;
+};
+
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'drivers'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [drivers, setDrivers] = useState<DriverContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const loadDrivers = async () => {
+    try {
+      // Thay bằng API thực tế của bạn
+      const response = await usersAPI.getAllDrivers?.();
+      if (response && response.data && response.data.drivers) {
+        setDrivers(response.data.drivers);
+      } else {
+        setDrivers([]);
+      }
+    } catch (error) {
+      setDrivers([]);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -56,6 +77,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   useEffect(() => {
     loadUsers();
     loadRequests();
+    loadDrivers();
   }, []);
 
   const handleApproveUser = async (userId: string) => {
@@ -221,13 +243,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                       >
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -264,13 +279,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {approvedUsers.map(user => (
                       <div key={user._id} className="user-card approved">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -292,13 +300,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {rejectedUsers.map(user => (
                       <div key={user._id} className="user-card rejected">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>

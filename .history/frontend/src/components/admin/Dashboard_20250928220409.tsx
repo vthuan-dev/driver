@@ -9,7 +9,6 @@ type User = {
   phone: string;
   carType: string;
   carYear: string;
-  carImage?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   approvedAt?: string;
@@ -28,12 +27,34 @@ type Request = {
   createdAt: string;
 };
 
+type DriverContact = {
+  _id: string;
+  phone: string;
+  route: string;
+  avatar: string;
+};
+
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'drivers'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [drivers, setDrivers] = useState<DriverContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const loadDrivers = async () => {
+    try {
+      // Thay bằng API thực tế của bạn
+      const response = await usersAPI.getAllDrivers?.();
+      if (response && response.data && response.data.drivers) {
+        setDrivers(response.data.drivers);
+      } else {
+        setDrivers([]);
+      }
+    } catch (error) {
+      setDrivers([]);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -56,6 +77,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   useEffect(() => {
     loadUsers();
     loadRequests();
+    loadDrivers();
   }, []);
 
   const handleApproveUser = async (userId: string) => {
@@ -141,6 +163,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>Yêu cầu chờ cuốc</span>
               </button>
             </div>
+                <button 
+                  className={`tab ${activeTab === 'drivers' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('drivers')}
+                >
+                  <span>📞</span>
+                  <span>Danh bạ tài xế</span>
+                </button>
           </div>
         </div>
 
@@ -203,6 +232,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>Yêu cầu chờ cuốc</span>
               </button>
             </div>
+                <button 
+                  className={`mobile-tab ${activeTab === 'drivers' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('drivers')}
+                >
+                  <span>📞</span>
+                  <span>Danh bạ tài xế</span>
+                </button>
           </div>
 
           <div className="tab-content">
@@ -221,13 +257,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                       >
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -264,13 +293,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {approvedUsers.map(user => (
                       <div key={user._id} className="user-card approved">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -292,13 +314,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {rejectedUsers.map(user => (
                       <div key={user._id} className="user-card rejected">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -313,6 +328,28 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   </div>
                 </div>
               )}
+
+                  {activeTab === 'drivers' && (
+                    <div className="drivers-section">
+                      <h2>Danh bạ tài xế</h2>
+                      <div className="driver-list">
+                        {drivers.length === 0 && <div>Không có dữ liệu tài xế.</div>}
+                        {drivers.map(driver => (
+                          <div className="driver-item" key={driver._id}>
+                            <img src={driver.avatar} alt="avatar" className="driver-avatar" />
+                            <div className="driver-info">
+                              <div className="driver-phone">{'xxxx ' + driver.phone.slice(-4)}</div>
+                              <div className="driver-route">{driver.route}</div>
+                            </div>
+                            <a href={`tel:${driver.phone}`} className="call-btn">
+                              <span role="img" aria-label="call">📞</span>
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                      <button className="register-btn">ĐĂNG KÍ CHỜ CUỐC XE</button>
+                    </div>
+                  )}
             </div>
           )}
 

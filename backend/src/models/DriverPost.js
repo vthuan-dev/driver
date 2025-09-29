@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const driverPostSchema = new mongoose.Schema({
   name: {
@@ -20,6 +20,11 @@ const driverPostSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  region: {
+    type: String,
+    enum: ['north', 'central', 'south'],
+    default: 'north'
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -31,3 +36,4 @@ const driverPostSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('DriverPost', driverPostSchema);
+

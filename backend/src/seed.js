@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const Admin = require('./models/Admin');
 const DriverPost = require('./models/DriverPost');
 const config = require('./config/config');
@@ -25,18 +25,26 @@ const seedData = async () => {
     const existingDrivers = await DriverPost.countDocuments();
     if (existingDrivers === 0) {
       const drivers = [
-        { name: 'Anh Tuấn', phone: '0912345678', route: 'Hà Nội ⇄ Lào Cai' },
-        { name: 'Chị Hạnh', phone: '0987654321', route: 'Hà Nội ⇄ Ninh Bình' },
-        { name: 'Anh Dũng', phone: '0901234567', route: 'Mỹ Đình ⇄ Nội Bài' },
-        { name: 'Anh Hoàng', phone: '0968888777', route: 'Cầu Giấy ⇄ Hải Phòng' },
-        { name: 'Anh Nam', phone: '0977123456', route: 'Long Biên ⇄ Hạ Long' },
-        { name: 'Chị Linh', phone: '0355555999', route: 'Hà Đông ⇄ Phú Thọ' },
-        { name: 'Tài xế 1', phone: '0927735274', route: 'Giáp Bát ⇄ Ninh Bình' },
-        { name: 'Tài xế 2', phone: '0924649610', route: 'Hà Nội ⇄ Hải Dương' },
-        { name: 'Tài xế 3', phone: '0844657330', route: 'Hà Nội ⇄ Bắc Ninh' },
-        { name: 'Tài xế 4', phone: '0779966349', route: 'Mỹ Đình ⇄ Nội Bài' },
-        { name: 'Tài xế 5', phone: '0889345121', route: 'Hà Nội ⇄ Nam Định' },
-        { name: 'Tài xế 6', phone: '0325463415', route: 'Cầu Giấy ⇄ Hưng Yên' }
+        { name: 'Anh Tuan', phone: '0912345678', route: 'Ha Noi <-> Lao Cai', region: 'north' },
+        { name: 'Chi Hanh', phone: '0987654321', route: 'Ha Noi <-> Ninh Binh', region: 'north' },
+        { name: 'Anh Duong', phone: '0901234567', route: 'My Dinh <-> Noi Bai', region: 'north' },
+        { name: 'Anh Hoang', phone: '0968888777', route: 'Cau Giay <-> Hai Phong', region: 'north' },
+        { name: 'Anh Nam', phone: '0977123456', route: 'Long Bien <-> Ha Long', region: 'north' },
+        { name: 'Chi Linh', phone: '0355555999', route: 'Ha Dong <-> Phu Tho', region: 'north' },
+        { name: 'Bac Tuan', phone: '0934567123', route: 'Ha Noi <-> Dien Bien', region: 'north' },
+        { name: 'Anh Thang', phone: '0945678123', route: 'Ha Noi <-> Son La', region: 'north' },
+        { name: 'Anh Vinh', phone: '0911222333', route: 'Ha Noi <-> Ha Giang', region: 'north' },
+        { name: 'Anh Tam', phone: '0977333555', route: 'Ha Noi <-> Yen Bai', region: 'north' },
+        { name: 'Anh Khoa', phone: '0934567890', route: 'Da Nang <-> Hue', region: 'central' },
+        { name: 'Anh Tho', phone: '0905671234', route: 'Da Nang <-> Quang Nam', region: 'central' },
+        { name: 'Anh Hung', phone: '0978112233', route: 'Quy Nhon <-> Pleiku', region: 'central' },
+        { name: 'Anh Minh', phone: '0965123789', route: 'Nha Trang <-> Da Lat', region: 'central' },
+        { name: 'Chi Yen', phone: '0923456781', route: 'Hue <-> Quang Tri', region: 'central' },
+        { name: 'Anh Khai', phone: '0903456789', route: 'TP HCM <-> Vung Tau', region: 'south' },
+        { name: 'Anh Phuong', phone: '0939345123', route: 'TP HCM <-> Can Tho', region: 'south' },
+        { name: 'Anh Cuong', phone: '0988123456', route: 'Bien Hoa <-> Long An', region: 'south' },
+        { name: 'Chi Trang', phone: '0977456123', route: 'TP HCM <-> Tay Ninh', region: 'south' },
+        { name: 'Anh Loc', phone: '0911778899', route: 'Can Tho <-> Ca Mau', region: 'south' }
       ];
 
       await DriverPost.insertMany(drivers);
@@ -52,3 +60,4 @@ const seedData = async () => {
 };
 
 seedData();
+

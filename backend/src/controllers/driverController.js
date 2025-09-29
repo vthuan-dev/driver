@@ -1,8 +1,14 @@
-const DriverPost = require('../models/DriverPost');
+﻿const DriverPost = require('../models/DriverPost');
 
 const getDrivers = async (req, res) => {
   try {
-    const drivers = await DriverPost.find({ isActive: true })
+    const { region } = req.query;
+    const filter = { isActive: true };
+    if (region && ['north', 'central', 'south'].includes(region)) {
+      filter.region = region;
+    }
+
+    const drivers = await DriverPost.find(filter)
       .sort({ createdAt: -1 });
     
     res.json({ drivers });
@@ -14,13 +20,14 @@ const getDrivers = async (req, res) => {
 
 const createDriver = async (req, res) => {
   try {
-    const { name, phone, route, avatar } = req.body;
+    const { name, phone, route, avatar, region } = req.body;
     
     const driver = new DriverPost({
       name,
       phone,
       route,
-      avatar: avatar || ''
+      avatar: avatar || '',
+      region: ['north', 'central', 'south'].includes(region) ? region : 'north'
     });
     
     await driver.save();
@@ -38,7 +45,10 @@ const createDriver = async (req, res) => {
 const updateDriver = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+    if (updateData.region && !['north', 'central', 'south'].includes(updateData.region)) {
+      delete updateData.region;
+    }
     
     const driver = await DriverPost.findByIdAndUpdate(
       id,
@@ -83,3 +93,6 @@ module.exports = {
   updateDriver,
   deleteDriver
 };
+
+
+

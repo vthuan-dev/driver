@@ -43,10 +43,23 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const requests = await WaitingRequest.find()
+    const { status, limit } = req.query;
+
+    const filter = {};
+    if (status && ['waiting', 'matched', 'completed'].includes(String(status))) {
+      filter.status = status;
+    }
+
+    const query = WaitingRequest.find(filter)
       .populate('userId', 'name phone')
       .sort({ createdAt: -1 });
-    
+
+    const max = Math.min(parseInt(limit || '0', 10) || 0, 100);
+    if (max > 0) {
+      query.limit(max);
+    }
+
+    const requests = await query.exec();
     res.json({ requests });
   } catch (error) {
     console.error('Get all requests error:', error);

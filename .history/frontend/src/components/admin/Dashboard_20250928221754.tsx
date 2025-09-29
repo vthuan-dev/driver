@@ -9,7 +9,6 @@ type User = {
   phone: string;
   carType: string;
   carYear: string;
-  carImage?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   approvedAt?: string;
@@ -221,13 +220,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                       >
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -264,13 +256,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {approvedUsers.map(user => (
                       <div key={user._id} className="user-card approved">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>
@@ -292,13 +277,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <div className="user-list">
                     {rejectedUsers.map(user => (
                       <div key={user._id} className="user-card rejected">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
                           <div className="user-phone">{user.phone}</div>

@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const config = require('../config/config');
@@ -10,7 +10,7 @@ const generateToken = (payload) => {
 
 const register = async (req, res) => {
   try {
-    const { name, phone, password, carType, carYear } = req.body;
+    const { name, phone, password, carType, carYear, carImage } = req.body;
     
     // Check if user already exists
     const existingUser = await User.findOne({ phone });
@@ -25,6 +25,7 @@ const register = async (req, res) => {
       password,
       carType,
       carYear,
+      carImage: carImage || '',
       status: 'pending' // New users need approval
     });
     
@@ -36,7 +37,8 @@ const register = async (req, res) => {
         id: user._id,
         name: user.name,
         phone: user.phone,
-        status: user.status
+        status: user.status,
+        carImage: user.carImage
       }
     });
   } catch (error) {
@@ -83,7 +85,8 @@ const login = async (req, res) => {
         name: user.name,
         phone: user.phone,
         carType: user.carType,
-        carYear: user.carYear
+        carYear: user.carYear,
+        carImage: user.carImage
       }
     });
   } catch (error) {
@@ -149,3 +152,4 @@ module.exports = {
   adminLogin,
   getMe
 };
+
