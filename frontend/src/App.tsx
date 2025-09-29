@@ -6,9 +6,7 @@ import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 
-// Load avatar images from ../driver directory
-const avatarModules = import.meta.glob('../driver/*.{jpg,jpeg,png}', { eager: true }) as Record<string, any>
-const avatarImages: string[] = Object.values(avatarModules).map((m: any) => m.default || m)
+// Avatars: we render initials when no avatar image is provided
 
 type Region = 'north' | 'central' | 'south'
 
@@ -199,6 +197,13 @@ function MainApp() {
   const regionDrivers = normalizedDrivers.filter((driver) => driver.region === activeRegion)
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
   const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
+
+  const toInitials = (name: string) => {
+    const parts = (name || '').trim().split(/\s+/)
+    const first = parts[0]?.[0] || ''
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : ''
+    return (first + last).toUpperCase() || 'TX'
+  }
 
   // Load drivers from API
   useEffect(() => {
@@ -409,12 +414,15 @@ function MainApp() {
           <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
         )}
 
-        {displayedDrivers.map((p, idx) => {
-          const avatarSrc = p.avatar || avatarImages[idx % avatarImages.length]
+        {displayedDrivers.map((p) => {
           return (
             <article className="driver-card" key={p._id}>
-              <div className="avatar">
-                <img src={avatarSrc} alt={p.name} />
+              <div className="avatar" aria-label={p.name} title={p.name}>
+                {p.avatar ? (
+                  <img src={p.avatar} alt={p.name} />
+                ) : (
+                  <span>{toInitials(p.name)}</span>
+                )}
               </div>
               <div className="driver-info">
                 <div className="driver-phone">{formatPhone(p.phone)}</div>
