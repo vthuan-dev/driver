@@ -433,7 +433,6 @@ function MainApp() {
             <h2 className="requests-heading" style={{margin: 0}}>Yêu cầu chở cuốc xe</h2>
             <button className="menu-item" onClick={() => setActiveView('home')}>‹ Quay về</button>
           </div>
-          <h2 className="requests-heading">Yêu cầu chở cuốc xe</h2>
           {requests.length === 0 && (
             <div className="empty-state">Chưa có yêu cầu nào.</div>
           )}
