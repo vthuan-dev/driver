@@ -227,8 +227,8 @@ function MainApp() {
     return (first + last).toUpperCase() || 'TX'
   }
 
-  const pickAvatarFor = (name: string, region: Region) => {
-    if (avatarImages.length === 0) return null
+  const pickAvatarIndex = (name: string, region: Region) => {
+    if (avatarImages.length === 0) return -1
     // Hash by name+region for stable selection
     const base = `${name}-${region}`
     let hash = 0
@@ -238,7 +238,7 @@ function MainApp() {
     // Offset ranges per region so each region prefers a different subset
     const regionOffset = region === 'north' ? 0 : region === 'central' ? 1 : 2
     const idx = Math.abs(hash + regionOffset) % avatarImages.length
-    return avatarImages[idx]
+    return idx
   }
 
   // Load drivers from API
@@ -476,8 +476,11 @@ function MainApp() {
             <article className="driver-card" key={p._id}>
               <div className="avatar" aria-label={p.name} title={p.name}>
                 {(() => {
-                  const chosen = p.avatar || pickAvatarFor(p.name, (p.region as Region) || 'north')
-                  return chosen ? <img src={chosen} alt={p.name} /> : <span>{toInitials(p.name)}</span>
+                  const idx = pickAvatarIndex(p.name, (p.region as Region) || 'north')
+                  const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
+                  // In case new images are added/removed, ensure index stays in range
+                  if (!chosen) return <span>{toInitials(p.name)}</span>
+                  return <img src={chosen} alt={p.name} />
                 })()}
               </div>
               <div className="driver-info">
