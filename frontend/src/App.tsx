@@ -207,6 +207,9 @@ function MainApp() {
   })
   const [carImagePreview, setCarImagePreview] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [dragStartY, setDragStartY] = useState(0)
+  const [dragCurrentY, setDragCurrentY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string }>>([])
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
@@ -362,6 +365,34 @@ function MainApp() {
     }
     reader.readAsDataURL(file)
   }
+
+  // Drag handlers for modal
+  const handleDragStart = (e: React.TouchEvent) => {
+    if (window.innerWidth <= 768) {
+      setDragStartY(e.touches[0].clientY)
+      setIsDragging(true)
+    }
+  }
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (isDragging && window.innerWidth <= 768) {
+      setDragCurrentY(e.touches[0].clientY)
+    }
+  }
+
+  const handleDragEnd = () => {
+    if (isDragging && window.innerWidth <= 768) {
+      const deltaY = dragCurrentY - dragStartY
+      if (deltaY > 100) {
+        // Close modal if dragged down significantly
+        setAuthModal(null)
+      }
+      setIsDragging(false)
+      setDragStartY(0)
+      setDragCurrentY(0)
+    }
+  }
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
@@ -680,8 +711,21 @@ function MainApp() {
         {!!authModal && (
           <div className="modal" role="dialog" aria-modal="true">
             <motion.div className="modal__backdrop" onClick={() => setAuthModal(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
-            <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
-              <div className="modal__header">
+            <motion.div 
+              className={`modal__panel ${isDragging ? 'dragging' : ''}`}
+              initial={{opacity:0,y:40}} 
+              animate={{opacity:1,y:0}} 
+              exit={{opacity:0,y:20}}
+              style={{
+                transform: isDragging ? `translateY(${Math.max(0, dragCurrentY - dragStartY)}px)` : undefined
+              }}
+            >
+              <div 
+                className="modal__header"
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+              >
                 <div className="modal__title">{authModal === 'login' ? 'Đăng nhập' : 'Đăng ký thành viên nhóm'}</div>
                 <button className="modal__close" onClick={() => setAuthModal(null)} aria-label="Đóng">×</button>
               </div>
