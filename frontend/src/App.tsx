@@ -206,7 +206,7 @@ function MainApp() {
     carYear: '', 
     carImage: '' 
   })
-  const [carImagePreview, setCarImagePreview] = useState<string | null>(null)
+  // Removed car image preview state
   const [menuOpen, setMenuOpen] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
@@ -341,31 +341,7 @@ function MainApp() {
     const { name, value } = e.target
     setForm((p) => ({ ...p, [name]: value }))
   }
-  const handleCarImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) {
-      setAuthForm((prev) => ({ ...prev, carImage: '' }))
-      setCarImagePreview(null)
-      return
-    }
-
-    const maxSize = 2 * 1024 * 1024
-    if (file.size > maxSize) {
-      alert('Ảnh xe vượt quá 2MB, vui lòng chọn file nhỏ hơn.')
-      event.target.value = ''
-      setAuthForm((prev) => ({ ...prev, carImage: '' }))
-      setCarImagePreview(null)
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : ''
-      setAuthForm((prev) => ({ ...prev, carImage: result }))
-      setCarImagePreview(result || null)
-    }
-    reader.readAsDataURL(file)
-  }
+  // Car image upload removed per request
 
   // Drag handlers for modal
   const handleDragStart = (e: React.TouchEvent) => {
@@ -739,11 +715,6 @@ function MainApp() {
                     alert('Mat khau xac nhan khong khop!')
                     return;
                   }
-
-                  if (!authForm.carImage) {
-                    alert('Vui long them anh xe truoc khi dang ky.')
-                    return;
-                  }
                 }
 
                 setLoading(true)
@@ -755,7 +726,6 @@ function MainApp() {
                       password: authForm.password,
                       carType: authForm.carType,
                       carYear: authForm.carYear,
-                      carImage: authForm.carImage,
                     })
 
                     localStorage.setItem('driver_registered', '1')
@@ -790,7 +760,6 @@ function MainApp() {
                 } finally {
                   setLoading(false)
                   setAuthForm({ name: '', phone: '', password: '', confirmPassword: '', carType: '', carYear: '', carImage: '' })
-                  setCarImagePreview(null)
                 }
               }}>
                 {authModal === 'register' && (
@@ -813,21 +782,7 @@ function MainApp() {
                       <span>Đời xe</span>
                       <input name="carYear" value={authForm.carYear} onChange={(e)=>setAuthForm({...authForm, carYear: e.target.value})} placeholder="VD: 2020, 2021..." required />
                     </label>
-                    <label className="field">
-                      <span>Ảnh xe (tối đa 2MB)</span>
-                      <input
-                        key={carImagePreview ? 'car-image-set' : 'car-image-empty'}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCarImageChange}
-                        required
-                      />
-                      {carImagePreview && (
-                        <div className="image-preview">
-                          <img src={carImagePreview} alt="Ảnh xe" />
-                        </div>
-                      )}
-                    </label>
+                    
                   </>
                 )}
                 <label className="field">
