@@ -117,8 +117,9 @@ const provincesVN34 = [
   'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
   'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Tĩnh', 'Hưng Yên',
   'Khánh Hòa', 'Kiên Giang', 'Lâm Đồng', 'Lào Cai', 'Long An',
-  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Sơn La',
-  'Thái Nguyên', 'Lạng Sơn', 'Tuyên Quang', 'Vĩnh Long', 'Tiền Giang'
+  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Quảng Ninh',
+  'Sơn La', 'Thanh Hóa', 'Thái Nguyên', 'Lạng Sơn', 'Tuyên Quang', 
+  'Vĩnh Long', 'Tiền Giang'
 ]
 
 //
