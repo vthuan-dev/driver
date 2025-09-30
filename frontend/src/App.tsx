@@ -323,6 +323,14 @@ function MainApp() {
     loadRequests()
   }, [])
 
+  // Auto-open registration modal on first visit when not logged in
+  useEffect(() => {
+    const hasUser = !!localStorage.getItem('driver_user')
+    if (!hasUser) {
+      setAuthModal('register')
+    }
+  }, [])
+
   // If URL hash points to requests, scroll to it on mount
   useEffect(() => {
     const shouldOpen = location.hash === '#requests' || new URLSearchParams(location.search).get('show') === 'requests'
