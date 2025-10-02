@@ -1,10 +1,43 @@
-﻿import { useState, useEffect } from 'react'
+﻿import { useState, useEffect, Component } from 'react'
+import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
 import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
+
+// Error Boundary Component
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error?: Error}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error Boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h2>Đã xảy ra lỗi</h2>
+          <p>Vui lòng tải lại trang hoặc thử lại sau.</p>
+          <button onClick={() => window.location.reload()}>
+            Tải lại trang
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Avatar images from folder; we will deterministically map driver+region to an image
 const avatarModules = import.meta.glob('../driver/*.{jpg,jpeg,png}', { eager: true }) as Record<string, any>
@@ -186,6 +219,25 @@ function AdminApp() {
 
 // Main App Component
 function MainApp() {
+  // Handle uncaught promise rejections
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Uncaught Promise Rejection:', event.reason);
+      event.preventDefault(); // Prevent the default browser behavior
+      
+      // Show user-friendly error message
+      setErrorMessage('Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   const [showModal, setShowModal] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showError, setShowError] = useState(false)
@@ -718,9 +770,41 @@ function MainApp() {
                 e.preventDefault();
                 if (loading) return;
 
+                console.log('Form submission started', { authModal, authForm });
+
+                // Validate form data
                 if (authModal === 'register') {
+                  if (!authForm.name.trim()) {
+                    alert('Vui lòng nhập họ và tên!');
+                    return;
+                  }
+                  if (!authForm.phone.trim()) {
+                    alert('Vui lòng nhập số điện thoại!');
+                    return;
+                  }
+                  if (!authForm.carType.trim()) {
+                    alert('Vui lòng nhập loại xe!');
+                    return;
+                  }
+                  if (!authForm.carYear.trim()) {
+                    alert('Vui lòng nhập đời xe!');
+                    return;
+                  }
+                  if (authForm.password.length < 4) {
+                    alert('Mật khẩu phải có ít nhất 4 ký tự!');
+                    return;
+                  }
                   if (authForm.password !== authForm.confirmPassword) {
-                    alert('Mat khau xac nhan khong khop!')
+                    alert('Mật khẩu xác nhận không khớp!');
+                    return;
+                  }
+                } else {
+                  if (!authForm.phone.trim()) {
+                    alert('Vui lòng nhập số điện thoại!');
+                    return;
+                  }
+                  if (!authForm.password.trim()) {
+                    alert('Vui lòng nhập mật khẩu!');
                     return;
                   }
                 }
@@ -728,7 +812,8 @@ function MainApp() {
                 setLoading(true)
                 try {
                   if (authModal === 'register') {
-                    await authAPI.register({
+                    console.log('Attempting registration...');
+                    const response = await authAPI.register({
                       name: authForm.name,
                       phone: authForm.phone,
                       password: authForm.password,
@@ -736,15 +821,27 @@ function MainApp() {
                       carYear: authForm.carYear,
                     })
 
+                    console.log('Registration successful:', response.data);
                     localStorage.setItem('driver_registered', '1')
-                    alert('Đăng ký thành công! Vui lòng đợi admin phê duyệt.')
+                    
+                    // Show success message with more details
+                    setShowSuccess(true)
+                    setErrorMessage('Đăng ký thành công! Tài khoản của bạn đang chờ admin phê duyệt. Bạn sẽ nhận được thông báo khi được duyệt.')
+                    setShowError(true)
+                    setTimeout(() => {
+                      setShowSuccess(false)
+                      setShowError(false)
+                    }, 5000)
+                    
                     setAuthModal(null)
                   } else {
+                    console.log('Attempting login...');
                     const response = await authAPI.login({
                       phone: authForm.phone,
                       password: authForm.password
                     })
 
+                    console.log('Login successful:', response.data);
                     localStorage.setItem('token', response.data.token)
                     localStorage.setItem('driver_user', JSON.stringify(response.data.user))
                     localStorage.setItem('driver_registered', '1')
@@ -760,11 +857,34 @@ function MainApp() {
                     }
                   }
                 } catch (error: any) {
-                  console.error('Auth error:', error)
-                  const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra'
+                  console.error('Auth error details:', {
+                    error,
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                    statusText: error.response?.statusText
+                  });
+                  
+                  let errorMsg = 'Có lỗi xảy ra';
+                  
+                  // Handle specific error cases
+                  if (error.response?.status === 403) {
+                    if (error.response?.data?.message?.includes('phê duyệt')) {
+                      errorMsg = 'Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.';
+                    } else {
+                      errorMsg = 'Tài khoản chưa được phê duyệt. Vui lòng liên hệ admin.';
+                    }
+                  } else if (error.response?.data?.message) {
+                    errorMsg = error.response.data.message;
+                  } else if (error.message) {
+                    errorMsg = error.message;
+                  } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+                    errorMsg = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+                  }
+                  
                   setErrorMessage(errorMsg)
                   setShowError(true)
-                  setTimeout(() => setShowError(false), 3000)
+                  setTimeout(() => setShowError(false), 5000)
                 } finally {
                   setLoading(false)
                   setAuthForm({ name: '', phone: '', password: '', confirmPassword: '', carType: '', carYear: '', carImage: '' })
@@ -803,7 +923,16 @@ function MainApp() {
                     <input type="password" name="confirmPassword" value={authForm.confirmPassword} onChange={(e)=>setAuthForm({...authForm, confirmPassword: e.target.value})} placeholder="Nhập lại mật khẩu" required />
                   </label>
                 )}
-                <motion.button type="submit" className="submit" whileTap={{scale:.98}} disabled={loading}>
+                <motion.button 
+                  type="submit" 
+                  className="submit" 
+                  whileTap={{scale:.98}} 
+                  disabled={loading}
+                  style={{ 
+                    opacity: loading ? 0.7 : 1,
+                    cursor: loading ? 'not-allowed' : 'pointer'
+                  }}
+                >
                   {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN'}
                 </motion.button>
               </form>
@@ -818,12 +947,14 @@ function MainApp() {
 // Main App with Router
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/admin/*" element={<AdminApp />} />
-        <Route path="/*" element={<MainApp />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/admin/*" element={<AdminApp />} />
+          <Route path="/*" element={<MainApp />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

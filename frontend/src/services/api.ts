@@ -5,6 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // 10 second timeout
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,15 +20,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle token expiration
+// Handle token expiration and network errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error);
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.reload();
+      localStorage.removeItem('driver_user');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      // Don't reload immediately, let the app handle it
     }
+    
+    // Handle network errors
+    if (!error.response) {
+      error.message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+      error.code = 'NETWORK_ERROR';
+    }
+    
     return Promise.reject(error);
   }
 );
