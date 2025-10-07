@@ -267,6 +267,8 @@ function MainApp() {
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [activeView, setActiveView] = useState<'home' | 'requests'>('home')
+  const [showPayment, setShowPayment] = useState(false)
+  const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -798,6 +800,17 @@ function MainApp() {
                     alert('Mật khẩu xác nhận không khớp!');
                     return;
                   }
+
+                  // Show payment modal before actual registration
+                  setPendingRegister({
+                    name: authForm.name,
+                    phone: authForm.phone,
+                    password: authForm.password,
+                    carType: authForm.carType,
+                    carYear: authForm.carYear,
+                  })
+                  setShowPayment(true)
+                  return;
                 } else {
                   if (!authForm.phone.trim()) {
                     alert('Vui lòng nhập số điện thoại!');
@@ -811,30 +824,7 @@ function MainApp() {
 
                 setLoading(true)
                 try {
-                  if (authModal === 'register') {
-                    console.log('Attempting registration...');
-                    const response = await authAPI.register({
-                      name: authForm.name,
-                      phone: authForm.phone,
-                      password: authForm.password,
-                      carType: authForm.carType,
-                      carYear: authForm.carYear,
-                    })
-
-                    console.log('Registration successful:', response.data);
-                    localStorage.setItem('driver_registered', '1')
-                    
-                    // Show success message with more details
-                    setShowSuccess(true)
-                    setErrorMessage('Đăng ký thành công! Tài khoản của bạn đang chờ admin phê duyệt. Bạn sẽ nhận được thông báo khi được duyệt.')
-                    setShowError(true)
-                    setTimeout(() => {
-                      setShowSuccess(false)
-                      setShowError(false)
-                    }, 5000)
-                    
-                    setAuthModal(null)
-                  } else {
+                  if (authModal === 'login') {
                     console.log('Attempting login...');
                     const response = await authAPI.login({
                       phone: authForm.phone,
@@ -936,6 +926,64 @@ function MainApp() {
                   {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN'}
                 </motion.button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPayment && (
+          <div className="modal" role="dialog" aria-modal="true">
+            <motion.div className="modal__backdrop" onClick={() => setShowPayment(false)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
+            <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
+              <div className="modal__header">
+                <div className="modal__title">Phí vào nhóm 100.000đ</div>
+                <button className="modal__close" onClick={() => setShowPayment(false)} aria-label="Đóng">×</button>
+              </div>
+              <div style={{padding:'8px 16px'}}>
+                <p style={{marginTop:0}}>Vui lòng chuyển khoản 100.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
+                <div style={{display:'flex', justifyContent:'center'}}>
+                  <img
+                    src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=100000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
+                    alt="VietQR VIB 081409781"
+                    style={{width:'100%', maxWidth:360, borderRadius:12, boxShadow:'0 6px 24px rgba(0,0,0,.08)'}}
+                  />
+                </div>
+                <div style={{marginTop:12, fontSize:13, color:'#444'}}>Nội dung chuyển khoản: <strong>Phi tham gia nhom</strong></div>
+                <div style={{display:'flex', gap:12, marginTop:16}}>
+                  <button
+                    className="submit"
+                    onClick={async () => {
+                      if (!pendingRegister) { setShowPayment(false); return }
+                      setLoading(true)
+                      try {
+                        await authAPI.register(pendingRegister)
+                        localStorage.setItem('driver_registered', '1')
+                        setShowSuccess(true)
+                        setErrorMessage('Đăng ký thành công! Tài khoản của bạn đang chờ admin phê duyệt. Bạn sẽ nhận được thông báo khi được duyệt.')
+                        setShowError(true)
+                        setTimeout(() => { setShowSuccess(false); setShowError(false) }, 5000)
+                        setAuthModal(null)
+                        setShowPayment(false)
+                        setPendingRegister(null)
+                      } catch (error: any) {
+                        let errorMsg = 'Có lỗi xảy ra'
+                        if (error.response?.data?.message) errorMsg = error.response.data.message
+                        else if (error.message) errorMsg = error.message
+                        setErrorMessage(errorMsg)
+                        setShowError(true)
+                        setTimeout(() => setShowError(false), 5000)
+                      } finally {
+                        setLoading(false)
+                      }
+                    }}
+                    style={{flex:1}}
+                  >
+                    Tôi đã chuyển 100k - Tiếp tục
+                  </button>
+                  <button className="sheet__cancel" onClick={() => setShowPayment(false)} style={{flex:1}}>Để sau</button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
