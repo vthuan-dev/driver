@@ -263,7 +263,7 @@ function MainApp() {
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string }>>([])
+  const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string }>>([])
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [activeView, setActiveView] = useState<'home' | 'requests'>('home')
@@ -538,6 +538,7 @@ function MainApp() {
                 <div className="request-name">{r.name}</div>
                 <div className="request-phone">{formatPhone(r.phone)}</div>
                 <div className="request-route">{r.startPoint} -&gt; {r.endPoint}</div>
+                {r.note && <div className="request-note">Ghi chú: {r.note}</div>}
                 <div className="request-price">Giá: {r.price?.toLocaleString('vi-VN')} VND</div>
               </div>
               <button className="copy-btn" onClick={() => {
