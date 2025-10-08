@@ -276,6 +276,7 @@ function MainApp() {
     endPoint: '',
     price: '',
     note: '',
+    region: 'north' as Region,
   })
 
   const formatPhone = (phone: string) => (user ? phone : maskPhoneStrict(phone))
@@ -444,13 +445,14 @@ function MainApp() {
         startPoint: form.startPoint,
         endPoint: form.endPoint,
         price: parseInt(form.price) || 0,
-        note: form.note
+        note: form.note,
+        region: form.region
       })
       
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
       setShowModal(false)
-      setForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '' })
+      setForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '', region: 'north' })
     } catch (error) {
       console.error('Error creating request:', error)
       alert('Có lỗi xảy ra khi tạo yêu cầu')
@@ -657,6 +659,16 @@ function MainApp() {
               <label className="field">
                 <span>Số điện thoại</span>
                 <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
+              </label>
+              <label className="field">
+                <span>Miền đăng ký</span>
+                <motion.select name="region" value={form.region} onChange={(e) => onChange(e as any)} required
+                  whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                >
+                  <option value="north">Miền Bắc</option>
+                  <option value="central">Miền Trung</option>
+                  <option value="south">Miền Nam</option>
+                </motion.select>
               </label>
               <div className="field" style={{gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '12px'}}>
                 <label className="field">
