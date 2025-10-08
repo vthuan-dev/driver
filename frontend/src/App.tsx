@@ -263,10 +263,11 @@ function MainApp() {
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string }>>([])
+  const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }>>([])
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [activeView, setActiveView] = useState<'home' | 'requests'>('home')
+  const [activeRequestRegion, setActiveRequestRegion] = useState<Region>('north')
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [form, setForm] = useState({
@@ -289,6 +290,9 @@ function MainApp() {
   const regionDrivers = normalizedDrivers.filter((driver) => driver.region === activeRegion)
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
   const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
+  
+  // Filter requests by region
+  const regionRequests = requests.filter((request) => (request.region || 'north') === activeRequestRegion)
 
   const toInitials = (name: string) => {
     const parts = (name || '').trim().split(/\s+/)
@@ -531,10 +535,27 @@ function MainApp() {
             <h2 className="requests-heading" style={{margin: 0}}>Yêu cầu chở cuốc xe</h2>
             <button className="menu-item" onClick={() => setActiveView('home')}>‹ Quay về</button>
           </div>
-          {requests.length === 0 && (
-            <div className="empty-state">Chưa có yêu cầu nào.</div>
+          
+          <div className="region-tabs" style={{marginBottom: 16}}>
+            {(['north', 'central', 'south'] as Region[]).map((region) => (
+              <button
+                key={region}
+                className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
+                onClick={() => setActiveRequestRegion(region)}
+              >
+                {regionLabels[region]}
+              </button>
+            ))}
+          </div>
+          
+          <h3 style={{margin: '0 0 12px 0', fontSize: '16px', color: '#333'}}>
+            {regionLabels[activeRequestRegion]}
+          </h3>
+          
+          {regionRequests.length === 0 && (
+            <div className="empty-state">Chưa có yêu cầu nào trong {regionLabels[activeRequestRegion]}.</div>
           )}
-          {requests.map((r) => (
+          {regionRequests.map((r) => (
             <div className="request-card" key={r._id}>
               <div className="request-main">
                 <div className="request-name">{r.name}</div>
