@@ -453,6 +453,18 @@ function MainApp() {
         region: form.region
       })
       
+      // Cập nhật activeRequestRegion để hiển thị đúng miền vừa đăng ký
+      setActiveRequestRegion(form.region)
+      
+      // Tải lại danh sách yêu cầu
+      try {
+        const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
+        const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+        setRequests(list)
+      } catch (e) {
+        console.error('Error reloading requests', e)
+      }
+      
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
       setShowModal(false)
@@ -497,6 +509,7 @@ function MainApp() {
             )}
             <button className="menu-item" onClick={() => {
               setActiveView('requests')
+              setActiveRequestRegion(activeRegion) // Đồng bộ miền hiện tại
               setMenuOpen(false)
             }}>Xem yêu cầu cuốc xe</button>
             {user && (
