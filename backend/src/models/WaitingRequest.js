@@ -39,6 +39,11 @@ const waitingRequestSchema = new mongoose.Schema({
     enum: ['waiting', 'matched', 'completed'],
     default: 'waiting'
   },
+  region: {
+    type: String,
+    enum: ['north', 'central', 'south'],
+    default: 'north'
+  },
   createdAt: {
     type: Date,
     default: Date.now

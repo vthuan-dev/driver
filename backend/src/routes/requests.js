@@ -3,8 +3,11 @@ const router = express.Router();
 const requestController = require('../controllers/requestController');
 const { authMiddleware } = require('../middleware/auth');
 
-// Create waiting request
-router.post('/', authMiddleware, requestController.createRequest);
+// Create waiting request (public - no auth required)
+router.post('/', requestController.createRequest);
+
+// Create waiting request (authenticated)
+router.post('/auth', authMiddleware, requestController.createRequest);
 
 // Get user's requests
 router.get('/my-requests', authMiddleware, requestController.getMyRequests);

@@ -2,8 +2,8 @@ const WaitingRequest = require('../models/WaitingRequest');
 
 const createRequest = async (req, res) => {
   try {
-    const { name, phone, startPoint, endPoint, price, note } = req.body;
-    const userId = req.user.id;
+    const { name, phone, startPoint, endPoint, price, note, region } = req.body;
+    const userId = req.user ? req.user.id : null;
     
     const request = new WaitingRequest({
       userId,
@@ -12,7 +12,8 @@ const createRequest = async (req, res) => {
       startPoint,
       endPoint,
       price: parseInt(price),
-      note: note || ''
+      note: note || '',
+      region: ['north', 'central', 'south'].includes(region) ? region : 'north'
     });
     
     await request.save();
