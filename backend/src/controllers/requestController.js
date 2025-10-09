@@ -5,6 +5,8 @@ const createRequest = async (req, res) => {
     const { name, phone, startPoint, endPoint, price, note, region } = req.body;
     const userId = req.user ? req.user.id : null;
     
+    console.log('Creating request with data:', { name, phone, startPoint, endPoint, price, note, region, userId });
+    
     const request = new WaitingRequest({
       userId,
       name,
@@ -16,7 +18,11 @@ const createRequest = async (req, res) => {
       region: ['north', 'central', 'south'].includes(region) ? region : 'north'
     });
     
+    console.log('Request object before save:', request);
+    
     await request.save();
+    
+    console.log('Request saved successfully:', request);
     
     res.status(201).json({
       message: 'Request created successfully',
@@ -24,7 +30,8 @@ const createRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Create request error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
