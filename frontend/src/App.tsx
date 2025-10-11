@@ -143,16 +143,20 @@ const regionLabels: Record<Region, string> = {
   south: 'Miền Nam',
 }
 
-const provincesVN34 = [
-  'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
-  'An Giang', 'Bà Rịa - Vũng Tàu', 'Bắc Giang', 'Bắc Ninh', 'Bến Tre',
-  'Bình Dương', 'Bình Định', 'Bình Thuận', 'Cà Mau', 'Cao Bằng',
+const provincesVN63 = [
+  'An Giang', 'Bà Rịa-Vũng Tàu', 'Bắc Giang', 'Bắc Kạn', 'Bạc Liêu',
+  'Bắc Ninh', 'Bến Tre', 'Bình Định', 'Bình Dương', 'Bình Phước',
+  'Bình Thuận', 'Cà Mau', 'Cần Thơ', 'Cao Bằng', 'Đà Nẵng',
   'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp',
-  'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Tĩnh', 'Hưng Yên',
-  'Khánh Hòa', 'Kiên Giang', 'Lâm Đồng', 'Lào Cai', 'Long An',
-  'Nam Định', 'Nghệ An', 'Ninh Bình', 'Phú Thọ', 'Quảng Ninh',
-  'Sơn La', 'Thanh Hóa', 'Thái Nguyên', 'Lạng Sơn', 'Tuyên Quang', 
-  'Vĩnh Long', 'Tiền Giang'
+  'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tĩnh',
+  'Hải Dương', 'Hải Phòng', 'Hậu Giang', 'TP. Hồ Chí Minh', 'Hòa Bình',
+  'Hưng Yên', 'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu',
+  'Lâm Đồng', 'Lạng Sơn', 'Lào Cai', 'Long An', 'Nam Định',
+  'Nghệ An', 'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên',
+  'Quảng Bình', 'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị',
+  'Sóc Trăng', 'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên',
+  'Thanh Hóa', 'Thừa Thiên - Huế', 'Tiền Giang', 'Trà Vinh', 'Tuyên Quang',
+  'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'
 ]
 
 //
@@ -711,7 +715,7 @@ function MainApp() {
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
                   >
                     <option value="" disabled>Chọn tỉnh/thành</option>
-                    {provincesVN34.map((p) => (
+                    {provincesVN63.map((p) => (
                       <option key={'s-'+p} value={p}>{p}</option>
                     ))}
                   </motion.select>
@@ -722,7 +726,7 @@ function MainApp() {
                     whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
                   >
                     <option value="" disabled>Chọn tỉnh/thành</option>
-                    {provincesVN34.map((p) => (
+                    {provincesVN63.map((p) => (
                       <option key={'e-'+p} value={p}>{p}</option>
                     ))}
                   </motion.select>
