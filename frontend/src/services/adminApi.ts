@@ -49,6 +49,7 @@ export const usersAPI = {
 export const requestsAPI = {
   getAllRequests: () => api.get('/admin/requests'),
   updateRequest: (id: string, status: string) => api.put(`/admin/requests/${id}`, { status }),
+  deleteRequest: (id: string) => api.delete(`/admin/requests/${id}`),
 };
 
 export default api;

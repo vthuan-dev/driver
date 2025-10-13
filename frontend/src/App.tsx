@@ -457,10 +457,7 @@ function MainApp() {
         region: form.region
       })
       
-      // Cập nhật activeRequestRegion để hiển thị đúng miền vừa đăng ký
-      setActiveRequestRegion(form.region)
-      
-      // Tải lại danh sách yêu cầu
+      // Tải lại danh sách yêu cầu mà KHÔNG thay đổi activeRequestRegion
       try {
         const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []

@@ -22,5 +22,6 @@ router.put('/users/:id/reject', adminAuthMiddleware, userController.rejectUser);
 // Request management
 router.get('/requests', adminAuthMiddleware, requestController.getAllRequests);
 router.put('/requests/:id', adminAuthMiddleware, requestController.updateRequest);
+router.delete('/requests/:id', adminAuthMiddleware, requestController.deleteRequest);
 
 module.exports = router;

@@ -82,6 +82,23 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await requestsAPI.deleteRequest(requestId);
+      await loadRequests();
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      alert('Có lỗi xảy ra khi xóa yêu cầu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pendingUsers = users.filter(user => user.status === 'pending');
   const approvedUsers = users.filter(user => user.status === 'approved');
   const rejectedUsers = users.filter(user => user.status === 'rejected');
@@ -352,6 +369,14 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         {request.status === 'waiting' ? 'Chờ ghép' : 
                          request.status === 'matched' ? 'Đã ghép' : 'Hoàn thành'}
                       </span>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleDeleteRequest(request._id)}
+                        disabled={loading}
+                        title="Xóa yêu cầu"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </motion.div>
                 ))}

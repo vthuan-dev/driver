@@ -100,9 +100,27 @@ const updateRequest = async (req, res) => {
   }
 };
 
+const deleteRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const request = await WaitingRequest.findByIdAndDelete(id);
+    
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+    
+    res.json({ message: 'Request deleted successfully' });
+  } catch (error) {
+    console.error('Delete request error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createRequest,
   getMyRequests,
   getAllRequests,
-  updateRequest
+  updateRequest,
+  deleteRequest
 };
