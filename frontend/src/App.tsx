@@ -377,7 +377,8 @@ function MainApp() {
   useEffect(() => {
     const loadRequests = async () => {
       try {
-        const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
+        // Fetch all waiting requests (no artificial limit so filtering by region doesn't hide items)
+        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []
         // Sort newest first so các cuốc mới luôn nằm trên cùng
         list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -463,7 +464,8 @@ function MainApp() {
       
       // Tải lại danh sách yêu cầu mà KHÔNG thay đổi activeRequestRegion
       try {
-        const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
+        // Reload all waiting requests (no limit)
+        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []
         list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setRequests(list)
