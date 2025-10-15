@@ -295,8 +295,10 @@ function MainApp() {
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
   const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
   
-  // Filter requests by region
-  const regionRequests = requests.filter((request) => (request.region || 'north') === activeRequestRegion)
+  // Filter requests by region and sort newest first
+  const regionRequests = requests
+    .filter((request) => (request.region || 'north') === activeRequestRegion)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const toInitials = (name: string) => {
     const parts = (name || '').trim().split(/\s+/)
@@ -377,6 +379,8 @@ function MainApp() {
       try {
         const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+        // Sort newest first so các cuốc mới luôn nằm trên cùng
+        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setRequests(list)
       } catch (e) {
         console.error('Error loading requests', e)
@@ -461,10 +465,15 @@ function MainApp() {
       try {
         const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 20 })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         setRequests(list)
       } catch (e) {
         console.error('Error reloading requests', e)
       }
+      
+      // Sau khi đăng ký xong, chuyển sang tab Yêu cầu và chọn đúng miền vừa đăng ký
+      setActiveView('requests')
+      setActiveRequestRegion(form.region)
       
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
