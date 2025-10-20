@@ -1038,7 +1038,7 @@ function MainApp() {
                     }}
                     style={{flex:1}}
                   >
-                    Tôi đã chuyển 100k - Tiếp tục
+                    Tôi đã chuyển 200k - Tiếp tục
                   </button>
                   <button className="sheet__cancel" onClick={() => setShowPayment(false)} style={{flex:1}}>Để sau</button>
                 </div>
