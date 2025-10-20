@@ -996,11 +996,11 @@ function MainApp() {
             <motion.div className="modal__backdrop" onClick={() => setShowPayment(false)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
             <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
               <div className="modal__header">
-                <div className="modal__title">Phí vào nhóm 100.000đ</div>
+                <div className="modal__title">Phí vào nhóm 200.000đ</div>
                 <button className="modal__close" onClick={() => setShowPayment(false)} aria-label="Đóng">×</button>
               </div>
               <div style={{padding:'8px 16px'}}>
-                <p style={{marginTop:0}}>Vui lòng chuyển khoản 100.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
+                <p style={{marginTop:0}}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
                 <div style={{display:'flex', justifyContent:'center'}}>
                   <img
                     src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=100000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
