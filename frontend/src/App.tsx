@@ -502,11 +502,6 @@ function MainApp() {
         </div>
         {menuOpen && (
           <div className="menu-popover">
-            <button className="menu-item" onClick={() => {
-              setActiveView('requests')
-              setActiveRequestRegion(activeRegion) // Đồng bộ miền hiện tại
-              setMenuOpen(false)
-            }}>Xem yêu cầu cuốc xe</button>
             {user && (
               <>
                 <button className="menu-item" onClick={() => { localStorage.removeItem('driver_user'); localStorage.removeItem('token'); localStorage.removeItem('driver_registered'); setUser(null); setMenuOpen(false) }}>Đăng xuất</button>
@@ -539,6 +534,20 @@ function MainApp() {
           </div>
         </div>
       )}
+
+      {/* Nút Xem yêu cầu cuốc xe - Đặt ngoài màn hình chính */}
+      <div className="main-actions">
+        <button 
+          className="main-action-btn"
+          onClick={() => {
+            setActiveView('requests')
+            setActiveRequestRegion(activeRegion) // Đồng bộ miền hiện tại
+          }}
+        >
+          <span className="main-action-btn__icon">📋</span>
+          <span className="main-action-btn__text">Xem yêu cầu cuốc xe</span>
+        </button>
+      </div>
       <header className="ticker">
         <div className="ticker__track">
           {tickerDrivers.map((p) => (
