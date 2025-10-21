@@ -491,25 +491,16 @@ function MainApp() {
 
   return (
     <div className="app">
-      <div className="topbar">
-        <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}> MENU</button>
-        <div className="topbar__actions">
-          {user && (
-            <div className="user-info">
-              <span className="hello">Hi {user.name || user.phone}</span>
+      {!user && (
+        <div className="topbar">
+          <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}> MENU</button>
+          {menuOpen && (
+            <div className="menu-popover">
+              {/* Menu chỉ hiển thị khi chưa đăng nhập */}
             </div>
           )}
         </div>
-        {menuOpen && (
-          <div className="menu-popover">
-            {user && (
-              <>
-                <button className="menu-item" onClick={() => { localStorage.removeItem('driver_user'); localStorage.removeItem('token'); localStorage.removeItem('driver_registered'); setUser(null); setMenuOpen(false) }}>Đăng xuất</button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Auth Box - Tách riêng khỏi menu */}
       {!user && (
@@ -547,6 +538,22 @@ function MainApp() {
           <span className="main-action-btn__icon">📋</span>
           <span className="main-action-btn__text">Xem yêu cầu cuốc xe</span>
         </button>
+        
+        {/* Nút đăng xuất khi đã đăng nhập */}
+        {user && (
+          <button 
+            className="main-action-btn main-action-btn--logout"
+            onClick={() => {
+              localStorage.removeItem('driver_user');
+              localStorage.removeItem('token');
+              localStorage.removeItem('driver_registered');
+              setUser(null);
+            }}
+          >
+            <span className="main-action-btn__icon">🚪</span>
+            <span className="main-action-btn__text">Đăng xuất</span>
+          </button>
+        )}
       </div>
       <header className="ticker">
         <div className="ticker__track">

@@ -21,7 +21,9 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .logout-btn {
@@ -352,6 +354,19 @@
   font-weight: 700;
   color: #00b14f;
   font-size: 15px;
+}
+
+.main-action-btn--logout {
+  border-color: #ef4444;
+  margin-top: 8px;
+}
+
+.main-action-btn--logout:hover {
+  background: #fef2f2;
+}
+
+.main-action-btn--logout .main-action-btn__text {
+  color: #ef4444;
 }
 
 .auth-box::before {
