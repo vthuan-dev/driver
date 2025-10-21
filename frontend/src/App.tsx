@@ -161,9 +161,8 @@ const provincesVN63 = [
 
 //
 
-function maskPhoneStrict(phone: string): string {
-  const last4 = phone.slice(-4)
-  return `xxxx ${last4}`
+function maskPhoneStrict(_phone: string): string {
+  return `xxxx xxxx`
 }
 
 //
@@ -270,7 +269,6 @@ function MainApp() {
   const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }>>([])
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
-  const [activeView, setActiveView] = useState<'home' | 'requests'>('home')
   const [activeRequestRegion, setActiveRequestRegion] = useState<Region>('north')
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
@@ -403,7 +401,6 @@ function MainApp() {
   useEffect(() => {
     const shouldOpen = location.hash === '#requests' || new URLSearchParams(location.search).get('show') === 'requests'
     if (shouldOpen) {
-      setActiveView('requests')
       setTimeout(() => {
         document.getElementById('requests')?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
@@ -473,8 +470,7 @@ function MainApp() {
         console.error('Error reloading requests', e)
       }
       
-      // Sau khi đăng ký xong, chuyển sang tab Yêu cầu và chọn đúng miền vừa đăng ký
-      setActiveView('requests')
+      // Sau khi đăng ký xong, chọn đúng miền vừa đăng ký
       setActiveRequestRegion(form.region)
       
       setShowSuccess(true)
@@ -526,21 +522,9 @@ function MainApp() {
         </div>
       )}
 
-      {/* Nút Xem yêu cầu cuốc xe - Đặt ngoài màn hình chính */}
-      <div className="main-actions">
-        <button 
-          className="main-action-btn"
-          onClick={() => {
-            setActiveView('requests')
-            setActiveRequestRegion(activeRegion) // Đồng bộ miền hiện tại
-          }}
-        >
-          <span className="main-action-btn__icon">📋</span>
-          <span className="main-action-btn__text">Xem yêu cầu cuốc xe</span>
-        </button>
-        
-        {/* Nút đăng xuất khi đã đăng nhập */}
-        {user && (
+      {/* Nút đăng xuất khi đã đăng nhập */}
+      {user && (
+        <div className="main-actions">
           <button 
             className="main-action-btn main-action-btn--logout"
             onClick={() => {
@@ -553,8 +537,8 @@ function MainApp() {
             <span className="main-action-btn__icon">🚪</span>
             <span className="main-action-btn__text">Đăng xuất</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <header className="ticker">
         <div className="ticker__track">
           {tickerDrivers.map((p) => (
@@ -577,12 +561,9 @@ function MainApp() {
       </header>
 
       <main className="content">
-        {activeView === 'requests' && (
+        {/* Yêu cầu chở cuốc xe - Hiển thị luôn trên màn hình chính */}
         <section className="requests-section" id="requests">
-          <div className="section-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 8}}>
-            <h2 className="requests-heading" style={{margin: 0}}>Yêu cầu chở cuốc xe</h2>
-            <button className="menu-item" onClick={() => setActiveView('home')}>‹ Quay về</button>
-          </div>
+          <h2 className="requests-heading">Yêu cầu chở cuốc xe</h2>
           
           <div className="region-tabs" style={{marginBottom: 16}}>
             {(['north', 'central', 'south'] as Region[]).map((region) => (
@@ -619,74 +600,75 @@ function MainApp() {
             </div>
           ))}
         </section>
-        )}
-        {activeView === 'home' && (
-        <>
-        <div className="region-tabs">
-          {(['north', 'central', 'south'] as Region[]).map((region) => (
-            <button
-              key={region}
-              className={`region-tab ${activeRegion === region ? 'active' : ''}`}
-              onClick={() => setActiveRegion(region)}
-            >
-              {regionLabels[region]}
-            </button>
-          ))}
-        </div>
-        <h2 className="region-heading">{regionLabels[activeRegion]}</h2>
 
-        {displayedDrivers.length === 0 && (
-          <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
-        )}
-
-        {(() => { const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
-          return (
-            <article className="driver-card" key={p._id}>
-              <div className="avatar" aria-label={p.name} title={p.name}>
-                {(() => {
-                  let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
-                  if (idx >= 0 && usedAvatarIdx.has(idx)) {
-                    // try next candidates within same region pool (step by 3 keeps region bucket)
-                    let tries = 0
-                    while (tries < avatarImages.length) {
-                      idx = (idx + 3) % avatarImages.length
-                      if (!usedAvatarIdx.has(idx)) break
-                      tries++
-                    }
-                  }
-                  if (idx >= 0) usedAvatarIdx.add(idx)
-                  const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
-                  // In case new images are added/removed, ensure index stays in range
-                  if (!chosen) return <span>{toInitials(p.name)}</span>
-                  return <img src={chosen} alt={p.name} />
-                })()}
-              </div>
-              <div className="driver-info">
-                <div className="driver-phone">{formatPhone(p.phone)}</div>
-                <div className="driver-route">{p.route}</div>
-              </div>
+        {/* Danh sách tài xế */}
+        <section className="drivers-section">
+          <h2 className="section-heading">Danh sách tài xế</h2>
+          
+          <div className="region-tabs">
+            {(['north', 'central', 'south'] as Region[]).map((region) => (
               <button
-                className="call-btn"
-                aria-label="Gọi tài xế"
-                onClick={() => {
-                  if (!user) {
-                    setPendingAction({ type: 'call', phone: p.phone })
-                    const reg = localStorage.getItem('driver_registered')
-                    setAuthModal(reg ? 'login' : 'register')
-                    return
-                  }
-                  setCallSheet({ phone: p.phone })
-                }}
+                key={region}
+                className={`region-tab ${activeRegion === region ? 'active' : ''}`}
+                onClick={() => setActiveRegion(region)}
               >
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
-                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
-                </svg>
+                {regionLabels[region]}
               </button>
-            </article>
-          )
-        })})()}
-        </>
-        )}
+            ))}
+          </div>
+          <h3 className="region-heading">{regionLabels[activeRegion]}</h3>
+
+          {displayedDrivers.length === 0 && (
+            <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
+          )}
+
+          {(() => { const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
+            return (
+              <article className="driver-card" key={p._id}>
+                <div className="avatar" aria-label={p.name} title={p.name}>
+                  {(() => {
+                    let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
+                    if (idx >= 0 && usedAvatarIdx.has(idx)) {
+                      // try next candidates within same region pool (step by 3 keeps region bucket)
+                      let tries = 0
+                      while (tries < avatarImages.length) {
+                        idx = (idx + 3) % avatarImages.length
+                        if (!usedAvatarIdx.has(idx)) break
+                        tries++
+                      }
+                    }
+                    if (idx >= 0) usedAvatarIdx.add(idx)
+                    const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
+                    // In case new images are added/removed, ensure index stays in range
+                    if (!chosen) return <span>{toInitials(p.name)}</span>
+                    return <img src={chosen} alt={p.name} />
+                  })()}
+                </div>
+                <div className="driver-info">
+                  <div className="driver-phone">{formatPhone(p.phone)}</div>
+                  <div className="driver-route">{p.route}</div>
+                </div>
+                <button
+                  className="call-btn"
+                  aria-label="Gọi tài xế"
+                  onClick={() => {
+                    if (!user) {
+                      setPendingAction({ type: 'call', phone: p.phone })
+                      const reg = localStorage.getItem('driver_registered')
+                      setAuthModal(reg ? 'login' : 'register')
+                      return
+                    }
+                    setCallSheet({ phone: p.phone })
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
+                  </svg>
+                </button>
+              </article>
+            )
+          })})()}
+        </section>
       </main>
 
       <button className="floating-cta" onClick={() => {
