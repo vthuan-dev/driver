@@ -497,28 +497,11 @@ function MainApp() {
           {user && (
             <div className="user-info">
               <span className="hello">Hi {user.name || user.phone}</span>
-              {/* <button 
-                className="logout-btn"
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('driver_user');
-                  setUser(null);
-                  setMenuOpen(false);
-                }}
-              >
-                Đăng xuất
-              </button> */}
             </div>
           )}
         </div>
         {menuOpen && (
           <div className="menu-popover">
-            {!user && (
-              <>
-                <button className="menu-item" onClick={() => { setAuthModal('register'); setMenuOpen(false) }}>Đăng ký thành viên</button>
-                <button className="menu-item" onClick={() => { setAuthModal('login'); setMenuOpen(false) }}>Đăng nhập</button>
-              </>
-            )}
             <button className="menu-item" onClick={() => {
               setActiveView('requests')
               setActiveRequestRegion(activeRegion) // Đồng bộ miền hiện tại
@@ -532,6 +515,30 @@ function MainApp() {
           </div>
         )}
       </div>
+
+      {/* Auth Box - Tách riêng khỏi menu */}
+      {!user && (
+        <div className="auth-box">
+          <div className="auth-box__content">
+            <h3 className="auth-box__title">Tham gia nhóm tài xế</h3>
+            <p className="auth-box__subtitle">Đăng ký để có thể liên hệ và đăng cuốc xe</p>
+            <div className="auth-box__buttons">
+              <button 
+                className="auth-box__btn auth-box__btn--primary" 
+                onClick={() => setAuthModal('register')}
+              >
+                Đăng ký thành viên
+              </button>
+              <button 
+                className="auth-box__btn auth-box__btn--secondary" 
+                onClick={() => setAuthModal('login')}
+              >
+                Đăng nhập
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <header className="ticker">
         <div className="ticker__track">
           {tickerDrivers.map((p) => (
@@ -1003,7 +1010,7 @@ function MainApp() {
                 <p style={{marginTop:0}}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
                 <div style={{display:'flex', justifyContent:'center'}}>
                   <img
-                    src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=100000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
+                    src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
                     alt="VietQR VIB 081409781"
                     style={{width:'100%', maxWidth:360, borderRadius:12, boxShadow:'0 6px 24px rgba(0,0,0,.08)'}}
                   />
