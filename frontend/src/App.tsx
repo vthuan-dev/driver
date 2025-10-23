@@ -161,8 +161,14 @@ const provincesVN63 = [
 
 //
 
-function maskPhoneStrict(_phone: string): string {
-  return `xxxx xxxx`
+function maskPhoneStrict(phone: string): string {
+  // Hiển thị 3 đầu số + xxxx + 3 cuối số
+  if (phone.length >= 10) {
+    const first3 = phone.slice(0, 3)
+    const last3 = phone.slice(-3)
+    return `${first3} xxxx ${last3}`
+  }
+  return phone
 }
 
 //
@@ -588,7 +594,7 @@ function MainApp() {
             <div className="request-card" key={r._id}>
               <div className="request-main">
                 <div className="request-name">{r.name}</div>
-                <div className="request-phone">{formatPhone(r.phone)}</div>
+                <div className="request-phone">Số điện thoại khách hàng: {formatPhone(r.phone)}</div>
                 <div className="request-route">{r.startPoint} -&gt; {r.endPoint}</div>
                 {r.note && <div className="request-note">Ghi chú: {r.note}</div>}
                 <div className="request-price">Giá: {r.price?.toLocaleString('vi-VN')} VND</div>
