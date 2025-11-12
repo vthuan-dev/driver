@@ -1010,7 +1010,7 @@ function MainApp() {
                 <div className="modal__title">Phí vào nhóm 200.000đ</div>
                 <button className="modal__close" onClick={() => setShowPayment(false)} aria-label="Đóng">×</button>
               </div>
-              <div style={{padding:'8px 16px'}}>
+              <div style={{padding:'8px 16px', overflowY:'auto', flex:1, maxHeight:'calc(90vh - 60px)', WebkitOverflowScrolling:'touch'}}>
                 <p style={{marginTop:0}}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
                 <div style={{display:'flex', justifyContent:'center'}}>
                   <img
@@ -1020,7 +1020,7 @@ function MainApp() {
                   />
                 </div>
                 <div style={{marginTop:12, fontSize:13, color:'#444'}}>Nội dung chuyển khoản: <strong>Phi tham gia nhom</strong></div>
-                <div style={{display:'flex', gap:12, marginTop:16}}>
+                <div style={{display:'flex', gap:12, marginTop:16, marginBottom:16}}>
                   <button
                     className="submit"
                     onClick={async () => {
