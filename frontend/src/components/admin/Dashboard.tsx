@@ -34,6 +34,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const loadUsers = async () => {
     try {
@@ -99,9 +100,32 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
+  // Filter function for phone number search
+  const filterUsersByPhone = (userList: User[]): User[] => {
+    if (!searchQuery.trim()) {
+      return userList;
+    }
+    
+    // Extract only numeric characters from search query
+    const numericQuery = searchQuery.replace(/\D/g, '');
+    
+    if (!numericQuery) {
+      return userList;
+    }
+    
+    return userList.filter(user => 
+      user.phone.replace(/\D/g, '').includes(numericQuery)
+    );
+  };
+
   const pendingUsers = users.filter(user => user.status === 'pending');
   const approvedUsers = users.filter(user => user.status === 'approved');
   const rejectedUsers = users.filter(user => user.status === 'rejected');
+
+  // Apply search filter to user lists
+  const filteredPendingUsers = filterUsersByPhone(pendingUsers);
+  const filteredApprovedUsers = filterUsersByPhone(approvedUsers);
+  const filteredRejectedUsers = filterUsersByPhone(rejectedUsers);
 
   return (
     <div className="dashboard">
@@ -227,11 +251,37 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
             <div className="users-section">
               <h2>Danh sách người dùng</h2>
               
-              {pendingUsers.length > 0 && (
+              {/* Search Input */}
+              <div className="search-container">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Tìm kiếm theo số điện thoại..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button 
+                    className="clear-search-btn"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
+              {/* No results message */}
+              {searchQuery && filteredPendingUsers.length === 0 && filteredApprovedUsers.length === 0 && filteredRejectedUsers.length === 0 && (
+                <div className="no-results">
+                  <p>Không tìm thấy người dùng với số điện thoại "{searchQuery}"</p>
+                </div>
+              )}
+
+              {filteredPendingUsers.length > 0 && (
                 <div className="section">
-                  <h3>Chờ phê duyệt ({pendingUsers.length})</h3>
+                  <h3>Chờ phê duyệt ({filteredPendingUsers.length})</h3>
                   <div className="user-list">
-                    {pendingUsers.map(user => (
+                    {filteredPendingUsers.map(user => (
                       <motion.div 
                         key={user._id} 
                         className="user-card pending"
@@ -275,11 +325,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {approvedUsers.length > 0 && (
+              {filteredApprovedUsers.length > 0 && (
                 <div className="section">
-                  <h3>Đã phê duyệt ({approvedUsers.length})</h3>
+                  <h3>Đã phê duyệt ({filteredApprovedUsers.length})</h3>
                   <div className="user-list">
-                    {approvedUsers.map(user => (
+                    {filteredApprovedUsers.map(user => (
                       <div key={user._id} className="user-card approved">
                         <div className="user-avatar">
                           {user.carImage ? (
@@ -303,11 +353,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {rejectedUsers.length > 0 && (
+              {filteredRejectedUsers.length > 0 && (
                 <div className="section">
-                  <h3>Đã từ chối ({rejectedUsers.length})</h3>
+                  <h3>Đã từ chối ({filteredRejectedUsers.length})</h3>
                   <div className="user-list">
-                    {rejectedUsers.map(user => (
+                    {filteredRejectedUsers.map(user => (
                       <div key={user._id} className="user-card rejected">
                         <div className="user-avatar">
                           {user.carImage ? (
