@@ -60,7 +60,6 @@
 
 - [x] 6. Add CSS styles for search components
 
-
   - [x] 6.1 Style search container and input
 
 
