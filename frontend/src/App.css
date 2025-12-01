@@ -333,6 +333,51 @@
   margin-top: 8px;
 }
 
+.user-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+  margin-bottom: 12px;
+}
+
+.user-summary-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #00b14f, #0a8f43);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.user-summary-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-summary-card__greeting {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.user-summary-card__name {
+  font-size: 16px;
+  color: #111827;
+}
+
+.user-summary-card__phone {
+  font-size: 13px;
+  color: #475569;
+}
+
 .main-action-btn {
   width: 100%;
   background: #fff;

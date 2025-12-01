@@ -528,9 +528,19 @@ function MainApp() {
         </div>
       )}
 
-      {/* Nút đăng xuất khi đã đăng nhập */}
+      {/* Nút đăng xuất + thông tin khách khi đã đăng nhập */}
       {user && (
         <div className="main-actions">
+          <div className="user-summary-card">
+            <div className="user-summary-card__avatar">
+              {toInitials(user.name || user.phone)}
+            </div>
+            <div className="user-summary-card__info">
+              <span className="user-summary-card__greeting">Xin chào,</span>
+              <strong className="user-summary-card__name">{user.name || 'Tài xế'}</strong>
+              <span className="user-summary-card__phone">{maskPhoneStrict(user.phone)}</span>
+            </div>
+          </div>
           <button 
             className="main-action-btn main-action-btn--logout"
             onClick={() => {
