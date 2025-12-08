@@ -278,6 +278,63 @@ function MainApp() {
     
     // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console (DEV only)
     const isDev = import.meta.env.DEV
+    const randomPhone = () => {
+      const prefixes = ['09', '08', '07', '03']
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+      const body = Math.floor(1_000_0000 + Math.random() * 8_999_9999).toString() // 8 digits
+      return `${prefix}${body}` // 10 digits
+    }
+    const randomPrice = (min: number = 350_000, max: number = 1_500_000) => {
+      const value = min + Math.random() * (max - min)
+      return Math.round(value / 1000) * 1000 // làm tròn nghìn cho “thật”
+    }
+    const randomNote = (notes: string[]) => notes[Math.floor(Math.random() * notes.length)]
+
+    // Map điểm đến ưu tiên để tránh route phi thực tế
+    const provincePreferredDestinations: Record<string, string[]> = {
+      'Thanh Hóa': ['Hà Nội', 'Ninh Bình', 'Nam Định', 'Hà Nam', 'Nghệ An', 'Hòa Bình'],
+      'Hà Nội': [
+        'Bắc Ninh', 'Từ Sơn', 'Yên Phong', 'Quế Võ', 'Tiên Du',
+        'Hải Dương', 'Hải Phòng', 'Hà Nam', 'Bắc Giang', 'Hòa Bình',
+        'Phú Thọ', 'Thái Nguyên', 'Nam Định', 'Ninh Bình', 'Thái Bình',
+        'Thanh Hóa', 'Lạng Sơn', 'Yên Bái', 'Quảng Ninh'
+      ],
+      'Hải Phòng': ['Quảng Ninh', 'Hà Nội', 'Hải Dương', 'Thái Bình', 'Hưng Yên'],
+      'TP. Hồ Chí Minh': ['Bình Dương', 'Đồng Nai', 'Bà Rịa-Vũng Tàu', 'Long An', 'Tiền Giang'],
+      'Đà Nẵng': ['Quảng Nam', 'Thừa Thiên - Huế', 'Quảng Ngãi'],
+    }
+
+    // Bảng giá tham khảo theo tuyến (min, max)
+    const provincePriceRanges: Record<string, Record<string, [number, number]>> = {
+      'Hà Nội': {
+        'Bắc Ninh': [340_000, 380_000],
+        'Từ Sơn': [240_000, 290_000],
+        'Yên Phong': [280_000, 320_000],
+        'Quế Võ': [490_000, 590_000],
+        'Tiên Du': [250_000, 350_000],
+        'Hải Dương': [480_000, 550_000],
+        'Hải Phòng': [800_000, 900_000],
+        'Hà Nam': [430_000, 500_000],
+        'Bắc Giang': [520_000, 600_000],
+        'Hòa Bình': [580_000, 650_000],
+        'Phú Thọ': [650_000, 750_000],
+        'Thái Nguyên': [620_000, 700_000],
+        'Nam Định': [650_000, 750_000],
+        'Ninh Bình': [650_000, 750_000],
+        'Thái Bình': [750_000, 850_000],
+        'Thanh Hóa': [850_000, 950_000],
+        'Lạng Sơn': [950_000, 1_050_000],
+        'Yên Bái': [950_000, 1_050_000],
+        'Quảng Ninh': [1_050_000, 1_150_000],
+      },
+    }
+
+    const getPriceRange = (origin: string, destination: string, fallbackMin: number, fallbackMax: number): [number, number] => {
+      const fromMap = provincePriceRanges[origin]?.[destination]
+      if (fromMap) return fromMap
+      return [fallbackMin, fallbackMax]
+    }
+
     const createFakeRequests = async (options?: { perProvince?: number; delayMs?: number }) => {
       if (!isDev) {
         console.warn('createFakeRequests chỉ dùng trong DEV')
@@ -298,21 +355,12 @@ function MainApp() {
         'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
       ]
       
-      const fakePhones = [
-        '0912345678', '0987654321', '0901234567', '0968888777',
-        '0977123456', '0355555999', '0934567123', '0945678123',
-        '0911222333', '0977333555', '0915667788', '0982334455',
-        '0978665544', '0964111222', '0923456789', '0956789012'
-      ]
-      
       const notes = [
         'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
         'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
         'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
         'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
       ]
-      
-      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
       
       const requests: Array<{name: string, phone: string, startPoint: string, endPoint: string, price: number, note: string, region: Region}> = []
       
@@ -322,8 +370,12 @@ function MainApp() {
         
         // Tạo N requests cho mỗi tỉnh
         provinces.forEach((province, idx) => {
-          // Tạo các route khác nhau cho mỗi tỉnh
-          const destinations = provinces.filter(p => p !== province)
+          const preferred = provincePreferredDestinations[province] || []
+          const destinationsPool = preferred.length ? preferred : provinces
+          const destinations = destinationsPool.filter(p => p !== province)
+          const isShort = preferred.length > 0
+          const defaultMin = isShort ? 450_000 : 800_000
+          const defaultMax = isShort ? 1_400_000 : 2_000_000
           
           for (let i = 0; i < perProvince; i++) {
             // Chọn destination ngẫu nhiên từ danh sách tỉnh trong cùng miền
@@ -331,17 +383,18 @@ function MainApp() {
             
             if (randomDest) {
               const nameIdx = (idx * perProvince + i) % fakeNames.length
-              const phoneIdx = (idx * perProvince + i) % fakePhones.length
-              const noteIdx = Math.floor(Math.random() * notes.length)
-              const priceIdx = Math.floor(Math.random() * prices.length)
+              const phone = randomPhone()
+              const note = randomNote(notes)
+              const [routeMin, routeMax] = getPriceRange(province, randomDest, defaultMin, defaultMax)
+              const price = randomPrice(routeMin, routeMax)
               
               requests.push({
                 name: fakeNames[nameIdx],
-                phone: fakePhones[phoneIdx],
+                phone,
                 startPoint: province,
                 endPoint: randomDest,
-                price: prices[priceIdx],
-                note: notes[noteIdx],
+                price,
+                note,
                 region: regionType
               })
             }
@@ -355,38 +408,42 @@ function MainApp() {
       let successCount = 0
       let errorCount = 0
       
-      for (let i = 0; i < requests.length; i++) {
-        try {
-          await requestsAPI.createRequest(requests[i])
-          successCount++
-          console.log(`✓ [${i+1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
-          
-          // Delay giữa mỗi request
-          if (i < requests.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, delayMs))
-          }
-        } catch (error) {
-          errorCount++
-          console.error(`✗ Lỗi: ${requests[i].startPoint} -> ${requests[i].endPoint}`, error)
-        }
-      }
-      
-      console.log(`\n✅ Hoàn thành! Đã tạo thành công: ${successCount}/${requests.length}`)
-      if (errorCount > 0) {
-        console.log(`⚠️ Có ${errorCount} lỗi`)
-      }
-      
-      // Reload requests sau khi tạo xong
       try {
-        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
-        const list = Array.isArray(res.data?.requests) ? res.data.requests : []
-        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        console.log(`📋 Đã reload ${list.length} yêu cầu`)
-      } catch (e) {
-        console.error('Error reloading requests', e)
+        for (let i = 0; i < requests.length; i++) {
+          try {
+            await requestsAPI.createRequest(requests[i])
+            successCount++
+            console.log(`✓ [${i+1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
+            
+            // Delay giữa mỗi request
+            if (i < requests.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, delayMs))
+            }
+          } catch (error) {
+            errorCount++
+            console.error(`✗ Lỗi: ${requests[i].startPoint} -> ${requests[i].endPoint}`, error)
+          }
+        }
+        
+        console.log(`\n✅ Hoàn thành! Đã tạo thành công: ${successCount}/${requests.length}`)
+        if (errorCount > 0) {
+          console.log(`⚠️ Có ${errorCount} lỗi`)
+        }
+        
+        // Reload requests sau khi tạo xong
+        try {
+          const res = await requestsAPI.getAllRequests({ status: 'waiting' })
+          const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+          list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          console.log(`📋 Đã reload ${list.length} yêu cầu`)
+        } catch (e) {
+          console.error('Error reloading requests', e)
+        }
+        
+        return { successCount, errorCount, total: requests.length }
+      } finally {
+        seedingRef.current = false
       }
-      
-      return { successCount, errorCount, total: requests.length }
     }
 
     // Helper: tạo cuốc ảo cho 1 tỉnh cụ thể và lưu lên server
@@ -409,7 +466,9 @@ function MainApp() {
       }
 
       const provinces = provincesByRegion[region] || []
-      const destinations = provinces.filter((p) => p !== province)
+      const preferred = provincePreferredDestinations[province] || []
+      const destinationsPool = preferred.length ? preferred : provinces
+      const destinations = destinationsPool.filter((p) => p !== province)
       if (destinations.length === 0) {
         console.warn('Không có điểm đến hợp lệ trong cùng miền cho tỉnh:', province)
         return { total: 0, successCount: 0, errorCount: 0 }
@@ -421,68 +480,68 @@ function MainApp() {
         'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
         'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
       ]
-      const fakePhones = [
-        '0912345678', '0987654321', '0901234567', '0968888777',
-        '0977123456', '0355555999', '0934567123', '0945678123',
-        '0911222333', '0977333555', '0915667788', '0982334455',
-        '0978665544', '0964111222', '0923456789', '0956789012'
-      ]
       const notes = [
         'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
         'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
         'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
         'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
       ]
-      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
-
-      console.log(`🚀 Tạo ${count} cuốc ảo cho ${province} (server), delay ${delayMs}ms...`)
+      const isShort = preferred.length > 0
+      const defaultMin = isShort ? 450_000 : 800_000
+      const defaultMax = isShort ? 1_400_000 : 2_000_000
+      console.log(`🚀 Tạo ${count} cuốc ảo cho ${province} (server), delay ${delayMs}ms... Destinations ưu tiên: ${destinations.slice(0, 6).join(', ')}`)
 
       let successCount = 0
       let errorCount = 0
 
-      for (let i = 0; i < count; i++) {
-        const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
-        const nameIdx = i % fakeNames.length
-        const phoneIdx = i % fakePhones.length
-        const noteIdx = Math.floor(Math.random() * notes.length)
-        const priceIdx = Math.floor(Math.random() * prices.length)
+      try {
+        for (let i = 0; i < count; i++) {
+          const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+          const nameIdx = i % fakeNames.length
+          const phone = randomPhone()
+          const note = randomNote(notes)
+          const [routeMin, routeMax] = getPriceRange(province, randomDest, defaultMin, defaultMax)
+          const price = randomPrice(routeMin, routeMax)
 
-        const payload = {
-          name: fakeNames[nameIdx],
-          phone: fakePhones[phoneIdx],
-          startPoint: province,
-          endPoint: randomDest,
-          price: prices[priceIdx],
-          note: notes[noteIdx],
-          region,
+          const payload = {
+            name: fakeNames[nameIdx],
+            phone,
+            startPoint: province,
+            endPoint: randomDest,
+            price,
+            note,
+            region,
+          }
+
+          try {
+            await requestsAPI.createRequest(payload)
+            successCount++
+            console.log(`✓ [${i + 1}/${count}] ${province} -> ${randomDest}`)
+            if (i < count - 1) {
+              await new Promise((resolve) => setTimeout(resolve, delayMs))
+            }
+          } catch (error) {
+            errorCount++
+            console.error(`✗ Lỗi: ${province} -> ${randomDest}`, error)
+          }
         }
+
+        console.log(`✅ Hoàn thành ${province}: ${successCount}/${count} cuốc`)
 
         try {
-          await requestsAPI.createRequest(payload)
-          successCount++
-          console.log(`✓ [${i + 1}/${count}] ${province} -> ${randomDest}`)
-          if (i < count - 1) {
-            await new Promise((resolve) => setTimeout(resolve, delayMs))
-          }
-        } catch (error) {
-          errorCount++
-          console.error(`✗ Lỗi: ${province} -> ${randomDest}`, error)
+          const res = await requestsAPI.getAllRequests({ status: 'waiting' })
+          const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+          list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          setRequests(list)
+          console.log(`📋 Reload requests: ${list.length}`)
+        } catch (e) {
+          console.error('Error reloading requests', e)
         }
+
+        return { total: count, successCount, errorCount }
+      } finally {
+        seedingRef.current = false
       }
-
-      console.log(`✅ Hoàn thành ${province}: ${successCount}/${count} cuốc`)
-
-      try {
-        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
-        const list = Array.isArray(res.data?.requests) ? res.data.requests : []
-        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        setRequests(list)
-        console.log(`📋 Reload requests: ${list.length}`)
-      } catch (e) {
-        console.error('Error reloading requests', e)
-      }
-
-      return { total: count, successCount, errorCount }
     }
 
     // Helper: seed dữ liệu ảo vào state (không gọi API, chỉ hiển thị local)
@@ -495,43 +554,42 @@ function MainApp() {
         'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
         'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
       ]
-      const fakePhones = [
-        '0912345678', '0987654321', '0901234567', '0968888777',
-        '0977123456', '0355555999', '0934567123', '0945678123',
-        '0911222333', '0977333555', '0915667788', '0982334455',
-        '0978665544', '0964111222', '0923456789', '0956789012'
-      ]
       const notes = [
         'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
         'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
         'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
         'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
       ]
-      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
 
       const localRequests: Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }> = []
 
       for (const [region, provinces] of Object.entries(provincesByRegion)) {
         const regionType = region as Region
         provinces.forEach((province, idx) => {
-          const destinations = provinces.filter((p) => p !== province)
+          const preferred = provincePreferredDestinations[province] || []
+          const destinationsPool = preferred.length ? preferred : provinces
+          const destinations = destinationsPool.filter((p) => p !== province)
+          const isShort = preferred.length > 0
+          const defaultMin = isShort ? 450_000 : 800_000
+          const defaultMax = isShort ? 1_400_000 : 2_000_000
           for (let i = 0; i < perProvince; i++) {
             const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
             if (!randomDest) continue
 
             const nameIdx = (idx * perProvince + i) % fakeNames.length
-            const phoneIdx = (idx * perProvince + i) % fakePhones.length
-            const noteIdx = Math.floor(Math.random() * notes.length)
-            const priceIdx = Math.floor(Math.random() * prices.length)
+            const phone = randomPhone()
+            const note = randomNote(notes)
+            const [routeMin, routeMax] = getPriceRange(province, randomDest, defaultMin, defaultMax)
+            const price = randomPrice(routeMin, routeMax)
 
             localRequests.push({
               _id: `local-${regionType}-${province}-${i}`,
               name: fakeNames[nameIdx],
-              phone: fakePhones[phoneIdx],
+              phone,
               startPoint: province,
               endPoint: randomDest,
-              price: prices[priceIdx],
-              note: notes[noteIdx],
+              price,
+              note,
               region: regionType,
               createdAt: new Date().toISOString(),
             })
@@ -559,22 +617,20 @@ function MainApp() {
         'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
         'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
       ]
-      const fakePhones = [
-        '0912345678', '0987654321', '0901234567', '0968888777',
-        '0977123456', '0355555999', '0934567123', '0945678123',
-        '0911222333', '0977333555', '0915667788', '0982334455',
-        '0978665544', '0964111222', '0923456789', '0956789012'
-      ]
       const notes = [
         'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
         'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
         'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
         'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
       ]
-      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
 
       const provinces = provincesByRegion[region] || []
-      const destinations = provinces.filter((p) => p !== province)
+      const preferred = provincePreferredDestinations[province] || []
+      const destinationsPool = preferred.length ? preferred : provinces
+      const destinations = destinationsPool.filter((p) => p !== province)
+      const isShort = preferred.length > 0
+      const defaultMin = isShort ? 450_000 : 800_000
+      const defaultMax = isShort ? 1_400_000 : 2_000_000
       if (destinations.length === 0) {
         console.warn('Không có điểm đến hợp lệ trong cùng miền cho tỉnh:', province)
         return { total: 0 }
@@ -585,18 +641,19 @@ function MainApp() {
       for (let i = 0; i < perProvince; i++) {
         const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
         const nameIdx = i % fakeNames.length
-        const phoneIdx = i % fakePhones.length
-        const noteIdx = Math.floor(Math.random() * notes.length)
-        const priceIdx = Math.floor(Math.random() * prices.length)
+        const phone = randomPhone()
+        const note = randomNote(notes)
+        const [routeMin, routeMax] = getPriceRange(province, randomDest, defaultMin, defaultMax)
+        const price = randomPrice(routeMin, routeMax)
 
         newRequests.push({
           _id: `local-${province}-${i}-${Date.now()}`,
           name: fakeNames[nameIdx],
-          phone: fakePhones[phoneIdx],
+          phone,
           startPoint: province,
           endPoint: randomDest,
-          price: prices[priceIdx],
-          note: notes[noteIdx],
+          price,
+          note,
           region,
           createdAt: new Date().toISOString(),
         })

@@ -527,6 +527,47 @@ body {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.requests-section .requests-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.requests-section .requests-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.request-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-btn {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: #e2e8f0;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+}
+
 /* Search Container Styles */
 .search-container {
   position: relative;
@@ -744,6 +785,9 @@ body {
   color: #666;
   font-size: 14px;
   margin-bottom: 4px;
+  white-space: pre-wrap; /* giữ xuống dòng & khoảng trắng trong ghi chú */
+  word-break: break-word; /* tránh tràn khung khi có chuỗi dài */
+  line-height: 1.4;
 }
 
 .user-actions {

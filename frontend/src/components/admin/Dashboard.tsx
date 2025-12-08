@@ -29,12 +29,14 @@ type Request = {
 };
 
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
+  // Ưu tiên tab yêu cầu cuốc để admin thấy ngay các chuyến
+  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('requests');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [requestStatusFilter, setRequestStatusFilter] = useState<'all' | 'waiting' | 'matched' | 'completed'>('waiting');
 
   const loadUsers = async () => {
     try {
@@ -126,6 +128,10 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const filteredPendingUsers = filterUsersByPhone(pendingUsers);
   const filteredApprovedUsers = filterUsersByPhone(approvedUsers);
   const filteredRejectedUsers = filterUsersByPhone(rejectedUsers);
+  const filteredRequests =
+    requestStatusFilter === 'all'
+      ? requests
+      : requests.filter((r) => r.status === requestStatusFilter);
 
   return (
     <div className="dashboard">
@@ -385,9 +391,38 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
 
           {activeTab === 'requests' && (
             <div className="requests-section">
-              <h2>Yêu cầu chờ cuốc xe</h2>
+            <div className="requests-header">
+                <h2>Yêu cầu cuốc xe</h2>
+                <p className="requests-subtitle">Lọc nhanh: chờ ghép, đã ghép, đã hoàn thành. Bạn có thể xóa bất kỳ cuốc nào.</p>
+              <div className="request-filters">
+                <button
+                  className={`filter-btn ${requestStatusFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setRequestStatusFilter('all')}
+                >
+                  Tất cả ({requests.length})
+                </button>
+                <button
+                  className={`filter-btn ${requestStatusFilter === 'waiting' ? 'active' : ''}`}
+                  onClick={() => setRequestStatusFilter('waiting')}
+                >
+                  Chờ ghép ({requests.filter(r => r.status === 'waiting').length})
+                </button>
+                <button
+                  className={`filter-btn ${requestStatusFilter === 'matched' ? 'active' : ''}`}
+                  onClick={() => setRequestStatusFilter('matched')}
+                >
+                  Đã ghép ({requests.filter(r => r.status === 'matched').length})
+                </button>
+                <button
+                  className={`filter-btn ${requestStatusFilter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setRequestStatusFilter('completed')}
+                >
+                  Hoàn thành ({requests.filter(r => r.status === 'completed').length})
+                </button>
+              </div>
+            </div>
               <div className="request-list">
-                {requests.map(request => (
+              {filteredRequests.map(request => (
                   <motion.div 
                     key={request._id} 
                     className="request-card"
