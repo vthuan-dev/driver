@@ -276,7 +276,10 @@ function MainApp() {
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console
-    const createFakeRequests = async () => {
+    const createFakeRequests = async (options?: { perProvince?: number; delayMs?: number }) => {
+      const perProvince = options?.perProvince ?? 100
+      const delayMs = options?.delayMs ?? 10
+
       const fakeNames = [
         'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Thị Dung',
         'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Văn Hùng', 'Bùi Thị Lan',
@@ -306,18 +309,18 @@ function MainApp() {
       for (const [region, provinces] of Object.entries(provincesByRegion)) {
         const regionType = region as Region
         
-        // Tạo 10 requests cho mỗi tỉnh
+        // Tạo N requests cho mỗi tỉnh
         provinces.forEach((province, idx) => {
           // Tạo các route khác nhau cho mỗi tỉnh
           const destinations = provinces.filter(p => p !== province)
           
-          for (let i = 0; i < 10; i++) {
+          for (let i = 0; i < perProvince; i++) {
             // Chọn destination ngẫu nhiên từ danh sách tỉnh trong cùng miền
             const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
             
             if (randomDest) {
-              const nameIdx = (idx * 10 + i) % fakeNames.length
-              const phoneIdx = (idx * 10 + i) % fakePhones.length
+              const nameIdx = (idx * perProvince + i) % fakeNames.length
+              const phoneIdx = (idx * perProvince + i) % fakePhones.length
               const noteIdx = Math.floor(Math.random() * notes.length)
               const priceIdx = Math.floor(Math.random() * prices.length)
               
@@ -335,7 +338,7 @@ function MainApp() {
         })
       }
       
-      console.log(`🚀 Đang tạo ${requests.length} cuốc xe ảo...`)
+      console.log(`🚀 Đang tạo ${requests.length} cuốc xe ảo (≈ ${perProvince} cuốc/tỉnh, delay ${delayMs}ms)...`)
       
       // Tạo requests với delay để tránh quá tải server
       let successCount = 0
@@ -347,9 +350,9 @@ function MainApp() {
           successCount++
           console.log(`✓ [${i+1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
           
-          // Delay 100ms giữa mỗi request
+          // Delay giữa mỗi request
           if (i < requests.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, delayMs))
           }
         } catch (error) {
           errorCount++
@@ -374,14 +377,76 @@ function MainApp() {
       
       return { successCount, errorCount, total: requests.length }
     }
+
+    // Helper: seed dữ liệu ảo vào state (không gọi API, chỉ hiển thị local)
+    const seedLocalFakeRequests = (options?: { perProvince?: number }) => {
+      const perProvince = options?.perProvince ?? 100
+
+      const fakeNames = [
+        'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Thị Dung',
+        'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Văn Hùng', 'Bùi Thị Lan',
+        'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
+        'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
+      ]
+      const fakePhones = [
+        '0912345678', '0987654321', '0901234567', '0968888777',
+        '0977123456', '0355555999', '0934567123', '0945678123',
+        '0911222333', '0977333555', '0915667788', '0982334455',
+        '0978665544', '0964111222', '0923456789', '0956789012'
+      ]
+      const notes = [
+        'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
+        'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
+        'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
+        'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
+      ]
+      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
+
+      const localRequests: Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }> = []
+
+      for (const [region, provinces] of Object.entries(provincesByRegion)) {
+        const regionType = region as Region
+        provinces.forEach((province, idx) => {
+          const destinations = provinces.filter((p) => p !== province)
+          for (let i = 0; i < perProvince; i++) {
+            const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+            if (!randomDest) continue
+
+            const nameIdx = (idx * perProvince + i) % fakeNames.length
+            const phoneIdx = (idx * perProvince + i) % fakePhones.length
+            const noteIdx = Math.floor(Math.random() * notes.length)
+            const priceIdx = Math.floor(Math.random() * prices.length)
+
+            localRequests.push({
+              _id: `local-${regionType}-${province}-${i}`,
+              name: fakeNames[nameIdx],
+              phone: fakePhones[phoneIdx],
+              startPoint: province,
+              endPoint: randomDest,
+              price: prices[priceIdx],
+              note: notes[noteIdx],
+              region: regionType,
+              createdAt: new Date().toISOString(),
+            })
+          }
+        })
+      }
+
+      console.log(`🧪 Seed local: ${localRequests.length} cuốc (≈ ${perProvince} cuốc/tỉnh)`)
+      setRequests(localRequests)
+      return { total: localRequests.length }
+    }
     
     // Expose function to window for console access
     ;(window as any).createFakeRequests = createFakeRequests;
-    console.log('💡 Để tạo cuốc xe ảo, gõ: createFakeRequests()')
+    ;(window as any).seedLocalFakeRequests = seedLocalFakeRequests;
+    console.log('💡 Để tạo cuốc xe ảo (gọi API): createFakeRequests({ perProvince: 100, delayMs: 10 })')
+    console.log('💡 Để seed local (không gọi API): seedLocalFakeRequests({ perProvince: 100 })')
     
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       delete (window as any).createFakeRequests;
+      delete (window as any).seedLocalFakeRequests;
     };
   }, []);
 
