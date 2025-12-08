@@ -159,6 +159,29 @@ const provincesVN63 = [
   'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'
 ]
 
+// Phân loại tỉnh thành theo miền
+const provincesByRegion: Record<Region, string[]> = {
+  north: [
+    'Hà Nội', 'Hải Phòng', 'Hải Dương', 'Hưng Yên', 'Thái Bình',
+    'Hà Nam', 'Nam Định', 'Ninh Bình', 'Vĩnh Phúc', 'Bắc Ninh',
+    'Quảng Ninh', 'Lạng Sơn', 'Cao Bằng', 'Bắc Kạn', 'Thái Nguyên',
+    'Tuyên Quang', 'Hà Giang', 'Lào Cai', 'Yên Bái', 'Lai Châu',
+    'Điện Biên', 'Sơn La', 'Hòa Bình', 'Phú Thọ', 'Bắc Giang'
+  ],
+  central: [
+    'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị',
+    'Thừa Thiên - Huế', 'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi',
+    'Bình Định', 'Phú Yên', 'Khánh Hòa', 'Ninh Thuận', 'Bình Thuận',
+    'Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông', 'Lâm Đồng'
+  ],
+  south: [
+    'TP. Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Bà Rịa-Vũng Tàu',
+    'Tây Ninh', 'Bình Phước', 'Long An', 'Tiền Giang', 'Bến Tre',
+    'Trà Vinh', 'Vĩnh Long', 'Đồng Tháp', 'An Giang', 'Kiên Giang',
+    'Cần Thơ', 'Hậu Giang', 'Sóc Trăng', 'Bạc Liêu', 'Cà Mau'
+  ]
+}
+
 //
 
 function maskPhoneStrict(phone: string): string {
@@ -276,6 +299,11 @@ function MainApp() {
   const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [activeRequestRegion, setActiveRequestRegion] = useState<Region>('north')
+  const [selectedProvince, setSelectedProvince] = useState<Record<Region, string>>({
+    north: '',
+    central: '',
+    south: ''
+  })
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [form, setForm] = useState({
@@ -299,9 +327,18 @@ function MainApp() {
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
   const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
   
-  // Filter requests by region and sort newest first
+  // Filter requests by region and province, then sort newest first
   const regionRequests = requests
-    .filter((request) => (request.region || 'north') === activeRequestRegion)
+    .filter((request) => {
+      const requestRegion = (request.region || 'north') as Region
+      if (requestRegion !== activeRequestRegion) return false
+      
+      const selected = selectedProvince[activeRequestRegion]
+      if (!selected) return true // Nếu chưa chọn tỉnh thì hiển thị tất cả
+      
+      // Filter theo tỉnh thành: kiểm tra startPoint hoặc endPoint
+      return request.startPoint === selected || request.endPoint === selected
+    })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const toInitials = (name: string) => {
@@ -593,8 +630,47 @@ function MainApp() {
             ))}
           </div>
           
+          <div style={{marginBottom: 12}}>
+            <label className="field" style={{marginBottom: 0}}>
+              <span>Chọn tỉnh/thành phố</span>
+              <motion.select 
+                name="province" 
+                value={selectedProvince[activeRequestRegion]} 
+                onChange={(e) => {
+                  setSelectedProvince({
+                    ...selectedProvince,
+                    [activeRequestRegion]: e.target.value
+                  })
+                }}
+                required
+                whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  backgroundColor: '#fff',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23333\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 12px center',
+                  paddingRight: '36px'
+                }}
+              >
+                <option value="">Tất cả tỉnh/thành ({regionLabels[activeRequestRegion]})</option>
+                {provincesByRegion[activeRequestRegion].map((province) => (
+                  <option key={province} value={province}>{province}</option>
+                ))}
+              </motion.select>
+            </label>
+          </div>
+          
           <h3 style={{margin: '0 0 12px 0', fontSize: '16px', color: '#333'}}>
             {regionLabels[activeRequestRegion]}
+            {selectedProvince[activeRequestRegion] && ` - ${selectedProvince[activeRequestRegion]}`}
           </h3>
           
           {regionRequests.length === 0 && (
