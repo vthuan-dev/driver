@@ -306,16 +306,18 @@ function MainApp() {
       for (const [region, provinces] of Object.entries(provincesByRegion)) {
         const regionType = region as Region
         
-        // Tạo 2 requests cho mỗi tỉnh
+        // Tạo 10 requests cho mỗi tỉnh
         provinces.forEach((province, idx) => {
           // Tạo các route khác nhau cho mỗi tỉnh
           const destinations = provinces.filter(p => p !== province)
-          const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
           
-          if (randomDest) {
-            for (let i = 0; i < 2; i++) {
-              const nameIdx = (idx * 2 + i) % fakeNames.length
-              const phoneIdx = (idx * 2 + i) % fakePhones.length
+          for (let i = 0; i < 10; i++) {
+            // Chọn destination ngẫu nhiên từ danh sách tỉnh trong cùng miền
+            const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+            
+            if (randomDest) {
+              const nameIdx = (idx * 10 + i) % fakeNames.length
+              const phoneIdx = (idx * 10 + i) % fakePhones.length
               const noteIdx = Math.floor(Math.random() * notes.length)
               const priceIdx = Math.floor(Math.random() * prices.length)
               
