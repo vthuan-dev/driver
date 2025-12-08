@@ -682,6 +682,12 @@ function MainApp() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
+
+    const parsedPrice = parseInt(form.price) || 0
+    if (parsedPrice <= 0) {
+      alert('Giá phải lớn hơn 0đ')
+      return
+    }
     
     setLoading(true)
     try {
@@ -690,7 +696,7 @@ function MainApp() {
         phone: form.phone,
         startPoint: form.startPoint,
         endPoint: form.endPoint,
-        price: parseInt(form.price) || 0,
+        price: parsedPrice,
         note: form.note,
         region: form.region
       })
@@ -1040,7 +1046,16 @@ function MainApp() {
               </div>
               <label className="field">
                 <span>Giá dự kiến (VND)</span>
-                <input name="price" value={form.price} onChange={onChange} placeholder="VD: 800000" inputMode="numeric" pattern="[0-9]*" />
+                <input
+                  name="price"
+                  value={form.price}
+                  onChange={onChange}
+                  placeholder="VD: 800000"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min={1000}
+                  required
+                />
               </label>
               <label className="field">
                 <span>Ghi chú</span>
