@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, Component } from 'react'
+﻿import { useState, useEffect, Component, useRef } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -262,6 +262,7 @@ function AdminApp() {
 // Main App Component
 function MainApp() {
   // Handle uncaught promise rejections
+  const seedingRef = useRef(false)
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Uncaught Promise Rejection:', event.reason);
@@ -275,8 +276,18 @@ function MainApp() {
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
-    // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console
+    // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console (DEV only)
+    const isDev = import.meta.env.DEV
     const createFakeRequests = async (options?: { perProvince?: number; delayMs?: number }) => {
+      if (!isDev) {
+        console.warn('createFakeRequests chỉ dùng trong DEV')
+        return { successCount: 0, errorCount: 0, total: 0 }
+      }
+      if (seedingRef.current) {
+        console.warn('Đang chạy seeding, chờ hoàn tất...')
+        return { successCount: 0, errorCount: 0, total: 0 }
+      }
+      seedingRef.current = true
       const perProvince = options?.perProvince ?? 100
       const delayMs = options?.delayMs ?? 10
 
@@ -378,6 +389,102 @@ function MainApp() {
       return { successCount, errorCount, total: requests.length }
     }
 
+    // Helper: tạo cuốc ảo cho 1 tỉnh cụ thể và lưu lên server
+    const createProvinceRequests = async (province: string, options?: { count?: number; delayMs?: number }) => {
+      if (!isDev) {
+        console.warn('createProvinceRequests chỉ dùng trong DEV')
+        return { total: 0, successCount: 0, errorCount: 0 }
+      }
+      if (seedingRef.current) {
+        console.warn('Đang chạy seeding, chờ hoàn tất...')
+        return { total: 0, successCount: 0, errorCount: 0 }
+      }
+      seedingRef.current = true
+      const count = options?.count ?? 20
+      const delayMs = options?.delayMs ?? 20
+      const region = getRegionFromProvince(province)
+      if (!region) {
+        console.warn('Không xác định được miền cho tỉnh/thành:', province)
+        return { total: 0, successCount: 0, errorCount: 0 }
+      }
+
+      const provinces = provincesByRegion[region] || []
+      const destinations = provinces.filter((p) => p !== province)
+      if (destinations.length === 0) {
+        console.warn('Không có điểm đến hợp lệ trong cùng miền cho tỉnh:', province)
+        return { total: 0, successCount: 0, errorCount: 0 }
+      }
+
+      const fakeNames = [
+        'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Thị Dung',
+        'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Văn Hùng', 'Bùi Thị Lan',
+        'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
+        'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
+      ]
+      const fakePhones = [
+        '0912345678', '0987654321', '0901234567', '0968888777',
+        '0977123456', '0355555999', '0934567123', '0945678123',
+        '0911222333', '0977333555', '0915667788', '0982334455',
+        '0978665544', '0964111222', '0923456789', '0956789012'
+      ]
+      const notes = [
+        'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
+        'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
+        'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
+        'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
+      ]
+      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
+
+      console.log(`🚀 Tạo ${count} cuốc ảo cho ${province} (server), delay ${delayMs}ms...`)
+
+      let successCount = 0
+      let errorCount = 0
+
+      for (let i = 0; i < count; i++) {
+        const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+        const nameIdx = i % fakeNames.length
+        const phoneIdx = i % fakePhones.length
+        const noteIdx = Math.floor(Math.random() * notes.length)
+        const priceIdx = Math.floor(Math.random() * prices.length)
+
+        const payload = {
+          name: fakeNames[nameIdx],
+          phone: fakePhones[phoneIdx],
+          startPoint: province,
+          endPoint: randomDest,
+          price: prices[priceIdx],
+          note: notes[noteIdx],
+          region,
+        }
+
+        try {
+          await requestsAPI.createRequest(payload)
+          successCount++
+          console.log(`✓ [${i + 1}/${count}] ${province} -> ${randomDest}`)
+          if (i < count - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs))
+          }
+        } catch (error) {
+          errorCount++
+          console.error(`✗ Lỗi: ${province} -> ${randomDest}`, error)
+        }
+      }
+
+      console.log(`✅ Hoàn thành ${province}: ${successCount}/${count} cuốc`)
+
+      try {
+        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
+        const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        setRequests(list)
+        console.log(`📋 Reload requests: ${list.length}`)
+      } catch (e) {
+        console.error('Error reloading requests', e)
+      }
+
+      return { total: count, successCount, errorCount }
+    }
+
     // Helper: seed dữ liệu ảo vào state (không gọi API, chỉ hiển thị local)
     const seedLocalFakeRequests = (options?: { perProvince?: number }) => {
       const perProvince = options?.perProvince ?? 100
@@ -436,17 +543,89 @@ function MainApp() {
       setRequests(localRequests)
       return { total: localRequests.length }
     }
+
+    // Helper: seed thêm cuốc ảo cho một tỉnh cụ thể (local only, không gọi API)
+    const seedLocalProvinceRequests = (province: string, options?: { perProvince?: number }) => {
+      const perProvince = options?.perProvince ?? 20
+      const region = getRegionFromProvince(province)
+      if (!region) {
+        console.warn('Không xác định được miền cho tỉnh/thành:', province)
+        return { total: 0 }
+      }
+
+      const fakeNames = [
+        'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Thị Dung',
+        'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Văn Hùng', 'Bùi Thị Lan',
+        'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
+        'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
+      ]
+      const fakePhones = [
+        '0912345678', '0987654321', '0901234567', '0968888777',
+        '0977123456', '0355555999', '0934567123', '0945678123',
+        '0911222333', '0977333555', '0915667788', '0982334455',
+        '0978665544', '0964111222', '0923456789', '0956789012'
+      ]
+      const notes = [
+        'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
+        'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
+        'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
+        'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
+      ]
+      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
+
+      const provinces = provincesByRegion[region] || []
+      const destinations = provinces.filter((p) => p !== province)
+      if (destinations.length === 0) {
+        console.warn('Không có điểm đến hợp lệ trong cùng miền cho tỉnh:', province)
+        return { total: 0 }
+      }
+
+      const newRequests: Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }> = []
+
+      for (let i = 0; i < perProvince; i++) {
+        const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+        const nameIdx = i % fakeNames.length
+        const phoneIdx = i % fakePhones.length
+        const noteIdx = Math.floor(Math.random() * notes.length)
+        const priceIdx = Math.floor(Math.random() * prices.length)
+
+        newRequests.push({
+          _id: `local-${province}-${i}-${Date.now()}`,
+          name: fakeNames[nameIdx],
+          phone: fakePhones[phoneIdx],
+          startPoint: province,
+          endPoint: randomDest,
+          price: prices[priceIdx],
+          note: notes[noteIdx],
+          region,
+          createdAt: new Date().toISOString(),
+        })
+      }
+
+      setRequests((prev) => [...newRequests, ...prev])
+      console.log(`🧪 Seed local tỉnh ${province}: +${newRequests.length} cuốc (≈ ${perProvince} cuốc)`)
+      return { total: newRequests.length }
+    }
     
     // Expose function to window for console access
     ;(window as any).createFakeRequests = createFakeRequests;
     ;(window as any).seedLocalFakeRequests = seedLocalFakeRequests;
-    console.log('💡 Để tạo cuốc xe ảo (gọi API): createFakeRequests({ perProvince: 100, delayMs: 10 })')
-    console.log('💡 Để seed local (không gọi API): seedLocalFakeRequests({ perProvince: 100 })')
+    ;(window as any).seedLocalProvinceRequests = seedLocalProvinceRequests;
+    ;(window as any).createProvinceRequests = createProvinceRequests;
+    if (isDev) {
+      console.log('💡 Tạo cuốc xe ảo (gọi API): createFakeRequests({ perProvince: 100, delayMs: 10 })')
+      console.log('💡 Seed local tất cả tỉnh (không gọi API): seedLocalFakeRequests({ perProvince: 100 })')
+      console.log('💡 Seed local 1 tỉnh: seedLocalProvinceRequests("Thanh Hóa", { perProvince: 100 })')
+      console.log('💡 Tạo cuốc ảo lên server cho 1 tỉnh: createProvinceRequests("Thanh Hóa", { count: 20, delayMs: 20 })')
+    }
     
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       delete (window as any).createFakeRequests;
       delete (window as any).seedLocalFakeRequests;
+      delete (window as any).seedLocalProvinceRequests;
+      delete (window as any).createProvinceRequests;
+      seedingRef.current = false
     };
   }, []);
 
