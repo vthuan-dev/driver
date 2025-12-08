@@ -182,6 +182,16 @@ const provincesByRegion: Record<Region, string[]> = {
   ]
 }
 
+// Hàm xác định miền từ tên tỉnh thành
+function getRegionFromProvince(province: string): Region | null {
+  for (const [region, provinces] of Object.entries(provincesByRegion)) {
+    if (provinces.includes(province)) {
+      return region as Region
+    }
+  }
+  return null
+}
+
 //
 
 function maskPhoneStrict(phone: string): string {
@@ -455,7 +465,20 @@ function MainApp() {
   const closeModal = () => setShowModal(false)
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setForm((p) => ({ ...p, [name]: value }))
+    setForm((p) => {
+      const updated = { ...p, [name]: value }
+      
+      // Tự động xác định region khi chọn startPoint hoặc endPoint
+      if (name === 'startPoint' || name === 'endPoint') {
+        const province = value
+        const detectedRegion = getRegionFromProvince(province)
+        if (detectedRegion) {
+          updated.region = detectedRegion
+        }
+      }
+      
+      return updated
+    })
   }
   // Car image upload removed per request
 
@@ -513,8 +536,16 @@ function MainApp() {
         console.error('Error reloading requests', e)
       }
       
-      // Sau khi đăng ký xong, chọn đúng miền vừa đăng ký
+      // Sau khi đăng ký xong, chọn đúng miền và tỉnh thành vừa đăng ký
       setActiveRequestRegion(form.region)
+      // Tự động chọn tỉnh thành từ startPoint hoặc endPoint
+      const selectedProvinceValue = form.startPoint || form.endPoint
+      if (selectedProvinceValue) {
+        setSelectedProvince({
+          ...selectedProvince,
+          [form.region]: selectedProvinceValue
+        })
+      }
       
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
