@@ -275,8 +275,111 @@ function MainApp() {
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
+    // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console
+    const createFakeRequests = async () => {
+      const fakeNames = [
+        'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Văn Cường', 'Phạm Thị Dung',
+        'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Văn Hùng', 'Bùi Thị Lan',
+        'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
+        'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
+      ]
+      
+      const fakePhones = [
+        '0912345678', '0987654321', '0901234567', '0968888777',
+        '0977123456', '0355555999', '0934567123', '0945678123',
+        '0911222333', '0977333555', '0915667788', '0982334455',
+        '0978665544', '0964111222', '0923456789', '0956789012'
+      ]
+      
+      const notes = [
+        'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
+        'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
+        'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
+        'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
+      ]
+      
+      const prices = [500000, 600000, 700000, 800000, 900000, 1000000, 1200000, 1500000, 2000000]
+      
+      const requests: Array<{name: string, phone: string, startPoint: string, endPoint: string, price: number, note: string, region: Region}> = []
+      
+      // Tạo requests cho mỗi miền
+      for (const [region, provinces] of Object.entries(provincesByRegion)) {
+        const regionType = region as Region
+        
+        // Tạo 2 requests cho mỗi tỉnh
+        provinces.forEach((province, idx) => {
+          // Tạo các route khác nhau cho mỗi tỉnh
+          const destinations = provinces.filter(p => p !== province)
+          const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
+          
+          if (randomDest) {
+            for (let i = 0; i < 2; i++) {
+              const nameIdx = (idx * 2 + i) % fakeNames.length
+              const phoneIdx = (idx * 2 + i) % fakePhones.length
+              const noteIdx = Math.floor(Math.random() * notes.length)
+              const priceIdx = Math.floor(Math.random() * prices.length)
+              
+              requests.push({
+                name: fakeNames[nameIdx],
+                phone: fakePhones[phoneIdx],
+                startPoint: province,
+                endPoint: randomDest,
+                price: prices[priceIdx],
+                note: notes[noteIdx],
+                region: regionType
+              })
+            }
+          }
+        })
+      }
+      
+      console.log(`🚀 Đang tạo ${requests.length} cuốc xe ảo...`)
+      
+      // Tạo requests với delay để tránh quá tải server
+      let successCount = 0
+      let errorCount = 0
+      
+      for (let i = 0; i < requests.length; i++) {
+        try {
+          await requestsAPI.createRequest(requests[i])
+          successCount++
+          console.log(`✓ [${i+1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
+          
+          // Delay 100ms giữa mỗi request
+          if (i < requests.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        } catch (error) {
+          errorCount++
+          console.error(`✗ Lỗi: ${requests[i].startPoint} -> ${requests[i].endPoint}`, error)
+        }
+      }
+      
+      console.log(`\n✅ Hoàn thành! Đã tạo thành công: ${successCount}/${requests.length}`)
+      if (errorCount > 0) {
+        console.log(`⚠️ Có ${errorCount} lỗi`)
+      }
+      
+      // Reload requests sau khi tạo xong
+      try {
+        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
+        const list = Array.isArray(res.data?.requests) ? res.data.requests : []
+        list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        console.log(`📋 Đã reload ${list.length} yêu cầu`)
+      } catch (e) {
+        console.error('Error reloading requests', e)
+      }
+      
+      return { successCount, errorCount, total: requests.length }
+    }
+    
+    // Expose function to window for console access
+    ;(window as any).createFakeRequests = createFakeRequests;
+    console.log('💡 Để tạo cuốc xe ảo, gõ: createFakeRequests()')
+    
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      delete (window as any).createFakeRequests;
     };
   }, []);
 
