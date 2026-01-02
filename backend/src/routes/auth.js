@@ -14,4 +14,7 @@ router.post('/admin/login', authController.adminLogin);
 // Get current user
 router.get('/me', authController.getMe);
 
+// Check registration status
+router.get('/status/:phone', authController.checkStatus);
+
 module.exports = router;

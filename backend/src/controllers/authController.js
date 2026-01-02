@@ -11,13 +11,13 @@ const generateToken = (payload) => {
 const register = async (req, res) => {
   try {
     const { name, phone, password, carType, carYear, carImage } = req.body;
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ phone });
     if (existingUser) {
       return res.status(400).json({ message: 'Số điện thoại này đã được đăng ký' });
     }
-    
+
     // Create new user
     const user = new User({
       name,
@@ -28,9 +28,9 @@ const register = async (req, res) => {
       carImage: carImage || '',
       status: 'pending' // New users need approval
     });
-    
+
     await user.save();
-    
+
     res.status(201).json({
       message: 'Đăng ký thành công. Vui lòng chờ admin phê duyệt.',
       user: {
@@ -50,34 +50,34 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
-    
+
     // Find user
     const user = await User.findOne({ phone });
     if (!user) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
-    
+
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
-    
+
     // Check if user is approved
     if (user.status !== 'approved') {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: 'Tài khoản đang chờ phê duyệt',
-        status: user.status 
+        status: user.status
       });
     }
-    
+
     // Generate token
     const token = generateToken({
       id: user._id,
       phone: user.phone,
       role: 'user'
     });
-    
+
     res.json({
       token,
       user: {
@@ -98,26 +98,26 @@ const login = async (req, res) => {
 const adminLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
-    
+
     // Find admin
     const admin = await Admin.findOne({ username });
     if (!admin) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
-    
+
     // Check password
     const isMatch = await admin.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
-    
+
     // Generate token
     const token = generateToken({
       id: admin._id,
       username: admin.username,
       role: admin.role
     });
-    
+
     res.json({
       token,
       admin: {
@@ -138,7 +138,7 @@ const getMe = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
-    
+
     res.json({ user });
   } catch (error) {
     console.error('Get me error:', error);
@@ -146,10 +146,31 @@ const getMe = async (req, res) => {
   }
 };
 
+const checkStatus = async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const user = await User.findOne({ phone }).select('name phone status');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy tài khoản với số điện thoại này' });
+    }
+
+    res.json({
+      status: user.status,
+      name: user.name,
+      phone: user.phone
+    });
+  } catch (error) {
+    console.error('Check status error:', error);
+    res.status(500).json({ message: 'Lỗi máy chủ khi kiểm tra trạng thái' });
+  }
+};
+
 module.exports = {
   register,
   login,
   adminLogin,
-  getMe
+  getMe,
+  checkStatus
 };
 
