@@ -8,8 +8,8 @@ import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 
 // Error Boundary Component
-class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error?: Error}> {
-  constructor(props: {children: ReactNode}) {
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
+  constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -215,7 +215,7 @@ function AdminApp() {
     // Check if admin is already logged in
     const token = localStorage.getItem('admin_token');
     const adminData = localStorage.getItem('admin_user');
-    
+
     if (token && adminData) {
       try {
         setAdmin(JSON.parse(adminData));
@@ -241,9 +241,9 @@ function AdminApp() {
 
   if (loading) {
     return (
-          <div className="loading">
+      <div className="loading">
         <div className="loading-spinner"></div>
-            <p>Đang tải...</p>
+        <p>Đang tải...</p>
       </div>
     );
   }
@@ -267,7 +267,7 @@ function MainApp() {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Uncaught Promise Rejection:', event.reason);
       event.preventDefault(); // Prevent the default browser behavior
-      
+
       // Show user-friendly error message
       setErrorMessage('Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.');
       setShowError(true);
@@ -275,7 +275,7 @@ function MainApp() {
     };
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
+
     // Helper function để tạo cuốc xe ảo - expose ra window để gọi từ console (DEV only)
     const isDev = import.meta.env.DEV
     const randomPhone = () => {
@@ -354,20 +354,20 @@ function MainApp() {
         'Phan Văn Minh', 'Ngô Thị Nga', 'Đỗ Văn Quang', 'Lý Thị Hoa',
         'Dương Văn Tuấn', 'Võ Thị Mai', 'Tạ Văn Đức', 'Lương Thị Linh'
       ]
-      
+
       const notes = [
         'Cần đi gấp, xe 4 chỗ', 'Xe 7 chỗ, có hành lý nhiều', 'Đi sớm 6h sáng',
         'Cần tài xế kinh nghiệm', 'Đi về trong ngày', 'Có thể đợi đến 8h tối',
         'Xe đời mới, điều hòa tốt', 'Cần đi đường cao tốc', 'Có trẻ em đi cùng',
         'Cần tài xế cẩn thận', 'Đi công tác, cần đúng giờ', 'Có người già đi cùng'
       ]
-      
-      const requests: Array<{name: string, phone: string, startPoint: string, endPoint: string, price: number, note: string, region: Region}> = []
-      
+
+      const requests: Array<{ name: string, phone: string, startPoint: string, endPoint: string, price: number, note: string, region: Region }> = []
+
       // Tạo requests cho mỗi miền
       for (const [region, provinces] of Object.entries(provincesByRegion)) {
         const regionType = region as Region
-        
+
         // Tạo N requests cho mỗi tỉnh
         provinces.forEach((province, idx) => {
           const preferred = provincePreferredDestinations[province] || []
@@ -376,18 +376,18 @@ function MainApp() {
           const isShort = preferred.length > 0
           const defaultMin = isShort ? 450_000 : 800_000
           const defaultMax = isShort ? 1_400_000 : 2_000_000
-          
+
           for (let i = 0; i < perProvince; i++) {
             // Chọn destination ngẫu nhiên từ danh sách tỉnh trong cùng miền
             const randomDest = destinations[Math.floor(Math.random() * destinations.length)]
-            
+
             if (randomDest) {
               const nameIdx = (idx * perProvince + i) % fakeNames.length
               const phone = randomPhone()
               const note = randomNote(notes)
               const [routeMin, routeMax] = getPriceRange(province, randomDest, defaultMin, defaultMax)
               const price = randomPrice(routeMin, routeMax)
-              
+
               requests.push({
                 name: fakeNames[nameIdx],
                 phone,
@@ -401,20 +401,20 @@ function MainApp() {
           }
         })
       }
-      
+
       console.log(`🚀 Đang tạo ${requests.length} cuốc xe ảo (≈ ${perProvince} cuốc/tỉnh, delay ${delayMs}ms)...`)
-      
+
       // Tạo requests với delay để tránh quá tải server
       let successCount = 0
       let errorCount = 0
-      
+
       try {
         for (let i = 0; i < requests.length; i++) {
           try {
             await requestsAPI.createRequest(requests[i])
             successCount++
-            console.log(`✓ [${i+1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
-            
+            console.log(`✓ [${i + 1}/${requests.length}] ${requests[i].startPoint} -> ${requests[i].endPoint}`)
+
             // Delay giữa mỗi request
             if (i < requests.length - 1) {
               await new Promise(resolve => setTimeout(resolve, delayMs))
@@ -424,12 +424,12 @@ function MainApp() {
             console.error(`✗ Lỗi: ${requests[i].startPoint} -> ${requests[i].endPoint}`, error)
           }
         }
-        
+
         console.log(`\n✅ Hoàn thành! Đã tạo thành công: ${successCount}/${requests.length}`)
         if (errorCount > 0) {
           console.log(`⚠️ Có ${errorCount} lỗi`)
         }
-        
+
         // Reload requests sau khi tạo xong
         try {
           const res = await requestsAPI.getAllRequests({ status: 'waiting' })
@@ -439,7 +439,7 @@ function MainApp() {
         } catch (e) {
           console.error('Error reloading requests', e)
         }
-        
+
         return { successCount, errorCount, total: requests.length }
       } finally {
         seedingRef.current = false
@@ -663,19 +663,19 @@ function MainApp() {
       console.log(`🧪 Seed local tỉnh ${province}: +${newRequests.length} cuốc (≈ ${perProvince} cuốc)`)
       return { total: newRequests.length }
     }
-    
-    // Expose function to window for console access
-    ;(window as any).createFakeRequests = createFakeRequests;
-    ;(window as any).seedLocalFakeRequests = seedLocalFakeRequests;
-    ;(window as any).seedLocalProvinceRequests = seedLocalProvinceRequests;
-    ;(window as any).createProvinceRequests = createProvinceRequests;
+
+      // Expose function to window for console access
+      ; (window as any).createFakeRequests = createFakeRequests;
+    ; (window as any).seedLocalFakeRequests = seedLocalFakeRequests;
+    ; (window as any).seedLocalProvinceRequests = seedLocalProvinceRequests;
+    ; (window as any).createProvinceRequests = createProvinceRequests;
     if (isDev) {
       console.log('💡 Tạo cuốc xe ảo (gọi API): createFakeRequests({ perProvince: 100, delayMs: 10 })')
       console.log('💡 Seed local tất cả tỉnh (không gọi API): seedLocalFakeRequests({ perProvince: 100 })')
       console.log('💡 Seed local 1 tỉnh: seedLocalProvinceRequests("Thanh Hóa", { perProvince: 100 })')
       console.log('💡 Tạo cuốc ảo lên server cho 1 tỉnh: createProvinceRequests("Thanh Hóa", { count: 20, delayMs: 20 })')
     }
-    
+
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       delete (window as any).createFakeRequests;
@@ -697,14 +697,14 @@ function MainApp() {
   const [drivers, setDrivers] = useState<DriverPost[]>(posts)
   const [activeRegion, setActiveRegion] = useState<Region>('north')
   const [loading, setLoading] = useState(false)
-  const [authForm, setAuthForm] = useState({ 
-    name: '', 
-    phone: '', 
-    password: '', 
+  const [authForm, setAuthForm] = useState({
+    name: '',
+    phone: '',
+    password: '',
     confirmPassword: '',
-    carType: '', 
-    carYear: '', 
-    carImage: '' 
+    carType: '',
+    carYear: '',
+    carImage: ''
   })
   // Removed car image preview state
   const [menuOpen, setMenuOpen] = useState(false)
@@ -712,7 +712,7 @@ function MainApp() {
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [requests, setRequests] = useState<Array<{ _id: string; name: string; phone: string; startPoint: string; endPoint: string; price: number; createdAt: string; note?: string; region?: Region }>>([])
-  const [callSheet, setCallSheet] = useState<{phone: string} | null>(null)
+  const [callSheet, setCallSheet] = useState<{ phone: string } | null>(null)
   const [pendingAction, setPendingAction] = useState<null | { type: 'wait' } | { type: 'call', phone: string }>(null)
   const [activeRequestRegion, setActiveRequestRegion] = useState<Region>('north')
   const [selectedProvince, setSelectedProvince] = useState<Record<Region, string>>({
@@ -742,16 +742,17 @@ function MainApp() {
   const regionDrivers = normalizedDrivers.filter((driver) => driver.region === activeRegion)
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
   const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
-  
+
   // Filter requests by region and province, then sort newest first
   const regionRequests = requests
     .filter((request) => {
       const requestRegion = (request.region || 'north') as Region
       if (requestRegion !== activeRequestRegion) return false
-      
+
       const selected = selectedProvince[activeRequestRegion]
-      if (!selected) return true // Nếu chưa chọn tỉnh thì hiển thị tất cả
-      
+      // Show all if not selected OR empty string (from dropdown default)
+      if (!selected || selected.trim() === '') return true
+
       // Filter theo tỉnh thành: kiểm tra startPoint hoặc endPoint
       return request.startPoint === selected || request.endPoint === selected
     })
@@ -873,7 +874,7 @@ function MainApp() {
     const { name, value } = e.target
     setForm((p) => {
       const updated = { ...p, [name]: value }
-      
+
       // Tự động xác định region khi chọn startPoint hoặc endPoint
       if (name === 'startPoint' || name === 'endPoint') {
         const province = value
@@ -882,7 +883,7 @@ function MainApp() {
           updated.region = detectedRegion
         }
       }
-      
+
       return updated
     })
   }
@@ -924,7 +925,7 @@ function MainApp() {
       alert('Giá phải lớn hơn 0đ')
       return
     }
-    
+
     setLoading(true)
     try {
       await requestsAPI.createRequest({
@@ -936,7 +937,7 @@ function MainApp() {
         note: form.note,
         region: form.region
       })
-      
+
       // Tải lại danh sách yêu cầu mà KHÔNG thay đổi activeRequestRegion
       try {
         // Reload all waiting requests (no limit)
@@ -947,7 +948,7 @@ function MainApp() {
       } catch (e) {
         console.error('Error reloading requests', e)
       }
-      
+
       // Sau khi đăng ký xong, chọn đúng miền và tỉnh thành vừa đăng ký
       setActiveRequestRegion(form.region)
       // Tự động chọn tỉnh thành từ startPoint hoặc endPoint
@@ -958,7 +959,7 @@ function MainApp() {
           [form.region]: selectedProvinceValue
         })
       }
-      
+
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
       setShowModal(false)
@@ -975,7 +976,7 @@ function MainApp() {
     <div className="app">
       {!user && (
         <div className="topbar">
-          <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v)=>!v)}> MENU</button>
+          <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}> MENU</button>
           {menuOpen && (
             <div className="menu-popover">
               {/* Menu chỉ hiển thị khi chưa đăng nhập */}
@@ -991,14 +992,14 @@ function MainApp() {
             <h3 className="auth-box__title">Tham gia nhóm tài xế</h3>
             <p className="auth-box__subtitle">Đăng ký để có thể liên hệ và đăng cuốc xe</p>
             <div className="auth-box__buttons">
-              <button 
-                className="auth-box__btn auth-box__btn--primary" 
+              <button
+                className="auth-box__btn auth-box__btn--primary"
                 onClick={() => setAuthModal('register')}
               >
                 Đăng ký thành viên
               </button>
-              <button 
-                className="auth-box__btn auth-box__btn--secondary" 
+              <button
+                className="auth-box__btn auth-box__btn--secondary"
                 onClick={() => setAuthModal('login')}
               >
                 Đăng nhập
@@ -1021,7 +1022,7 @@ function MainApp() {
               <span className="user-summary-card__phone">{maskPhoneStrict(user.phone)}</span>
             </div>
           </div>
-          <button 
+          <button
             className="main-action-btn main-action-btn--logout"
             onClick={() => {
               localStorage.removeItem('driver_user');
@@ -1060,8 +1061,8 @@ function MainApp() {
         {/* Yêu cầu chở cuốc xe - Hiển thị luôn trên màn hình chính */}
         <section className="requests-section" id="requests">
           <h2 className="requests-heading">Yêu cầu chở cuốc xe</h2>
-          
-          <div className="region-tabs" style={{marginBottom: 16}}>
+
+          <div className="region-tabs" style={{ marginBottom: 16 }}>
             {(['north', 'central', 'south'] as Region[]).map((region) => (
               <button
                 key={region}
@@ -1072,13 +1073,13 @@ function MainApp() {
               </button>
             ))}
           </div>
-          
-          <div style={{marginBottom: 12}}>
-            <label className="field" style={{marginBottom: 0}}>
+
+          <div style={{ marginBottom: 12 }}>
+            <label className="field" style={{ marginBottom: 0 }}>
               <span>Chọn tỉnh/thành phố</span>
-              <motion.select 
-                name="province" 
-                value={selectedProvince[activeRequestRegion]} 
+              <motion.select
+                name="province"
+                value={selectedProvince[activeRequestRegion]}
                 onChange={(e) => {
                   setSelectedProvince({
                     ...selectedProvince,
@@ -1110,12 +1111,12 @@ function MainApp() {
               </motion.select>
             </label>
           </div>
-          
-          <h3 style={{margin: '0 0 12px 0', fontSize: '16px', color: '#333'}}>
+
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#333' }}>
             {regionLabels[activeRequestRegion]}
             {selectedProvince[activeRequestRegion] && ` - ${selectedProvince[activeRequestRegion]}`}
           </h3>
-          
+
           {regionRequests.length === 0 && (
             <div className="empty-state">Chưa có yêu cầu nào trong {regionLabels[activeRequestRegion]}.</div>
           )}
@@ -1139,7 +1140,7 @@ function MainApp() {
         {/* Danh sách tài xế */}
         <section className="drivers-section">
           <h2 className="section-heading">Danh sách tài xế</h2>
-          
+
           <div className="region-tabs">
             {(['north', 'central', 'south'] as Region[]).map((region) => (
               <button
@@ -1157,52 +1158,54 @@ function MainApp() {
             <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
           )}
 
-          {(() => { const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
-            return (
-              <article className="driver-card" key={p._id}>
-                <div className="avatar" aria-label={p.name} title={p.name}>
-                  {(() => {
-                    let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
-                    if (idx >= 0 && usedAvatarIdx.has(idx)) {
-                      // try next candidates within same region pool (step by 3 keeps region bucket)
-                      let tries = 0
-                      while (tries < avatarImages.length) {
-                        idx = (idx + 3) % avatarImages.length
-                        if (!usedAvatarIdx.has(idx)) break
-                        tries++
+          {(() => {
+            const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
+              return (
+                <article className="driver-card" key={p._id}>
+                  <div className="avatar" aria-label={p.name} title={p.name}>
+                    {(() => {
+                      let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
+                      if (idx >= 0 && usedAvatarIdx.has(idx)) {
+                        // try next candidates within same region pool (step by 3 keeps region bucket)
+                        let tries = 0
+                        while (tries < avatarImages.length) {
+                          idx = (idx + 3) % avatarImages.length
+                          if (!usedAvatarIdx.has(idx)) break
+                          tries++
+                        }
                       }
-                    }
-                    if (idx >= 0) usedAvatarIdx.add(idx)
-                    const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
-                    // In case new images are added/removed, ensure index stays in range
-                    if (!chosen) return <span>{toInitials(p.name)}</span>
-                    return <img src={chosen} alt={p.name} />
-                  })()}
-                </div>
-                <div className="driver-info">
-                  <div className="driver-phone">{formatPhone(p.phone)}</div>
-                  <div className="driver-route">{p.route}</div>
-                </div>
-                <button
-                  className="call-btn"
-                  aria-label="Gọi tài xế"
-                  onClick={() => {
-                    if (!user) {
-                      setPendingAction({ type: 'call', phone: p.phone })
-                      const reg = localStorage.getItem('driver_registered')
-                      setAuthModal(reg ? 'login' : 'register')
-                      return
-                    }
-                    setCallSheet({ phone: p.phone })
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
-                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
-                  </svg>
-                </button>
-              </article>
-            )
-          })})()}
+                      if (idx >= 0) usedAvatarIdx.add(idx)
+                      const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
+                      // In case new images are added/removed, ensure index stays in range
+                      if (!chosen) return <span>{toInitials(p.name)}</span>
+                      return <img src={chosen} alt={p.name} />
+                    })()}
+                  </div>
+                  <div className="driver-info">
+                    <div className="driver-phone">{formatPhone(p.phone)}</div>
+                    <div className="driver-route">{p.route}</div>
+                  </div>
+                  <button
+                    className="call-btn"
+                    aria-label="Gọi tài xế"
+                    onClick={() => {
+                      if (!user) {
+                        setPendingAction({ type: 'call', phone: p.phone })
+                        const reg = localStorage.getItem('driver_registered')
+                        setAuthModal(reg ? 'login' : 'register')
+                        return
+                      }
+                      setCallSheet({ phone: p.phone })
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+                      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
+                    </svg>
+                  </button>
+                </article>
+              )
+            })
+          })()}
         </section>
       </main>
 
@@ -1220,94 +1223,94 @@ function MainApp() {
       </button>
 
       <AnimatePresence>
-      {showModal && (
-        <div className="modal" role="dialog" aria-modal="true">
-          <motion.div className="modal__backdrop" onClick={closeModal}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          <motion.div className="modal__panel"
-            initial={{ opacity: 0, y: 40, scale: .98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: .98 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-          >
-            <div className="modal__header">
-              <div className="modal__title">Đăng ký chở cuốc xe</div>
-              <button className="modal__close" onClick={closeModal} aria-label="Đóng">×</button>
-            </div>
-            <form className="form" onSubmit={onSubmit}>
-              <label className="field">
-                <span>Họ và tên</span>
-                <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyễn Văn A" required />
-              </label>
-              <label className="field">
-                <span>Số điện thoại</span>
-                <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
-              </label>
-              <label className="field">
-                <span>Miền đăng ký</span>
-                <motion.select name="region" value={form.region} onChange={(e) => onChange(e as any)} required
-                  whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
-                >
-                  <option value="north">Miền Bắc</option>
-                  <option value="central">Miền Trung</option>
-                  <option value="south">Miền Nam</option>
-                </motion.select>
-              </label>
-              <div className="field" style={{gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '12px'}}>
-                <label className="field">
-                  <span>Điểm xuất phát</span>
-                  <motion.select name="startPoint" value={form.startPoint} onChange={(e) => onChange(e as any)} required
-                    whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
-                  >
-                    <option value="" disabled>Chọn tỉnh/thành</option>
-                    {provincesVN63.map((p) => (
-                      <option key={'s-'+p} value={p}>{p}</option>
-                    ))}
-                  </motion.select>
-                </label>
-                <label className="field">
-                  <span>Điểm đến</span>
-                  <motion.select name="endPoint" value={form.endPoint} onChange={(e) => onChange(e as any)} required
-                    whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
-                  >
-                    <option value="" disabled>Chọn tỉnh/thành</option>
-                    {provincesVN63.map((p) => (
-                      <option key={'e-'+p} value={p}>{p}</option>
-                    ))}
-                  </motion.select>
-                </label>
+        {showModal && (
+          <div className="modal" role="dialog" aria-modal="true">
+            <motion.div className="modal__backdrop" onClick={closeModal}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <motion.div className="modal__panel"
+              initial={{ opacity: 0, y: 40, scale: .98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: .98 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            >
+              <div className="modal__header">
+                <div className="modal__title">Đăng ký chở cuốc xe</div>
+                <button className="modal__close" onClick={closeModal} aria-label="Đóng">×</button>
               </div>
-              <label className="field">
-                <span>Giá dự kiến (VND)</span>
-                <input
-                  name="price"
-                  value={form.price}
-                  onChange={onChange}
-                  placeholder="VD: 800000"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min={1000}
-                  required
-                />
-              </label>
-              <label className="field">
-                <span>Ghi chú</span>
-                <textarea name="note" value={form.note} onChange={onChange} placeholder="Giờ giấc, loại xe..." rows={3} />
-              </label>
-              <motion.button type="submit" className="submit"
-                whileTap={{ scale: 0.98 }}
-                whileHover={{ filter: 'brightness(1.05)' }}
-                disabled={loading}
-              >
-                {loading ? 'ĐANG GỬI...' : 'GỬI ĐĂNG KÝ'}
-              </motion.button>
-            </form>
-          </motion.div>
-        </div>
-      )}
+              <form className="form" onSubmit={onSubmit}>
+                <label className="field">
+                  <span>Họ và tên</span>
+                  <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyễn Văn A" required />
+                </label>
+                <label className="field">
+                  <span>Số điện thoại</span>
+                  <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
+                </label>
+                <label className="field">
+                  <span>Miền đăng ký</span>
+                  <motion.select name="region" value={form.region} onChange={(e) => onChange(e as any)} required
+                    whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                  >
+                    <option value="north">Miền Bắc</option>
+                    <option value="central">Miền Trung</option>
+                    <option value="south">Miền Nam</option>
+                  </motion.select>
+                </label>
+                <div className="field" style={{ gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '12px' }}>
+                  <label className="field">
+                    <span>Điểm xuất phát</span>
+                    <motion.select name="startPoint" value={form.startPoint} onChange={(e) => onChange(e as any)} required
+                      whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                    >
+                      <option value="" disabled>Chọn tỉnh/thành</option>
+                      {provincesVN63.map((p) => (
+                        <option key={'s-' + p} value={p}>{p}</option>
+                      ))}
+                    </motion.select>
+                  </label>
+                  <label className="field">
+                    <span>Điểm đến</span>
+                    <motion.select name="endPoint" value={form.endPoint} onChange={(e) => onChange(e as any)} required
+                      whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
+                    >
+                      <option value="" disabled>Chọn tỉnh/thành</option>
+                      {provincesVN63.map((p) => (
+                        <option key={'e-' + p} value={p}>{p}</option>
+                      ))}
+                    </motion.select>
+                  </label>
+                </div>
+                <label className="field">
+                  <span>Giá dự kiến (VND)</span>
+                  <input
+                    name="price"
+                    value={form.price}
+                    onChange={onChange}
+                    placeholder="VD: 800000"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    min={1000}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>Ghi chú</span>
+                  <textarea name="note" value={form.note} onChange={onChange} placeholder="Giờ giấc, loại xe..." rows={3} />
+                </label>
+                <motion.button type="submit" className="submit"
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ filter: 'brightness(1.05)' }}
+                  disabled={loading}
+                >
+                  {loading ? 'ĐANG GỬI...' : 'GỬI ĐĂNG KÝ'}
+                </motion.button>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -1341,8 +1344,8 @@ function MainApp() {
       <AnimatePresence>
         {callSheet && (
           <div className="sheet" role="dialog" aria-modal="true">
-            <motion.div className="sheet__backdrop" onClick={() => setCallSheet(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
-            <motion.div className="sheet__panel" initial={{y: 240}} animate={{y:0}} exit={{y:240}} transition={{ type:'spring', stiffness:400, damping:34 }}>
+            <motion.div className="sheet__backdrop" onClick={() => setCallSheet(null)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div className="sheet__panel" initial={{ y: 240 }} animate={{ y: 0 }} exit={{ y: 240 }} transition={{ type: 'spring', stiffness: 400, damping: 34 }}>
               <div className="sheet__row">
                 <span className="sheet__label">Gọi</span>
                 <strong className="sheet__phone">{formatPhone(callSheet.phone)}</strong>
@@ -1357,17 +1360,17 @@ function MainApp() {
       <AnimatePresence>
         {!!authModal && (
           <div className="modal" role="dialog" aria-modal="true">
-            <motion.div className="modal__backdrop" onClick={() => setAuthModal(null)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
-            <motion.div 
+            <motion.div className="modal__backdrop" onClick={() => setAuthModal(null)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div
               className={`modal__panel ${isDragging ? 'dragging' : ''}`}
-              initial={{opacity:0,y:40}} 
-              animate={{opacity:1,y:0}} 
-              exit={{opacity:0,y:20}}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
               style={{
                 transform: isDragging ? `translateY(${Math.max(0, dragCurrentY - dragStartY)}px)` : undefined
               }}
             >
-              <div 
+              <div
                 className="modal__header"
                 onTouchStart={handleDragStart}
                 onTouchMove={handleDragMove}
@@ -1462,9 +1465,9 @@ function MainApp() {
                     status: error.response?.status,
                     statusText: error.response?.statusText
                   });
-                  
+
                   let errorMsg = 'Có lỗi xảy ra';
-                  
+
                   // Handle specific error cases
                   if (error.response?.status === 403) {
                     if (error.response?.data?.message?.includes('phê duyệt')) {
@@ -1479,7 +1482,7 @@ function MainApp() {
                   } else if (error.code === 'NETWORK_ERROR' || !error.response) {
                     errorMsg = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
                   }
-                  
+
                   setErrorMessage(errorMsg)
                   setShowError(true)
                   setTimeout(() => setShowError(false), 5000)
@@ -1491,42 +1494,42 @@ function MainApp() {
                 {authModal === 'register' && (
                   <label className="field">
                     <span>Họ và tên</span>
-                    <input name="name" value={authForm.name} onChange={(e)=>setAuthForm({...authForm, name: e.target.value})} placeholder="VD: Nguyễn Văn A" required />
+                    <input name="name" value={authForm.name} onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })} placeholder="VD: Nguyễn Văn A" required />
                   </label>
                 )}
                 <label className="field">
                   <span>Số điện thoại</span>
-                  <input name="phone" value={authForm.phone} onChange={(e)=>setAuthForm({...authForm, phone: e.target.value})} inputMode="tel" pattern="[0-9]{9,11}" placeholder="VD: 09xxxxxxx" required />
+                  <input name="phone" value={authForm.phone} onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })} inputMode="tel" pattern="[0-9]{9,11}" placeholder="VD: 09xxxxxxx" required />
                 </label>
                 {authModal === 'register' && (
                   <>
                     <label className="field">
                       <span>Loại xe</span>
-                      <input name="carType" value={authForm.carType} onChange={(e)=>setAuthForm({...authForm, carType: e.target.value})} placeholder="VD: Toyota Camry, Honda Civic..." required />
+                      <input name="carType" value={authForm.carType} onChange={(e) => setAuthForm({ ...authForm, carType: e.target.value })} placeholder="VD: Toyota Camry, Honda Civic..." required />
                     </label>
                     <label className="field">
                       <span>Đời xe</span>
-                      <input name="carYear" value={authForm.carYear} onChange={(e)=>setAuthForm({...authForm, carYear: e.target.value})} placeholder="VD: 2020, 2021..." required />
+                      <input name="carYear" value={authForm.carYear} onChange={(e) => setAuthForm({ ...authForm, carYear: e.target.value })} placeholder="VD: 2020, 2021..." required />
                     </label>
-                    
+
                   </>
                 )}
                 <label className="field">
                   <span>Mật khẩu</span>
-                  <input type="password" name="password" value={authForm.password} onChange={(e)=>setAuthForm({...authForm, password: e.target.value})} placeholder="Ít nhất 4 ký tự" required />
+                  <input type="password" name="password" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} placeholder="Ít nhất 4 ký tự" required />
                 </label>
                 {authModal === 'register' && (
                   <label className="field">
                     <span>Xác nhận lại mật khẩu</span>
-                    <input type="password" name="confirmPassword" value={authForm.confirmPassword} onChange={(e)=>setAuthForm({...authForm, confirmPassword: e.target.value})} placeholder="Nhập lại mật khẩu" required />
+                    <input type="password" name="confirmPassword" value={authForm.confirmPassword} onChange={(e) => setAuthForm({ ...authForm, confirmPassword: e.target.value })} placeholder="Nhập lại mật khẩu" required />
                   </label>
                 )}
-                <motion.button 
-                  type="submit" 
-                  className="submit" 
-                  whileTap={{scale:.98}} 
+                <motion.button
+                  type="submit"
+                  className="submit"
+                  whileTap={{ scale: .98 }}
                   disabled={loading}
-                  style={{ 
+                  style={{
                     opacity: loading ? 0.7 : 1,
                     cursor: loading ? 'not-allowed' : 'pointer'
                   }}
@@ -1542,23 +1545,23 @@ function MainApp() {
       <AnimatePresence>
         {showPayment && (
           <div className="modal" role="dialog" aria-modal="true">
-            <motion.div className="modal__backdrop" onClick={() => setShowPayment(false)} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} />
-            <motion.div className="modal__panel" initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}>
+            <motion.div className="modal__backdrop" onClick={() => setShowPayment(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div className="modal__panel" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
               <div className="modal__header">
                 <div className="modal__title">Phí vào nhóm 200.000đ</div>
                 <button className="modal__close" onClick={() => setShowPayment(false)} aria-label="Đóng">×</button>
               </div>
-              <div style={{padding:'8px 16px', overflowY:'auto', flex:1, maxHeight:'calc(90vh - 60px)', WebkitOverflowScrolling:'touch'}}>
-                <p style={{marginTop:0}}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
-                <div style={{display:'flex', justifyContent:'center'}}>
+              <div style={{ padding: '8px 16px', overflowY: 'auto', flex: 1, maxHeight: 'calc(90vh - 60px)', WebkitOverflowScrolling: 'touch' }}>
+                <p style={{ marginTop: 0 }}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <img
                     src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
                     alt="VietQR VIB 081409781"
-                    style={{width:'100%', maxWidth:360, borderRadius:12, boxShadow:'0 6px 24px rgba(0,0,0,.08)'}}
+                    style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                 </div>
-                <div style={{marginTop:12, fontSize:13, color:'#444'}}>Nội dung chuyển khoản: <strong>Phi tham gia nhom</strong></div>
-                <div style={{display:'flex', gap:12, marginTop:16, marginBottom:16}}>
+                <div style={{ marginTop: 12, fontSize: 13, color: '#444' }}>Nội dung chuyển khoản: <strong>Phi tham gia nhom</strong></div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 16, marginBottom: 16 }}>
                   <button
                     className="submit"
                     onClick={async () => {
@@ -1585,11 +1588,11 @@ function MainApp() {
                         setLoading(false)
                       }
                     }}
-                    style={{flex:1}}
+                    style={{ flex: 1 }}
                   >
                     Tôi đã chuyển 200k - Tiếp tục
                   </button>
-                  <button className="sheet__cancel" onClick={() => setShowPayment(false)} style={{flex:1}}>Để sau</button>
+                  <button className="sheet__cancel" onClick={() => setShowPayment(false)} style={{ flex: 1 }}>Để sau</button>
                 </div>
               </div>
             </motion.div>
