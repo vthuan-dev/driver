@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -15,7 +15,8 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:5173',
     'https://driver-uenm.vercel.app',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost:8081'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
