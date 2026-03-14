@@ -1,0 +1,57 @@
+name: Build Driver App iOS
+
+on:
+  workflow_dispatch: # Chạy manual khi cần
+  push:
+    branches: [ main ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐦 Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        
+    - name: 📦 Install Flutter dependencies
+      run: |
+        cd driver_app
+        flutter pub get
+        
+    - name: 🔧 Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+        
+    - name: 🏗️ Build iOS App (unsigned)
+      run: |
+        cd driver_app
+        flutter build ios --release --no-codesign
+        
+    - name: 📱 Create IPA file
+      run: |
+        cd driver_app
+        mkdir -p build/ios/ipa
+        cp -r build/ios/iphoneos/Runner.app build/ios/ipa/
+        cd build/ios/ipa
+        zip -r ../../../DriverApp-iOS.ipa Runner.app
+        
+    - name: ⬆️ Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: DriverApp-iOS-Build
+        path: driver_app/DriverApp-iOS.ipa
+        retention-days: 7
+        
+    - name: 📊 Build Summary
+      run: |
+        echo "✅ iOS build completed successfully!"
+        echo "📱 IPA file: DriverApp-iOS.ipa"
+        echo "💾 Download from Actions tab"
+        echo "📲 Install via AltStore or Sideloadly"

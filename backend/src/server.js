@@ -12,12 +12,7 @@ const PORT = config.PORT;
 
 // Middleware
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'https://driver-uenm.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:8081'
-  ],
+  origin: true, // Cho phép tất cả origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
