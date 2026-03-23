@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 const config = require('./config/config');
 
 // Load environment variables
@@ -18,8 +20,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -27,6 +29,38 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/drivers', require('./routes/drivers'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/driver', require('./routes/driver'));
+
+// APK Download Route - Using streaming for large files
+app.get('/api/download/app', (req, res) => {
+  const apkPath = path.join(__dirname, '..', 'driver-app.apk');
+  
+  // Check if file exists
+  if (!fs.existsSync(apkPath)) {
+    return res.status(404).json({ message: 'File APK không tồn tại' });
+  }
+  
+  // Get file stats
+  const stat = fs.statSync(apkPath);
+  const fileSize = stat.size;
+  
+  // Set headers for download
+  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+  res.setHeader('Content-Disposition', 'attachment; filename="Driver.apk"');
+  res.setHeader('Content-Length', fileSize);
+  res.setHeader('Cache-Control', 'no-cache');
+  
+  // Stream the file
+  const fileStream = fs.createReadStream(apkPath);
+  fileStream.pipe(res);
+  
+  fileStream.on('error', (err) => {
+    console.error('Error streaming APK:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Lỗi khi tải file APK' });
+    }
+  });
+});
 
 // MongoDB connection
 mongoose.connect(config.MONGODB_URI, {

@@ -148,10 +148,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     <div className="dashboard">
       <header className="dashboard-header">
         <button 
-          className="hamburger-menu"
+          className={`hamburger-menu ${sidebarOpen ? 'open' : ''}`}
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
         >
-          ☰
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
         <div className="header-content">
           <h1>Admin Dashboard</h1>

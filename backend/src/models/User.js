@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
+  depositBalance: {
+    type: Number,
+    default: 200000 // Số tiền ký quỹ ban đầu
+  },
   createdAt: {
     type: Date,
     default: Date.now

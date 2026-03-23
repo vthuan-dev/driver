@@ -77,4 +77,9 @@ export const requestsAPI = {
   updateRequest: (id: string, status: string) => api.put(`/requests/${id}`, { status }),
 };
 
+// Driver API
+export const driverAPI = {
+  getStats: () => api.get('/driver/stats'),
+};
+
 export default api;

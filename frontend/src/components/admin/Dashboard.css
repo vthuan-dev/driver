@@ -55,19 +55,52 @@ body {
   display: none;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 12px;
+  padding: 10px;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 18px;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   margin-left: 20px;
+  width: 48px;
+  height: 48px;
+  position: relative;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.hamburger-menu span {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .hamburger-menu:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
+}
+
+.hamburger-menu:active {
+  transform: scale(0.95);
+}
+
+/* Animated hamburger to X */
+.hamburger-menu.open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+
+.hamburger-menu.open span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.hamburger-menu.open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
 }
 
 .header-content {
@@ -1036,7 +1069,7 @@ body {
   }
 
   .hamburger-menu {
-    display: block;
+    display: flex;
     margin-left: 20px;
   }
   

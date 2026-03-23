@@ -86,7 +86,8 @@ const login = async (req, res) => {
         phone: user.phone,
         carType: user.carType,
         carYear: user.carYear,
-        carImage: user.carImage
+        carImage: user.carImage,
+        status: user.status
       }
     });
   } catch (error) {
@@ -139,7 +140,19 @@ const getMe = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
-    res.json({ user });
+    res.json({ 
+      user: {
+        id: user._id,
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        carType: user.carType,
+        carYear: user.carYear,
+        carImage: user.carImage,
+        status: user.status,
+        depositBalance: user.depositBalance || 200000
+      }
+    });
   } catch (error) {
     console.error('Get me error:', error);
     res.status(500).json({ message: 'Lỗi máy chủ' });

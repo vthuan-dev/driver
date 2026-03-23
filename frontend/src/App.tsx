@@ -6,6 +6,7 @@ import './App.css'
 import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
+import DriverDashboard from './components/driver/DriverDashboard'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -692,8 +693,49 @@ function MainApp() {
   const [errorMessage, setErrorMessage] = useState('')
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null)
   const [user, setUser] = useState<User | null>(() => {
-    try { return JSON.parse(localStorage.getItem('driver_user') || 'null') } catch { return null }
+    try { 
+      const savedUser = JSON.parse(localStorage.getItem('driver_user') || 'null');
+      // If user exists but missing status, we'll fetch it in useEffect
+      return savedUser;
+    } catch { 
+      return null;
+    }
   })
+  
+  // State to control showing driver dashboard
+  const [showDriverDashboard, setShowDriverDashboard] = useState(false);
+  
+  // Fetch user info if logged in but missing status
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      console.log('Checking user:', user);
+      console.log('User status:', user?.status);
+      
+      if (user && !user.status) {
+        try {
+          console.log('User missing status, fetching from API...');
+          const response = await authAPI.getMe();
+          const userData = {
+            ...response.data.user,
+            _id: response.data.user.id || response.data.user._id
+          };
+          console.log('Fetched user data:', userData);
+          localStorage.setItem('driver_user', JSON.stringify(userData));
+          setUser(userData);
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+          // If token is invalid, clear user
+          localStorage.removeItem('driver_user');
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      } else if (user && user.status) {
+        console.log('User has status:', user.status);
+        console.log('Should show dashboard:', user.status === 'approved');
+      }
+    };
+    fetchUserInfo();
+  }, [user]);
   const [drivers, setDrivers] = useState<DriverPost[]>(posts)
   const [activeRegion, setActiveRegion] = useState<Region>('north')
   const [loading, setLoading] = useState(false)
@@ -974,6 +1016,24 @@ function MainApp() {
 
   return (
     <div className="app">
+      {/* Show Driver Dashboard only when user clicks to open it */}
+      {showDriverDashboard && user && user.status === 'approved' && (
+        <DriverDashboard 
+          user={user}
+          onBack={() => setShowDriverDashboard(false)}
+          onLogout={() => {
+            localStorage.removeItem('driver_user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('driver_registered');
+            setUser(null);
+            setShowDriverDashboard(false);
+          }}
+        />
+      )}
+
+      {/* Show main app (hide when dashboard is open) */}
+      {!showDriverDashboard && (
+        <>
       {!user && (
         <div className="topbar">
           <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}> MENU</button>
@@ -1012,7 +1072,17 @@ function MainApp() {
       {/* Nút đăng xuất + thông tin khách khi đã đăng nhập */}
       {user && (
         <div className="main-actions">
-          <div className="user-summary-card">
+          <div 
+            className="user-summary-card user-summary-card--clickable"
+            onClick={() => {
+              if (user.status === 'approved') {
+                setShowDriverDashboard(true);
+              } else {
+                alert('Tài khoản đang chờ admin phê duyệt');
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="user-summary-card__avatar">
               {toInitials(user.name || user.phone)}
             </div>
@@ -1020,6 +1090,9 @@ function MainApp() {
               <span className="user-summary-card__greeting">Xin chào,</span>
               <strong className="user-summary-card__name">{user.name || 'Tài xế'}</strong>
               <span className="user-summary-card__phone">{maskPhoneStrict(user.phone)}</span>
+              {user.status === 'approved' && (
+                <span className="user-summary-card__hint">� Nhấn để xem dashboard</span>
+              )}
             </div>
           </div>
           <button
@@ -1029,6 +1102,7 @@ function MainApp() {
               localStorage.removeItem('token');
               localStorage.removeItem('driver_registered');
               setUser(null);
+              setShowDriverDashboard(false);
             }}
           >
             <span className="main-action-btn__icon">🚪</span>
@@ -1443,10 +1517,17 @@ function MainApp() {
                     })
 
                     console.log('Login successful:', response.data);
+                    
+                    // Map id to _id for consistency
+                    const userData = {
+                      ...response.data.user,
+                      _id: response.data.user.id || response.data.user._id
+                    };
+                    
                     localStorage.setItem('token', response.data.token)
-                    localStorage.setItem('driver_user', JSON.stringify(response.data.user))
+                    localStorage.setItem('driver_user', JSON.stringify(userData))
                     localStorage.setItem('driver_registered', '1')
-                    setUser(response.data.user)
+                    setUser(userData)
                     setAuthModal(null)
                     setShowSuccess(true)
                     setTimeout(() => setShowSuccess(false), 1600)
@@ -1599,6 +1680,8 @@ function MainApp() {
           </div>
         )}
       </AnimatePresence>
+      </>
+      )}
     </div>
   )
 }

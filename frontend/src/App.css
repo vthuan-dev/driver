@@ -343,6 +343,21 @@
   border: 1px solid #e2e8f0;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
   margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.user-summary-card--clickable {
+  cursor: pointer;
+}
+
+.user-summary-card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 177, 79, 0.15);
+  border-color: #00b14f;
+}
+
+.user-summary-card--clickable:active {
+  transform: translateY(0);
 }
 
 .user-summary-card__avatar {
@@ -376,6 +391,23 @@
 .user-summary-card__phone {
   font-size: 13px;
   color: #475569;
+}
+
+.user-summary-card__hint {
+  font-size: 11px;
+  color: #00b14f;
+  font-weight: 600;
+  margin-top: 4px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .main-action-btn {
