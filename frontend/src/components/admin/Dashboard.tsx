@@ -36,6 +36,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [requestSearchQuery, setRequestSearchQuery] = useState<string>('');
   const [requestStatusFilter, setRequestStatusFilter] = useState<'all' | 'waiting' | 'matched' | 'completed'>('waiting');
 
   const loadUsers = async () => {
@@ -128,10 +129,20 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const filteredPendingUsers = filterUsersByPhone(pendingUsers);
   const filteredApprovedUsers = filterUsersByPhone(approvedUsers);
   const filteredRejectedUsers = filterUsersByPhone(rejectedUsers);
-  const filteredRequests =
+  
+  // Filter requests by status
+  const statusFilteredRequests =
     requestStatusFilter === 'all'
       ? requests
       : requests.filter((r) => r.status === requestStatusFilter);
+  
+  // Filter requests by phone search
+  const filteredRequests = requestSearchQuery.trim()
+    ? statusFilteredRequests.filter(request => {
+        const numericQuery = requestSearchQuery.replace(/\D/g, '');
+        return numericQuery && request.phone.replace(/\D/g, '').includes(numericQuery);
+      })
+    : statusFilteredRequests;
 
   return (
     <div className="dashboard">
@@ -394,6 +405,26 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
             <div className="requests-header">
                 <h2>Yêu cầu cuốc xe</h2>
                 <p className="requests-subtitle">Lọc nhanh: chờ ghép, đã ghép, đã hoàn thành. Bạn có thể xóa bất kỳ cuốc nào.</p>
+              
+              {/* Search Input for Requests */}
+              <div className="search-container">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Tìm kiếm theo số điện thoại..."
+                  value={requestSearchQuery}
+                  onChange={(e) => setRequestSearchQuery(e.target.value)}
+                />
+                {requestSearchQuery && (
+                  <button 
+                    className="clear-search-btn"
+                    onClick={() => setRequestSearchQuery('')}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
               <div className="request-filters">
                 <button
                   className={`filter-btn ${requestStatusFilter === 'all' ? 'active' : ''}`}
@@ -421,6 +452,14 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </button>
               </div>
             </div>
+              
+              {/* No results message */}
+              {requestSearchQuery && filteredRequests.length === 0 && (
+                <div className="no-results">
+                  <p>Không tìm thấy yêu cầu với số điện thoại "{requestSearchQuery}"</p>
+                </div>
+              )}
+              
               <div className="request-list">
               {filteredRequests.map(request => (
                   <motion.div 

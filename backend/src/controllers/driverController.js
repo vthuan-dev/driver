@@ -8,10 +8,26 @@ const getDrivers = async (req, res) => {
       filter.region = region;
     }
 
+    // Debug logging
+    console.log('🔍 Filter:', filter);
+    const totalDrivers = await DriverPost.countDocuments();
+    const activeDrivers = await DriverPost.countDocuments({ isActive: true });
+    console.log(`📊 Total drivers: ${totalDrivers}, Active: ${activeDrivers}`);
+
     const drivers = await DriverPost.find(filter)
       .sort({ createdAt: -1 });
     
-    res.json({ drivers });
+    console.log(`✅ Found ${drivers.length} drivers for region: ${region || 'all'}`);
+    
+    res.json({ 
+      drivers,
+      debug: {
+        filter,
+        totalCount: totalDrivers,
+        activeCount: activeDrivers,
+        resultCount: drivers.length
+      }
+    });
   } catch (error) {
     console.error('Get drivers error:', error);
     res.status(500).json({ message: 'Server error' });
