@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as SecureStore from 'expo-secure-store';
-import { driversAPI, requestsAPI, authAPI } from './src/services/api';
+import { driversAPI, requestsAPI, authAPI, driverFakeNotificationsAPI } from './src/services/api';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 
@@ -75,6 +75,70 @@ export default function App() {
     // Forms
     const [authForm, setAuthForm] = useState({ name: '', phone: '', password: '', confirmPassword: '', carType: '', carYear: '' });
     const [requestForm, setRequestForm] = useState({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '', region: 'north' as Region });
+
+    // Fake Notifications State
+    const [fakeNotification, setFakeNotification] = useState<any>(null);
+    const [showFakeError, setShowFakeError] = useState(false);
+    const [fakeErrorMessage, setFakeErrorMessage] = useState('');
+    const [acceptingFake, setAcceptingFake] = useState(false);
+    const fakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Fake notifications logic
+    const fetchFakeNotifications = async (currentUser?: any) => {
+        const u = currentUser || user;
+        if (!u || u.status !== 'approved') return;
+
+        try {
+            const region = 'north'; // Default or activeDriverRegion
+            const response = await driverFakeNotificationsAPI.getNotifications(region);
+            const notifications = response.data.data || [];
+            
+            if (notifications.length > 0) {
+                const randomNotif = notifications[Math.floor(Math.random() * notifications.length)];
+                setFakeNotification(randomNotif);
+            }
+
+            if (fakeTimeoutRef.current) clearTimeout(fakeTimeoutRef.current);
+            
+            let min = 15;
+            let max = 30;
+            if (response.data.settings) {
+                min = response.data.settings.minInterval || 15;
+                max = response.data.settings.maxInterval || 30;
+            }
+            
+            const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
+            fakeTimeoutRef.current = setTimeout(() => {
+                fetchFakeNotifications(u);
+            }, randomMinutes * 60 * 1000);
+
+        } catch (error) {
+            console.error('[API] Error fetching fake notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (user && user.status === 'approved') {
+            fetchFakeNotifications(user);
+        }
+        return () => {
+            if (fakeTimeoutRef.current) clearTimeout(fakeTimeoutRef.current);
+        };
+    }, [user?.status]);
+
+    const handleAcceptFake = async () => {
+        if (!fakeNotification) return;
+        setAcceptingFake(true);
+        try {
+            await driverFakeNotificationsAPI.acceptNotification(fakeNotification._id);
+        } catch (error: any) {
+            setFakeNotification(null); // Hide popup
+            setFakeErrorMessage(error.response?.data?.message || 'Đã có tài xế nhận quốc, vui lòng đợi cuốc tiếp theo');
+            setShowFakeError(true);
+        } finally {
+            setAcceptingFake(false);
+        }
+    };
 
     useEffect(() => {
         console.log('[App] Mounting - calling checkAuth and loadData');
@@ -442,6 +506,49 @@ export default function App() {
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => setCallSheet(null)} style={{ marginTop: 15 }}>
                             <Text style={{ textAlign: 'center', color: '#666', fontSize: 16 }}>Hủy</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Fake Notification Modal */}
+            <Modal visible={!!fakeNotification} animationType="slide" transparent>
+                <View style={styles.sheetOverlay}>
+                    <View style={styles.sheetPanel}>
+                        <View style={{ width: 50, height: 5, backgroundColor: '#ddd', borderRadius: 3, marginBottom: 15 }} />
+                        <Text style={{ fontSize: 18, color: '#27ae60', fontWeight: 'bold', marginBottom: 5 }}>🔔 Thông báo cuốc xe mới</Text>
+                        <Text style={{ fontSize: 14, color: '#666', marginBottom: 20 }}>{fakeNotification?.displayTime}</Text>
+                        
+                        <View style={{ width: '100%', backgroundColor: '#f8f9fa', padding: 15, borderRadius: 12, marginBottom: 20 }}>
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 8 }}>🚗 Có tài xế bắn cuốc {fakeNotification?.carType} chỗ</Text>
+                            <Text style={{ fontSize: 15, color: '#333', marginBottom: 8 }}>{fakeNotification?.startPoint} ➔ {fakeNotification?.endPoint}</Text>
+                            <Text style={{ fontSize: 18, color: '#e74c3c', fontWeight: 'bold' }}>💰 {fakeNotification?.price?.toLocaleString()} VND</Text>
+                        </View>
+
+                        <TouchableOpacity style={[styles.submitBtn, { width: '100%' }]} onPress={handleAcceptFake} disabled={acceptingFake}>
+                            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                                {acceptingFake ? 'Đang xử lý...' : '✅ NHẬN CHUYẾN NGAY'}
+                            </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity onPress={() => setFakeNotification(null)} style={{ marginTop: 15, padding: 10 }}>
+                            <Text style={{ textAlign: 'center', color: '#999', fontSize: 14 }}>Bỏ qua</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Fake Error Modal */}
+            <Modal visible={showFakeError} animationType="fade" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalPanel, { alignItems: 'center', paddingVertical: 30 }]}>
+                        <Text style={{ fontSize: 50, marginBottom: 10 }}>⚠️</Text>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#e74c3c', marginBottom: 15, textAlign: 'center' }}>Cuốc xe đã được nhận</Text>
+                        <Text style={{ textAlign: 'center', color: '#666', fontSize: 15, marginBottom: 25, lineHeight: 22 }}>
+                            {fakeErrorMessage}
+                        </Text>
+                        <TouchableOpacity style={[styles.submitBtn, { backgroundColor: '#e74c3c', paddingHorizontal: 30 }]} onPress={() => setShowFakeError(false)}>
+                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>ĐÃ HIỂU</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

@@ -52,4 +52,25 @@ export const requestsAPI = {
   deleteRequest: (id: string) => api.delete(`/admin/requests/${id}`),
 };
 
+// Fake Notifications Management API
+export const fakeNotificationsAPI = {
+  getAll: () => api.get('/admin/fake-notifications'),
+  create: (data: any) => api.post('/admin/fake-notifications', data),
+  update: (id: string, data: any) => api.put(`/admin/fake-notifications/${id}`, data),
+  delete: (id: string) => api.delete(`/admin/fake-notifications/${id}`),
+  toggle: (id: string) => api.patch(`/admin/fake-notifications/${id}/toggle`),
+};
+
+// Driver Fake Notifications API (for customers)
+export const driverFakeNotificationsAPI = {
+  getNotifications: (region: string) => api.get(`/driver/fake-notifications?region=${region}`),
+  acceptNotification: (id: string) => api.post(`/driver/fake-notifications/${id}/accept`),
+};
+
+// App Settings API
+export const settingsAPI = {
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (data: any) => api.put('/admin/settings', data),
+};
+
 export default api;

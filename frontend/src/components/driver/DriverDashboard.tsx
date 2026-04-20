@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { driverAPI } from '../../services/api';
+import { driverAPI, driverFakeNotificationsAPI } from '../../services/api';
 import './DriverDashboard.css';
 
 type User = {
@@ -11,6 +11,17 @@ type User = {
   carYear: string;
   carImage?: string;
   status: 'pending' | 'approved' | 'rejected';
+};
+
+type FakeNotification = {
+  _id: string;
+  region: 'north' | 'central' | 'south';
+  startPoint: string;
+  endPoint: string;
+  displayTime: string;
+  carType: '4' | '7' | '16';
+  price: number;
+  isActive: boolean;
 };
 
 type DriverDashboardProps = {
@@ -27,6 +38,14 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
   const [totalTrips, setTotalTrips] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  
+  // Fake notifications state
+  const [fakeNotifications, setFakeNotifications] = useState<FakeNotification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Initialize withdraw state from localStorage
   const [withdrawRequested, setWithdrawRequested] = useState(() => {
@@ -67,6 +86,66 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
     fetchStats();
   }, []);
 
+  // Fetch fake notifications
+  const fetchFakeNotifications = async () => {
+    // Only fetch if user is approved
+    if (user.status !== 'approved') {
+      console.log('User not approved, skipping fake notifications');
+      return;
+    }
+
+    try {
+      setLoadingNotifications(true);
+      // Default to 'north' region - can be changed based on user profile later
+      const region = 'north';
+      const response = await driverFakeNotificationsAPI.getFakeNotifications(region);
+      setFakeNotifications(response.data.data || []);
+      
+      // Schedule next fetch based on settings from response
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      
+      let min = 15;
+      let max = 30;
+      if (response.data.settings) {
+        min = response.data.settings.minInterval || 15;
+        max = response.data.settings.maxInterval || 30;
+      }
+      
+      const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
+      timeoutRef.current = setTimeout(() => {
+        fetchFakeNotifications();
+      }, randomMinutes * 60 * 1000);
+
+    } catch (error: any) {
+      console.error('Error fetching fake notifications:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  // Initial fetch of fake notifications
+  useEffect(() => {
+    fetchFakeNotifications();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [user.status]);
+
+  // Handle accept fake notification
+  const handleAcceptFakeNotification = async (notificationId: string) => {
+    try {
+      setAcceptingNotificationId(notificationId);
+      await driverFakeNotificationsAPI.acceptFakeNotification(notificationId);
+    } catch (error: any) {
+      // Show error popup
+      const message = error.response?.data?.message || 'Đã có tài xế nhận quốc, vui lòng đợi cuốc tiếp theo';
+      setErrorMessage(message);
+      setShowErrorPopup(true);
+    } finally {
+      setAcceptingNotificationId(null);
+    }
+  };
+
   // Countdown timer for withdraw cooldown
   useEffect(() => {
     if (withdrawCooldown > 0) {
@@ -100,6 +179,64 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
+            {/* Fake Notifications Section - Only show if approved */}
+            {user.status === 'approved' && (
+              <div className="fake-notifications-section">
+                <div className="section-header">
+                  <h3>🔔 Thông báo cuốc xe mới</h3>
+                  {loadingNotifications && <span className="loading-spinner">⟳</span>}
+                </div>
+                
+                {fakeNotifications.length > 0 ? (
+                  <div className="fake-notifications-list">
+                    {fakeNotifications.map((notification, index) => (
+                      <motion.div
+                        key={notification._id}
+                        className="fake-notification-card"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        <div className="notification-time">
+                          <span className="time-icon">🕐</span>
+                          <span className="time-text">{notification.displayTime}</span>
+                        </div>
+                        <div className="notification-content">
+                          <div className="notification-title">
+                            🚗 Có tài xế bắn cuốc {notification.carType} chỗ
+                          </div>
+                          <div className="notification-route">
+                            {notification.startPoint} → {notification.endPoint}
+                          </div>
+                          <div className="notification-price">
+                            {notification.price.toLocaleString('vi-VN')}đ
+                          </div>
+                        </div>
+                        <button
+                          className="accept-ride-btn"
+                          onClick={() => handleAcceptFakeNotification(notification._id)}
+                          disabled={acceptingNotificationId === notification._id}
+                        >
+                          {acceptingNotificationId === notification._id ? (
+                            <span>Đang xử lý...</span>
+                          ) : (
+                            <span>Nhận chuyến</span>
+                          )}
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  !loadingNotifications && (
+                    <div className="empty-notifications">
+                      <div className="empty-icon">📭</div>
+                      <p>Chưa có thông báo cuốc xe mới</p>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
             {/* Balance Card */}
             <div className="balance-card">
               <div className="balance-header">
@@ -107,7 +244,6 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                   <h3>Số dư hiện tại</h3>
                   <p className="balance-subtitle">Số ký quỹ trừ đi các cuốc xe đã hoàn thành</p>
                 </div>
-                {/* <div className="app-logo">Cadidi</div> */}
               </div>
               <div className="balance-amount">
                 {loading ? '...' : balance.toLocaleString('vi-VN')} đ
@@ -395,6 +531,40 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Popup for Fake Notifications */}
+      <AnimatePresence>
+        {showErrorPopup && (
+          <div className="error-popup-overlay" onClick={() => setShowErrorPopup(false)}>
+            <motion.div
+              className="error-popup"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <div className="error-popup-icon">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                >
+                  ⚠️
+                </motion.div>
+              </div>
+              <h3 className="error-popup-title">Cuốc xe đã được nhận</h3>
+              <p className="error-popup-message">{errorMessage}</p>
+              <button
+                className="error-popup-btn"
+                onClick={() => setShowErrorPopup(false)}
+              >
+                Đã hiểu
+              </button>
             </motion.div>
           </div>
         )}

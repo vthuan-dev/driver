@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usersAPI, requestsAPI } from '../../services/adminApi';
+import FakeNotificationsTab from './FakeNotifications/FakeNotificationsTab';
 import './Dashboard.css';
 
 type User = {
@@ -30,7 +31,7 @@ type Request = {
 
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
   // Ưu tiên tab yêu cầu cuốc để admin thấy ngay các chuyến
-  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('requests');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications'>('requests');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
@@ -201,6 +202,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>📋</span>
                 <span>Yêu cầu chờ cuốc</span>
               </button>
+              <button 
+                className={`tab ${activeTab === 'fake-notifications' ? 'active' : ''}`}
+                onClick={() => setActiveTab('fake-notifications')}
+              >
+                <span>📢</span>
+                <span>Quản lý thông báo ảo</span>
+              </button>
             </div>
           </div>
         </div>
@@ -262,6 +270,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               >
                 <span>📋</span>
                 <span>Yêu cầu chờ cuốc</span>
+              </button>
+              <button 
+                className={`mobile-tab ${activeTab === 'fake-notifications' ? 'active' : ''}`}
+                onClick={() => setActiveTab('fake-notifications')}
+              >
+                <span>📢</span>
+                <span>Quản lý thông báo ảo</span>
               </button>
             </div>
           </div>
@@ -401,6 +416,10 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'fake-notifications' && (
+            <FakeNotificationsTab />
           )}
 
           {activeTab === 'requests' && (

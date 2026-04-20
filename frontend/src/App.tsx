@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, Component, useRef } from 'react'
+import { useState, useEffect, Component, useRef } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -7,6 +7,7 @@ import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
+import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -1110,6 +1111,12 @@ function MainApp() {
           </button>
         </div>
       )}
+
+      {/* Hiển thị thông báo cuốc xe ảo cho tài xế ở trang chủ */}
+      {user && user.status === 'approved' && !showDriverDashboard && (
+        <FakeNotificationBanner user={user} />
+      )}
+
       <header className="ticker">
         <div className="ticker__track">
           {tickerDrivers.map((p) => (

@@ -30,6 +30,9 @@ app.use('/api/drivers', require('./routes/drivers'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/driver', require('./routes/driver'));
+app.use('/api/admin/fake-notifications', require('./routes/fakeNotifications'));
+app.use('/api/admin/settings', require('./routes/settings'));
+app.use('/api/driver/fake-notifications', require('./routes/driverFakeNotifications'));
 
 // APK Download Route - Using streaming for large files
 app.get('/api/download/app', (req, res) => {

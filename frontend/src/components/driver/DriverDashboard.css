@@ -23,6 +23,245 @@
   pointer-events: none;
 }
 
+/* Fake Notifications Section */
+.fake-notifications-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.loading-spinner {
+  font-size: 20px;
+  animation: spin 1s linear infinite;
+  color: #4caf50;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fake-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fake-notification-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fake-notification-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+}
+
+.fake-notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
+  border-color: #4caf50;
+}
+
+.notification-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.time-icon {
+  font-size: 18px;
+}
+
+.time-text {
+  color: #4b5563;
+}
+
+.notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.notification-route {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #4caf50;
+  letter-spacing: -0.5px;
+}
+
+.accept-ride-btn {
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  margin-top: 4px;
+}
+
+.accept-ride-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.accept-ride-btn:active {
+  transform: translateY(0);
+}
+
+.accept-ride-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.empty-notifications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.empty-notifications .empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-notifications p {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Error Popup */
+.error-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.error-popup {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 30px 30px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  position: relative;
+}
+
+.error-popup-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.error-popup-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.error-popup-message {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+}
+
+.error-popup-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.error-popup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.error-popup-btn:active {
+  transform: translateY(0);
+}
+
 /* Back Button */
 .back-button {
   position: fixed;

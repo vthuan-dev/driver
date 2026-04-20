@@ -36,3 +36,8 @@ export const requestsAPI = {
     getRequests: (region?: string) => api.get(`/requests${region ? `?region=${region}` : ''}`),
     createRequest: (data: any) => api.post('/requests', data),
 };
+
+export const driverFakeNotificationsAPI = {
+    getNotifications: (region: string) => api.get(`/driver/fake-notifications?region=${region}`),
+    acceptNotification: (id: string) => api.post(`/driver/fake-notifications/${id}/accept`),
+};
