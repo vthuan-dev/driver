@@ -16,8 +16,8 @@ const FakeNotificationBanner = ({ user }: Props) => {
   const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoHideRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchFakeNotifications = async () => {
     if (user.status !== 'approved') return;

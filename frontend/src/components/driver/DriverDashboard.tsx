@@ -45,7 +45,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Initialize withdraw state from localStorage
   const [withdrawRequested, setWithdrawRequested] = useState(() => {
