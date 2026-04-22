@@ -1688,8 +1688,8 @@ function MainApp() {
                 <p style={{ marginTop: 0 }}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <img
-                    src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=PHAN%20NGOC%20CHUNG`}
-                    alt="VietQR VIB 081409781"
+                    src={`https://img.vietqr.io/image/VPBank-0779966349-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=NGUYEN%20VAN%20CHI`}
+                    alt="VietQR VPBank 0779966349"
                     style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                 </div>
