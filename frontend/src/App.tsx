@@ -7,6 +7,8 @@ import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import DriverDashboard from './components/driver/DriverDashboard'
 import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
+import AppPricingModal from './components/driver/AppPricingModal'
+import DownloadAppPage from './components/driver/DownloadAppPage'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -704,6 +706,10 @@ function MainApp() {
   
   // State to control showing driver dashboard
   const [showDriverDashboard, setShowDriverDashboard] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorPopupTitle, setErrorPopupTitle] = useState('Thông báo');
   
   // Fetch user info if logged in but missing status
   useEffect(() => {
@@ -1079,7 +1085,9 @@ function MainApp() {
               if (user.status === 'approved') {
                 setShowDriverDashboard(true);
               } else {
-                alert('Tài khoản đang chờ admin phê duyệt');
+                setErrorPopupTitle('Thông báo');
+                setErrorMessage('Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.');
+                setShowErrorPopup(true);
               }
             }}
             style={{ cursor: 'pointer' }}
@@ -1092,10 +1100,46 @@ function MainApp() {
               <strong className="user-summary-card__name">{user.name || 'Tài xế'}</strong>
               <span className="user-summary-card__phone">{maskPhoneStrict(user.phone)}</span>
               {user.status === 'approved' && (
-                <span className="user-summary-card__hint">� Nhấn để xem dashboard</span>
+                <span className="user-summary-card__hint"> Nhấn để xem dashboard</span>
               )}
             </div>
           </div>
+
+          {/* Nút tải ứng dụng ở trang chủ */}
+          {user.status === 'approved' && (
+            <button 
+              className="main-action-btn"
+              style={{
+                borderColor: '#e2e8f0',
+                justifyContent: 'space-between',
+                marginBottom: '8px',
+                color: '#1e293b'
+              }}
+              onClick={() => {
+                const downloadCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
+                if (downloadCount > 0) {
+                  setErrorPopupTitle('Thông báo');
+                  setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
+                  setShowErrorPopup(true);
+                  return;
+                }
+
+                const hasSelectedPlan = !!localStorage.getItem('driver_app_plan');
+                if (hasSelectedPlan) {
+                  setShowDownloadPage(true);
+                } else {
+                  setShowPricingModal(true);
+                }
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="main-action-btn__icon">📱</span>
+                <span className="main-action-btn__text" style={{ color: '#1e293b' }}>Tải ứng dụng di động</span>
+              </span>
+              <span style={{ background: '#22c55e', color: 'white', padding: '4px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>APK</span>
+            </button>
+          )}
+
           <button
             className="main-action-btn main-action-btn--logout"
             onClick={() => {
@@ -1687,8 +1731,64 @@ function MainApp() {
           </div>
         )}
       </AnimatePresence>
-      </>
+        </>
       )}
+
+      {user && (
+        <>
+          <AppPricingModal 
+            isOpen={showPricingModal} 
+            onClose={() => setShowPricingModal(false)}
+            onConfirm={(plan) => {
+              localStorage.setItem('driver_app_plan', plan.id);
+              setShowPricingModal(false);
+              setShowDownloadPage(true);
+            }}
+          />
+
+          {showDownloadPage && (
+            <DownloadAppPage 
+              user={user} 
+              onBack={() => setShowDownloadPage(false)} 
+            />
+          )}
+        </>
+      )}
+
+      {/* Error Popup */}
+      <AnimatePresence>
+        {showErrorPopup && (
+          <div className="error-popup-overlay" onClick={() => setShowErrorPopup(false)}>
+            <motion.div
+              className="error-popup"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <div className="error-popup-icon">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                >
+                  ⚠️
+                </motion.div>
+              </div>
+              <h3 className="error-popup-title">{errorPopupTitle}</h3>
+              <p className="error-popup-message">{errorMessage}</p>
+              <button
+                className="error-popup-btn"
+                onClick={() => setShowErrorPopup(false)}
+              >
+                Đã hiểu
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }
