@@ -131,29 +131,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                 <span>Rút tiền</span>
                 <span className="arrow">›</span>
               </button>
-              <button 
-                className="action-btn action-btn--download" 
-                onClick={() => {
-                  const downloadCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
-                  if (downloadCount > 0) {
-                    setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
-                    setShowErrorPopup(true);
-                    return;
-                  }
 
-                  if (hasSelectedPlan) {
-                    setShowDownloadPage(true);
-                  } else {
-                    setShowPricingModal(true);
-                  }
-                }}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '22px' }}>📱</span>
-                  <span>Tải ứng dụng di động</span>
-                </span>
-                <span className="download-badge">APK</span>
-              </button>
             </div>
 
             {/* Stats Card */}
