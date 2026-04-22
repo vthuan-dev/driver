@@ -315,14 +315,14 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                   <img
                     id="qr-code-image"
-                    src={`https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=PHAN%20NGOC%20CHUNG`}
+                    src={`https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`}
                     alt="VietQR VIB 081409781"
                     style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                   <button
                     onClick={async () => {
                       try {
-                        const imageUrl = `https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=PHAN%20NGOC%20CHUNG`;
+                        const imageUrl = `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`;
                         
                         // Fetch the image as blob
                         const response = await fetch(imageUrl);

@@ -25,7 +25,7 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
   if (planId === '6m') { amount = 200000; planLabel = '6 tháng'; }
 
   const message = `Tai App ${user.phone}`;
-  const qrCodeUrl = `https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=PHAN%20NGOC%20CHUNG`;
+  const qrCodeUrl = `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=HOANG%20MANH%20DUY`;
 
   const [isConfirming, setIsConfirming] = useState(false);
 
