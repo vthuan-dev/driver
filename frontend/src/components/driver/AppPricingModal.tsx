@@ -54,9 +54,6 @@ const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onCo
             <div className="pricing-header">
               <h2 className="pricing-title">Chọn gói duy trì App</h2>
               <p className="pricing-subtitle">Để tiếp tục tải và sử dụng ứng dụng tài xế, vui lòng chọn gói phù hợp</p>
-              <button className="modal__close" onClick={onClose} aria-label="Đóng" style={{ color: 'white' }}>
-                ×
-              </button>
             </div>
 
             <div className="pricing-body">
