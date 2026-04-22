@@ -268,7 +268,7 @@
 }
 
 .radio-inner.active {
-  background: #3b82f6;
+  background: #00b14f;
 }
 
 .pricing-info {
@@ -290,7 +290,7 @@
 .pricing-price {
   font-size: 18px;
   font-weight: 700;
-  color: #2563eb;
+  color: #0a8f43;
 }
 
 .pricing-note {
@@ -346,15 +346,15 @@
 }
 
 .pricing-btn-confirm {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #0a8f43, #00b14f);
   border: none;
   color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.25);
 }
 
 .pricing-btn-confirm:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 177, 79, 0.35);
 }
 
 @media (max-width: 600px) {
