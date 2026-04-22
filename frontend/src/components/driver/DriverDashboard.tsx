@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { driverAPI, driverFakeNotificationsAPI } from '../../services/api';
+import AppPricingModal from './AppPricingModal';
+import DownloadAppPage from './DownloadAppPage';
 import './DriverDashboard.css';
 
 type User = {
@@ -63,6 +65,11 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
     }
     return 0;
   });
+
+  // Add states for App Pricing and Download Modal
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [hasSelectedPlan, setHasSelectedPlan] = useState(() => !!localStorage.getItem('driver_app_plan'));
 
   // Fetch driver stats from API
   useEffect(() => {
@@ -179,63 +186,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Fake Notifications Section - Only show if approved */}
-            {user.status === 'approved' && (
-              <div className="fake-notifications-section">
-                <div className="section-header">
-                  <h3>🔔 Thông báo cuốc xe mới</h3>
-                  {loadingNotifications && <span className="loading-spinner">⟳</span>}
-                </div>
-                
-                {fakeNotifications.length > 0 ? (
-                  <div className="fake-notifications-list">
-                    {fakeNotifications.map((notification, index) => (
-                      <motion.div
-                        key={notification._id}
-                        className="fake-notification-card"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                      >
-                        <div className="notification-time">
-                          <span className="time-icon">🕐</span>
-                          <span className="time-text">{notification.displayTime}</span>
-                        </div>
-                        <div className="notification-content">
-                          <div className="notification-title">
-                            🚗 Có tài xế bắn cuốc {notification.carType} chỗ
-                          </div>
-                          <div className="notification-route">
-                            {notification.startPoint} → {notification.endPoint}
-                          </div>
-                          <div className="notification-price">
-                            {notification.price.toLocaleString('vi-VN')}đ
-                          </div>
-                        </div>
-                        <button
-                          className="accept-ride-btn"
-                          onClick={() => handleAcceptFakeNotification(notification._id)}
-                          disabled={acceptingNotificationId === notification._id}
-                        >
-                          {acceptingNotificationId === notification._id ? (
-                            <span>Đang xử lý...</span>
-                          ) : (
-                            <span>Nhận chuyến</span>
-                          )}
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  !loadingNotifications && (
-                    <div className="empty-notifications">
-                      <div className="empty-icon">📭</div>
-                      <p>Chưa có thông báo cuốc xe mới</p>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
+
 
             {/* Balance Card */}
             <div className="balance-card">
@@ -259,9 +210,11 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
               <button 
                 className="action-btn action-btn--download" 
                 onClick={() => {
-                  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-                  const baseUrl = apiUrl.replace('/api', '');
-                  window.location.href = `${baseUrl}/api/download/app`;
+                  if (hasSelectedPlan) {
+                    setShowDownloadPage(true);
+                  } else {
+                    setShowPricingModal(true);
+                  }
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -569,6 +522,24 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
           </div>
         )}
       </AnimatePresence>
+
+      <AppPricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)}
+        onConfirm={(plan) => {
+          localStorage.setItem('driver_app_plan', plan.id);
+          setHasSelectedPlan(true);
+          setShowPricingModal(false);
+          setShowDownloadPage(true);
+        }}
+      />
+
+      {showDownloadPage && (
+        <DownloadAppPage 
+          user={user} 
+          onBack={() => setShowDownloadPage(false)} 
+        />
+      )}
     </div>
   );
 };

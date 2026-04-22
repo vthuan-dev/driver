@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
 import { authAPI, driversAPI, requestsAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
-import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
 import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 
@@ -1017,6 +1016,7 @@ function MainApp() {
 
   return (
     <div className="app">
+
       {/* Show Driver Dashboard only when user clicks to open it */}
       {showDriverDashboard && user && user.status === 'approved' && (
         <DriverDashboard 
