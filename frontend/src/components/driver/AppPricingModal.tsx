@@ -11,9 +11,8 @@ type Plan = {
 };
 
 const PLANS: Plan[] = [
-  { id: '1m', label: '1 tháng', months: 1, price: 200000, badge: null, description: 'Gói trải nghiệm cơ bản' },
-  { id: '3m', label: '3 tháng', months: 3, price: 300000, badge: 'Phổ biến ⭐', description: 'Gói được nhiều tài xế chọn nhất' },
-  { id: '6m', label: '6 tháng', months: 6, price: 500000, badge: 'Tiết kiệm', description: 'Tiết kiệm nhất cho lâu dài' },
+  { id: '6m', label: '6 tháng', months: 6, price: 200000, badge: null, description: 'Gói cơ bản' },
+  { id: '1y', label: '1 năm', months: 12, price: 400000, badge: 'Tiết kiệm ⭐', description: 'Tiết kiệm nhất cho lâu dài' },
 ];
 
 type AppPricingModalProps = {
@@ -23,7 +22,7 @@ type AppPricingModalProps = {
 };
 
 const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onConfirm }) => {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('3m');
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('1y');
 
   if (!isOpen) return null;
 

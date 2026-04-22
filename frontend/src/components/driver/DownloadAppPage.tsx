@@ -19,11 +19,10 @@ type DownloadAppPageProps = {
 
 const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
   const planId = localStorage.getItem('driver_app_plan');
-  let amount = 300000;
-  let planLabel = '3 tháng';
+  let amount = 400000;
+  let planLabel = '1 năm';
   
-  if (planId === '1m') { amount = 200000; planLabel = '1 tháng'; }
-  else if (planId === '6m') { amount = 500000; planLabel = '6 tháng'; }
+  if (planId === '6m') { amount = 200000; planLabel = '6 tháng'; }
 
   const message = `Tai App ${user.phone}`;
   const qrCodeUrl = `https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=PHAN%20NGOC%20CHUNG`;
