@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { driverAPI, driverFakeNotificationsAPI } from '../../services/api';
+import { driverAPI } from '../../services/api';
 import AppPricingModal from './AppPricingModal';
 import DownloadAppPage from './DownloadAppPage';
 import './DriverDashboard.css';
@@ -13,17 +13,6 @@ type User = {
   carYear: string;
   carImage?: string;
   status: 'pending' | 'approved' | 'rejected';
-};
-
-type FakeNotification = {
-  _id: string;
-  region: 'north' | 'central' | 'south';
-  startPoint: string;
-  endPoint: string;
-  displayTime: string;
-  carType: '4' | '7' | '16';
-  price: number;
-  isActive: boolean;
 };
 
 type DriverDashboardProps = {
@@ -41,13 +30,8 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
   const [loading, setLoading] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   
-  // Fake notifications state
-  const [fakeNotifications, setFakeNotifications] = useState<FakeNotification[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Initialize withdraw state from localStorage
   const [withdrawRequested, setWithdrawRequested] = useState(() => {
@@ -92,66 +76,6 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
 
     fetchStats();
   }, []);
-
-  // Fetch fake notifications
-  const fetchFakeNotifications = async () => {
-    // Only fetch if user is approved
-    if (user.status !== 'approved') {
-      console.log('User not approved, skipping fake notifications');
-      return;
-    }
-
-    try {
-      setLoadingNotifications(true);
-      // Default to 'north' region - can be changed based on user profile later
-      const region = 'north';
-      const response = await driverFakeNotificationsAPI.getFakeNotifications(region);
-      setFakeNotifications(response.data.data || []);
-      
-      // Schedule next fetch based on settings from response
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      
-      let min = 15;
-      let max = 30;
-      if (response.data.settings) {
-        min = response.data.settings.minInterval || 15;
-        max = response.data.settings.maxInterval || 30;
-      }
-      
-      const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
-      timeoutRef.current = setTimeout(() => {
-        fetchFakeNotifications();
-      }, randomMinutes * 60 * 1000);
-
-    } catch (error: any) {
-      console.error('Error fetching fake notifications:', error);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  };
-
-  // Initial fetch of fake notifications
-  useEffect(() => {
-    fetchFakeNotifications();
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [user.status]);
-
-  // Handle accept fake notification
-  const handleAcceptFakeNotification = async (notificationId: string) => {
-    try {
-      setAcceptingNotificationId(notificationId);
-      await driverFakeNotificationsAPI.acceptFakeNotification(notificationId);
-    } catch (error: any) {
-      // Show error popup
-      const message = error.response?.data?.message || 'Đã có tài xế nhận quốc, vui lòng đợi cuốc tiếp theo';
-      setErrorMessage(message);
-      setShowErrorPopup(true);
-    } finally {
-      setAcceptingNotificationId(null);
-    }
-  };
 
   // Countdown timer for withdraw cooldown
   useEffect(() => {
