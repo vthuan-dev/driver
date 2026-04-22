@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './DownloadAppPage.css';
 
@@ -27,6 +27,24 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
 
   const message = `Tai App ${user.phone}`;
   const qrCodeUrl = `https://img.vietqr.io/image/VIB-081409781-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=PHAN%20NGOC%20CHUNG`;
+
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const handleConfirm = () => {
+    setIsConfirming(true);
+    setTimeout(() => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const baseUrl = apiUrl.replace('/api', '');
+      window.location.href = `${baseUrl}/api/download/app`;
+      
+      // Ghi lại số lần tải
+      const currentCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
+      localStorage.setItem('apk_download_count', (currentCount + 1).toString());
+
+      setIsConfirming(false);
+      onBack();
+    }, 5000);
+  };
 
   return (
     <AnimatePresence>
@@ -71,6 +89,20 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
                 </div>
               </div>
             </div>
+
+            <button 
+              className="btn-download-primary" 
+              onClick={handleConfirm}
+              disabled={isConfirming}
+              style={{ marginTop: '16px', opacity: isConfirming ? 0.7 : 1 }}
+            >
+              {isConfirming ? (
+                <>
+                  <span className="spinner" style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+                  Đang kiểm tra giao dịch...
+                </>
+              ) : 'Tôi đã chuyển khoản'}
+            </button>
 
             <div className="download-footer">
               <p className="guarantee-note">

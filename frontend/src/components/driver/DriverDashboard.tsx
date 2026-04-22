@@ -210,6 +210,13 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
               <button 
                 className="action-btn action-btn--download" 
                 onClick={() => {
+                  const downloadCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
+                  if (downloadCount > 0) {
+                    setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
+                    setShowErrorPopup(true);
+                    return;
+                  }
+
                   if (hasSelectedPlan) {
                     setShowDownloadPage(true);
                   } else {
