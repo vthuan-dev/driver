@@ -84,13 +84,13 @@ export default function App() {
     const fakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Fake notifications logic
-    const fetchFakeNotifications = async (currentUser?: any) => {
+    const fetchFakeNotifications = async (currentUser?: any, region?: Region) => {
         const u = currentUser || user;
         if (!u || u.status !== 'approved') return;
 
         try {
-            const region = 'north'; // Default or activeDriverRegion
-            const response = await driverFakeNotificationsAPI.getNotifications(region);
+            const currentRegion = region || activeDriverRegion;
+            const response = await driverFakeNotificationsAPI.getNotifications(currentRegion);
             const notifications = response.data.data || [];
             
             if (notifications.length > 0) {
@@ -109,7 +109,7 @@ export default function App() {
             
             const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
             fakeTimeoutRef.current = setTimeout(() => {
-                fetchFakeNotifications(u);
+                fetchFakeNotifications(u, currentRegion);
             }, randomMinutes * 60 * 1000);
 
         } catch (error) {
@@ -119,12 +119,12 @@ export default function App() {
 
     useEffect(() => {
         if (user && user.status === 'approved') {
-            fetchFakeNotifications(user);
+            fetchFakeNotifications(user, activeDriverRegion);
         }
         return () => {
             if (fakeTimeoutRef.current) clearTimeout(fakeTimeoutRef.current);
         };
-    }, [user?.status]);
+    }, [user?.status, activeDriverRegion]);
 
     const handleAcceptFake = async () => {
         if (!fakeNotification) return;
@@ -243,16 +243,24 @@ export default function App() {
         }
         setLoading(true);
         try {
+            // Tự động xác định region từ startPoint
+            const getRegion = (province: string): Region => {
+                if (provincesByRegion.north.includes(province)) return 'north';
+                if (provincesByRegion.central.includes(province)) return 'central';
+                if (provincesByRegion.south.includes(province)) return 'south';
+                return activeRequestRegion;
+            };
             await requestsAPI.createRequest({
                 ...requestForm,
-                price: parseInt(requestForm.price)
+                price: parseInt(requestForm.price),
+                region: getRegion(requestForm.startPoint)
             });
             Alert.alert("Thành công", "Đã gửi yêu cầu chở cuốc xe!");
             setShowRequestModal(false);
             setRequestForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '', region: 'north' });
             loadData();
         } catch (error: any) {
-            Alert.alert("Lỗi", "Gửi yêu cầu thất bại");
+            Alert.alert("Lỗi", error.response?.data?.message || "Gửi yêu cầu thất bại");
         } finally {
             setLoading(false);
         }
@@ -523,6 +531,11 @@ export default function App() {
                             <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 8 }}>🚗 Có tài xế bắn cuốc {fakeNotification?.carType} chỗ</Text>
                             <Text style={{ fontSize: 15, color: '#333', marginBottom: 8 }}>{fakeNotification?.startPoint} ➔ {fakeNotification?.endPoint}</Text>
                             <Text style={{ fontSize: 18, color: '#e74c3c', fontWeight: 'bold' }}>💰 {fakeNotification?.price?.toLocaleString()} VND</Text>
+                            {fakeNotification?.note ? (
+                                <View style={{ marginTop: 10, padding: 10, backgroundColor: '#fffbea', borderLeftWidth: 3, borderLeftColor: '#f39c12', borderRadius: 6 }}>
+                                    <Text style={{ fontSize: 13, color: '#7d6608' }}>📝 {fakeNotification.note}</Text>
+                                </View>
+                            ) : null}
                         </View>
 
                         <TouchableOpacity style={[styles.submitBtn, { width: '100%' }]} onPress={handleAcceptFake} disabled={acceptingFake}>
