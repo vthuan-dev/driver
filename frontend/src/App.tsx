@@ -1118,7 +1118,11 @@ function MainApp() {
               }}
               onClick={() => {
                 const downloadCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
-                if (downloadCount > 0) {
+                const firstDownloadTime = parseInt(localStorage.getItem('apk_first_download_time') || '0', 10);
+                const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+                const withinTwoDays = firstDownloadTime > 0 && (Date.now() - firstDownloadTime) < TWO_DAYS_MS;
+
+                if (downloadCount > 0 && !withinTwoDays) {
                   setErrorPopupTitle('Thông báo');
                   setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
                   setShowErrorPopup(true);

@@ -36,9 +36,13 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
       const baseUrl = apiUrl.replace('/api', '');
       window.location.href = `${baseUrl}/api/download/app`;
       
-      // Ghi lại số lần tải
+      // Ghi lại số lần tải và timestamp lần đầu
       const currentCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
       localStorage.setItem('apk_download_count', (currentCount + 1).toString());
+      // Chỉ lưu timestamp lần đầu tiên tải
+      if (currentCount === 0) {
+        localStorage.setItem('apk_first_download_time', Date.now().toString());
+      }
 
       setIsConfirming(false);
       onBack();
