@@ -1122,6 +1122,7 @@ function MainApp() {
                 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
                 const withinTwoDays = firstDownloadTime > 0 && (Date.now() - firstDownloadTime) < TWO_DAYS_MS;
 
+                // Đã tải rồi nhưng quá 2 ngày → block
                 if (downloadCount > 0 && !withinTwoDays) {
                   setErrorPopupTitle('Thông báo');
                   setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
@@ -1129,12 +1130,14 @@ function MainApp() {
                   return;
                 }
 
-                const hasSelectedPlan = !!localStorage.getItem('driver_app_plan');
-                if (hasSelectedPlan) {
+                // Đã tải rồi và còn trong 2 ngày → tải lại không cần chọn gói
+                if (downloadCount > 0 && withinTwoDays) {
                   setShowDownloadPage(true);
-                } else {
-                  setShowPricingModal(true);
+                  return;
                 }
+
+                // Chưa tải lần nào → luôn phải chọn gói
+                setShowPricingModal(true);
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
