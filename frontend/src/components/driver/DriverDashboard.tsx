@@ -31,7 +31,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   
   const [showErrorPopup, setShowErrorPopup] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage] = useState('');
   
   // Initialize withdraw state from localStorage
   const [withdrawRequested, setWithdrawRequested] = useState(() => {
@@ -50,10 +50,8 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
     return 0;
   });
 
-  // Add states for App Pricing and Download Modal
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
-  const [hasSelectedPlan, setHasSelectedPlan] = useState(() => !!localStorage.getItem('driver_app_plan'));
 
   // Fetch driver stats from API
   useEffect(() => {
@@ -437,7 +435,6 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
         onClose={() => setShowPricingModal(false)}
         onConfirm={(plan) => {
           localStorage.setItem('driver_app_plan', plan.id);
-          setHasSelectedPlan(true);
           setShowPricingModal(false);
           setShowDownloadPage(true);
         }}
