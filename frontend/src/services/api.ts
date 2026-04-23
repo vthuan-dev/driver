@@ -2,10 +2,24 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Wake up Render server nếu bị sleep (free tier)
+let _waking = false;
+export const wakeUpServer = async () => {
+  if (_waking) return;
+  _waking = true;
+  try {
+    await axios.get(`${API_BASE_URL}/health`, { timeout: 30000 });
+  } catch {
+    // ignore - chỉ cần gửi request để wake
+  } finally {
+    _waking = false;
+  }
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 30s - Render free tier mất 15-30s để wake up
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,7 +37,7 @@ api.interceptors.request.use((config) => {
 // Handle token expiration and network errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     console.error('API Error:', error);
     
     if (error.response?.status === 401) {
@@ -31,13 +45,22 @@ api.interceptors.response.use(
       localStorage.removeItem('driver_user');
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
-      // Don't reload immediately, let the app handle it
     }
     
-    // Handle network errors
-    if (!error.response) {
-      error.message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+    // Handle network errors - thử wake server và retry 1 lần
+    if (!error.response && !error.config?._retried) {
+      error.message = 'Không thể kết nối đến máy chủ. Đang thử kết nối lại...';
       error.code = 'NETWORK_ERROR';
+      
+      // Wake server và retry sau 3s
+      try {
+        await wakeUpServer();
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const retryConfig = { ...error.config, _retried: true, timeout: 30000 };
+        return api(retryConfig);
+      } catch {
+        error.message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+      }
     }
     
     return Promise.reject(error);

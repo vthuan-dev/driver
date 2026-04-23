@@ -1,10 +1,12 @@
 import axios from 'axios';
+import { wakeUpServer } from './api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000, // 30s - Render free tier mất 15-30s để wake up
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,12 +24,25 @@ api.interceptors.request.use((config) => {
 // Handle token expiration
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       window.location.href = '/login';
     }
+    
+    // Handle network errors - thử wake server và retry 1 lần
+    if (!error.response && !error.config?._retried) {
+      try {
+        await wakeUpServer();
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const retryConfig = { ...error.config, _retried: true, timeout: 30000 };
+        return api(retryConfig);
+      } catch {
+        // ignore, trả về lỗi gốc
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

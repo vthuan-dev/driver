@@ -65,18 +65,51 @@ app.get('/api/download/app', (req, res) => {
   });
 });
 
-// MongoDB connection
-mongoose.connect(config.MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  family: 4, // Use IPv4, skip trying IPv6
-})
-.then(() => {
-  console.log('Connected to MongoDB Atlas');
-})
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
+// Health check endpoint (dùng để wake Render server + check kết nối)
+app.get('/api/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.json({ 
+    status: 'ok', 
+    db: states[dbState] || 'unknown',
+    timestamp: new Date().toISOString()
+  });
 });
+
+// MongoDB connection
+const MONGO_OPTIONS = {
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 60000,
+  connectTimeoutMS: 10000,
+  heartbeatFrequencyMS: 10000,
+  family: 4,
+};
+
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(config.MONGODB_URI, MONGO_OPTIONS);
+    console.log('Connected to MongoDB Atlas');
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    // Retry after 5 seconds
+    setTimeout(connectMongoDB, 5000);
+  }
+};
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('MongoDB disconnected! Attempting to reconnect...');
+  setTimeout(connectMongoDB, 3000);
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected!');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error event:', err.message);
+});
+
+connectMongoDB();
 
 // Basic route
 app.get('/', (req, res) => {
@@ -91,6 +124,23 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
-});
 
+  // Self-ping mỗi 14 phút để tránh Render free-tier sleep
+  const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try {
+      const http = require('http');
+      const https = require('https');
+      const url = `${BACKEND_URL}/api/health`;
+      const client = url.startsWith('https') ? https : http;
+      client.get(url, (res) => {
+        console.log(`[Keep-alive] ping ${url} → ${res.statusCode}`);
+      }).on('error', (e) => {
+        console.warn('[Keep-alive] ping error:', e.message);
+      });
+    } catch (e) {
+      console.warn('[Keep-alive] error:', e.message);
+    }
+  }, 14 * 60 * 1000); // 14 phút
+});
 
