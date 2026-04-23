@@ -1,0 +1,342 @@
+[
+  {
+    "_id": "68d7c66425ff0e8a58fe5ca6",
+    "name": "Anh Tuấn",
+    "phone": "0912345678",
+    "route": "Hà Nội ⇄ Lào Cai",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.166Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5ca7",
+    "name": "Chị Hạnh",
+    "phone": "0987654321",
+    "route": "Hà Nội ⇄ Ninh Bình",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.168Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5ca8",
+    "name": "Anh Dũng",
+    "phone": "0901234567",
+    "route": "Mỹ Đình ⇄ Nội Bài",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.168Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5ca9",
+    "name": "Anh Hoàng",
+    "phone": "0968888777",
+    "route": "Cầu Giấy ⇄ Hải Phòng",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.169Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5caa",
+    "name": "Anh Nam",
+    "phone": "0977123456",
+    "route": "Long Biên ⇄ Hạ Long",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.169Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cab",
+    "name": "Chị Linh",
+    "phone": "0355555999",
+    "route": "Hà Đông ⇄ Phú Thọ",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.169Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cac",
+    "name": "Tài xế 1",
+    "phone": "0927735274",
+    "route": "Giáp Bát ⇄ Ninh Bình",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.170Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cad",
+    "name": "Tài xế 2",
+    "phone": "0924649610",
+    "route": "Hà Nội ⇄ Hải Dương",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.171Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cae",
+    "name": "Tài xế 3",
+    "phone": "0844657330",
+    "route": "Hà Nội ⇄ Bắc Ninh",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.171Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5caf",
+    "name": "Tài xế 4",
+    "phone": "0779966349",
+    "route": "Mỹ Đình ⇄ Nội Bài",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.172Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cb0",
+    "name": "Tài xế 5",
+    "phone": "0889345121",
+    "route": "Hà Nội ⇄ Nam Định",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.172Z",
+    "__v": 0
+  },
+  {
+    "_id": "68d7c66425ff0e8a58fe5cb1",
+    "name": "Tài xế 6",
+    "phone": "0325463415",
+    "route": "Cầu Giấy ⇄ Hưng Yên",
+    "avatar": "",
+    "isActive": true,
+    "createdAt": "2025-09-27T11:11:32.172Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fea",
+    "name": "Chị Nhi",
+    "phone": "0924333444",
+    "route": "Cần Thơ <-> Kiên Giang",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.058Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe6",
+    "name": "Anh Việt",
+    "phone": "0906677889",
+    "route": "TP HCM <-> Vĩnh Long",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe7",
+    "name": "Anh Danh",
+    "phone": "0938222333",
+    "route": "TP HCM <-> Tiền Giang",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe1",
+    "name": "Anh Khai",
+    "phone": "0903456789",
+    "route": "TP HCM <-> Vũng Tàu",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.056Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe5",
+    "name": "Anh Lộc",
+    "phone": "0911778899",
+    "route": "Cần Thơ <-> Cà Mau",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe2",
+    "name": "Anh Phương",
+    "phone": "0939345123",
+    "route": "TP HCM <-> Cần Thơ",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe9",
+    "name": "Anh Phát",
+    "phone": "0965222444",
+    "route": "TP HCM <-> Bình Dương",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe4",
+    "name": "Chị Trang",
+    "phone": "0977456123",
+    "route": "TP HCM <-> Tây Ninh",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe3",
+    "name": "Anh Cường",
+    "phone": "0988123456",
+    "route": "Biên Hòa <-> Long An",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fe8",
+    "name": "Anh Bảo",
+    "phone": "0977555333",
+    "route": "TP HCM <-> Bến Tre",
+    "avatar": "",
+    "region": "south",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff2",
+    "name": "Anh Sơn",
+    "phone": "0935111222",
+    "route": "Đà Nẵng <-> Quảng Bình",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff5",
+    "name": "Chị Hà",
+    "phone": "0924666888",
+    "route": "Huế <-> Đà Nẵng",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fee",
+    "name": "Anh Hùng",
+    "phone": "0978112233",
+    "route": "Quy Nhon <-> Pleiku",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff0",
+    "name": "Chị Yến",
+    "phone": "0923456781",
+    "route": "Huế <-> Quảng Trị",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff1",
+    "name": "Anh Phúc",
+    "phone": "0907788991",
+    "route": "Đà Nẵng <-> Quảng Ngãi",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fed",
+    "name": "Anh Thọ",
+    "phone": "0905671234",
+    "route": "Đà Nẵng <-> Quảng Nam",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff3",
+    "name": "Anh Tiến",
+    "phone": "0978999111",
+    "route": "Nha Trang <-> Phan Rang",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fec",
+    "name": "Anh Khoa",
+    "phone": "0934567890",
+    "route": "Đà Nẵng <-> Huế",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10fef",
+    "name": "Anh Minh",
+    "phone": "0965123789",
+    "route": "Nha Trang <-> Đà Lạt",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  },
+  {
+    "_id": "69b50d51c339aa214ec10ff4",
+    "name": "Anh Long",
+    "phone": "0965222333",
+    "route": "Quy Nhon <-> Kon Tum",
+    "avatar": "",
+    "region": "central",
+    "isActive": true,
+    "createdAt": "2026-03-14T07:25:05.191Z",
+    "__v": 0
+  }
+]

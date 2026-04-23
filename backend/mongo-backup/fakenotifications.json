@@ -1,0 +1,44 @@
+[
+  {
+    "_id": "69e64554c0df65554c625b22",
+    "region": "north",
+    "startPoint": "Hà Nội",
+    "endPoint": "Hà Nội",
+    "displayTime": "05:00",
+    "carType": "7",
+    "price": 250000,
+    "isActive": true,
+    "createdBy": "68d7c66325ff0e8a58fe5ca3",
+    "createdAt": "2026-04-20T15:25:08.595Z",
+    "updatedAt": "2026-04-22T23:35:00.873Z",
+    "__v": 0
+  },
+  {
+    "_id": "69e645e8c0df65554c625b41",
+    "region": "central",
+    "startPoint": "Đà Nẵng",
+    "endPoint": "Thừa Thiên - Huế",
+    "displayTime": "06:00",
+    "carType": "7",
+    "price": 1300000,
+    "isActive": true,
+    "createdBy": "68d7c66325ff0e8a58fe5ca3",
+    "createdAt": "2026-04-20T15:27:36.020Z",
+    "updatedAt": "2026-04-20T15:31:19.839Z",
+    "__v": 0
+  },
+  {
+    "_id": "69e646dec0df65554c625b7b",
+    "region": "south",
+    "startPoint": "TP. Hồ Chí Minh",
+    "endPoint": "Bà Rịa-Vũng Tàu",
+    "displayTime": "08:00",
+    "carType": "7",
+    "price": 1200000,
+    "isActive": true,
+    "createdBy": "68d7c66325ff0e8a58fe5ca3",
+    "createdAt": "2026-04-20T15:31:42.538Z",
+    "updatedAt": "2026-04-20T15:31:42.538Z",
+    "__v": 0
+  }
+]
