@@ -1,12 +1,11 @@
-  import axios from 'axios';
-import { wakeUpServer } from './api';
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ─── Axios instance (admin) ────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60_000, // 60s – Render free-tier cold start
+  timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -20,23 +19,12 @@ api.interceptors.request.use((config) => {
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       window.location.href = '/login';
     }
-
-    // Network error → wake server rồi retry 1 lần
-    if (!error.response && !error.config?._retried) {
-      try {
-        await wakeUpServer();
-        return api({ ...error.config, _retried: true });
-      } catch {
-        // ignore
-      }
-    }
-
     return Promise.reject(error);
   }
 );
@@ -56,9 +44,9 @@ export const usersAPI = {
 
 // ─── Requests Management API ───────────────────────────────────────────────────
 export const requestsAPI = {
-  getAllRequests:  ()                            => api.get('/admin/requests'),
-  updateRequest:  (id: string, status: string)  => api.put(`/admin/requests/${id}`, { status }),
-  deleteRequest:  (id: string)                  => api.delete(`/admin/requests/${id}`),
+  getAllRequests:  ()                           => api.get('/admin/requests'),
+  updateRequest:  (id: string, status: string) => api.put(`/admin/requests/${id}`, { status }),
+  deleteRequest:  (id: string)                 => api.delete(`/admin/requests/${id}`),
 };
 
 // ─── Fake Notifications Management API ────────────────────────────────────────
