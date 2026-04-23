@@ -1,12 +1,21 @@
-const User = require('../models/User');
+const { User } = require('../models');
 
 const getPendingUsers = async (req, res) => {
   try {
-    const pendingUsers = await User.find({ status: 'pending' })
-      .select('-password')
-      .sort({ createdAt: -1 });
+    const pendingUsers = await User.findAll({
+      where: { status: 'pending' },
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'DESC']]
+    });
     
-    res.json({ users: pendingUsers });
+    // Convert to expected frontend format if needed
+    const users = pendingUsers.map(u => {
+      const data = u.toJSON();
+      data._id = data.id; // For frontend compatibility
+      return data;
+    });
+
+    res.json({ users });
   } catch (error) {
     console.error('Get pending users error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -15,10 +24,17 @@ const getPendingUsers = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
-      .select('-password')
-      .sort({ createdAt: -1 });
+    const allUsers = await User.findAll({
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'DESC']]
+    });
     
+    const users = allUsers.map(u => {
+      const data = u.toJSON();
+      data._id = data.id; // For frontend compatibility
+      return data;
+    });
+
     res.json({ users });
   } catch (error) {
     console.error('Get all users error:', error);
@@ -31,7 +47,7 @@ const approveUser = async (req, res) => {
     const { id } = req.params;
     const adminId = req.user.id;
     
-    const user = await User.findById(id);
+    const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -42,14 +58,15 @@ const approveUser = async (req, res) => {
     
     user.status = 'approved';
     user.approvedAt = new Date();
-    user.approvedBy = adminId;
+    user.approvedById = adminId;
     
     await user.save();
     
     res.json({
       message: 'User approved successfully',
       user: {
-        id: user._id,
+        id: user.id,
+        _id: user.id,
         name: user.name,
         phone: user.phone,
         status: user.status,
@@ -67,7 +84,7 @@ const rejectUser = async (req, res) => {
     const { id } = req.params;
     const adminId = req.user.id;
     
-    const user = await User.findById(id);
+    const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -78,14 +95,15 @@ const rejectUser = async (req, res) => {
     
     user.status = 'rejected';
     user.approvedAt = new Date();
-    user.approvedBy = adminId;
+    user.approvedById = adminId;
     
     await user.save();
     
     res.json({
       message: 'User rejected successfully',
       user: {
-        id: user._id,
+        id: user.id,
+        _id: user.id,
         name: user.name,
         phone: user.phone,
         status: user.status,

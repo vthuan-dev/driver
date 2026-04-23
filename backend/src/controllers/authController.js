@@ -1,8 +1,6 @@
-﻿const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Admin = require('../models/Admin');
+const jwt = require('jsonwebtoken');
+const { User, Admin } = require('../models');
 const config = require('../config/config');
-const { authMiddleware } = require('../middleware/auth');
 
 const generateToken = (payload) => {
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: '7d' });
@@ -13,13 +11,13 @@ const register = async (req, res) => {
     const { name, phone, password, carType, carYear, carImage } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ phone });
+    const existingUser = await User.findOne({ where: { phone } });
     if (existingUser) {
       return res.status(400).json({ message: 'Số điện thoại này đã được đăng ký' });
     }
 
     // Create new user
-    const user = new User({
+    const user = await User.create({
       name,
       phone,
       password,
@@ -29,12 +27,10 @@ const register = async (req, res) => {
       status: 'pending' // New users need approval
     });
 
-    await user.save();
-
     res.status(201).json({
       message: 'Đăng ký thành công. Vui lòng chờ admin phê duyệt.',
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         phone: user.phone,
         status: user.status,
@@ -52,7 +48,7 @@ const login = async (req, res) => {
     const { phone, password } = req.body;
 
     // Find user
-    const user = await User.findOne({ phone });
+    const user = await User.findOne({ where: { phone } });
     if (!user) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
@@ -73,7 +69,7 @@ const login = async (req, res) => {
 
     // Generate token
     const token = generateToken({
-      id: user._id,
+      id: user.id,
       phone: user.phone,
       role: 'user'
     });
@@ -81,7 +77,7 @@ const login = async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         phone: user.phone,
         carType: user.carType,
@@ -101,7 +97,7 @@ const adminLogin = async (req, res) => {
     const { username, password } = req.body;
 
     // Find admin
-    const admin = await Admin.findOne({ username });
+    const admin = await Admin.findOne({ where: { username } });
     if (!admin) {
       return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
     }
@@ -114,7 +110,7 @@ const adminLogin = async (req, res) => {
 
     // Generate token
     const token = generateToken({
-      id: admin._id,
+      id: admin.id,
       username: admin.username,
       role: admin.role
     });
@@ -122,7 +118,7 @@ const adminLogin = async (req, res) => {
     res.json({
       token,
       admin: {
-        id: admin._id,
+        id: admin.id,
         username: admin.username,
         role: admin.role
       }
@@ -135,22 +131,25 @@ const adminLogin = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+    
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
 
     res.json({ 
       user: {
-        id: user._id,
-        _id: user._id,
+        id: user.id,
+        _id: user.id, // For frontend compatibility
         name: user.name,
         phone: user.phone,
         carType: user.carType,
         carYear: user.carYear,
         carImage: user.carImage,
         status: user.status,
-        depositBalance: user.depositBalance || 200000
+        depositBalance: user.depositBalance
       }
     });
   } catch (error) {
@@ -162,7 +161,10 @@ const getMe = async (req, res) => {
 const checkStatus = async (req, res) => {
   try {
     const { phone } = req.params;
-    const user = await User.findOne({ phone }).select('name phone status');
+    const user = await User.findOne({ 
+      where: { phone },
+      attributes: ['name', 'phone', 'status'] 
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy tài khoản với số điện thoại này' });
@@ -186,4 +188,3 @@ module.exports = {
   getMe,
   checkStatus
 };
-

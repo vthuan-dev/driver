@@ -1,39 +1,41 @@
-﻿const mongoose = require('mongoose');
+module.exports = (sequelize, DataTypes) => {
+  const DriverPost = sequelize.define('DriverPost', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: true }
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: true }
+    },
+    route: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: true }
+    },
+    avatar: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true
+    },
+    region: {
+      type: DataTypes.ENUM('north', 'central', 'south'),
+      defaultValue: 'north'
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    }
+  }, {
+    tableName: 'driver_posts',
+    timestamps: true
+  });
 
-const driverPostSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  phone: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  route: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  avatar: {
-    type: String,
-    default: ''
-  },
-  region: {
-    type: String,
-    enum: ['north', 'central', 'south'],
-    default: 'north'
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-module.exports = mongoose.model('DriverPost', driverPostSchema);
-
+  return DriverPost;
+};

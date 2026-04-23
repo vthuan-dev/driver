@@ -1,6 +1,4 @@
-const User = require('../models/User');
-const FakeNotification = require('../models/FakeNotification');
-const AppSetting = require('../models/AppSetting');
+const { User, FakeNotification, AppSetting } = require('../models');
 
 // @desc    Get fake notifications for driver/customer
 // @route   GET /api/driver/fake-notifications
@@ -8,7 +6,7 @@ const AppSetting = require('../models/AppSetting');
 exports.getFakeNotifications = async (req, res) => {
   try {
     // Check if user is approved
-    const user = await User.findById(req.user.id);
+    const user = await User.findByPk(req.user.id);
     if (!user || user.status !== 'approved') {
       return res.status(200).json({
         success: true,
@@ -28,10 +26,19 @@ exports.getFakeNotifications = async (req, res) => {
     }
 
     // Get all active templates for this region
-    const templates = await FakeNotification.find({
-      region,
-      isActive: true
-    }).select('-createdBy -__v');
+    const templatesList = await FakeNotification.findAll({
+      where: {
+        region,
+        isActive: true
+      },
+      attributes: { exclude: ['createdById'] }
+    });
+
+    const templates = templatesList.map(t => {
+      const data = t.toJSON();
+      data._id = data.id;
+      return data;
+    });
 
     // Lấy cài đặt từ database
     let settings = await AppSetting.findOne();
@@ -79,7 +86,7 @@ exports.getFakeNotifications = async (req, res) => {
 exports.acceptFakeNotification = async (req, res) => {
   try {
     // Check if template exists
-    const template = await FakeNotification.findById(req.params.id);
+    const template = await FakeNotification.findByPk(req.params.id);
 
     if (!template) {
       return res.status(404).json({

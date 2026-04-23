@@ -1,4 +1,4 @@
-const AppSetting = require('../models/AppSetting');
+const { AppSetting } = require('../models');
 
 // Helper để đảm bảo luôn có đúng 1 document cài đặt
 const getOrCreateSettings = async () => {
@@ -57,12 +57,13 @@ exports.updateSettings = async (req, res) => {
 
     let settings = await getOrCreateSettings();
 
-    settings.minFakeCount = minFakeCount !== undefined ? minFakeCount : settings.minFakeCount;
-    settings.maxFakeCount = maxFakeCount !== undefined ? maxFakeCount : settings.maxFakeCount;
-    settings.minFakeInterval = minFakeInterval !== undefined ? minFakeInterval : settings.minFakeInterval;
-    settings.maxFakeInterval = maxFakeInterval !== undefined ? maxFakeInterval : settings.maxFakeInterval;
+    const updateData = {};
+    if (minFakeCount !== undefined) updateData.minFakeCount = minFakeCount;
+    if (maxFakeCount !== undefined) updateData.maxFakeCount = maxFakeCount;
+    if (minFakeInterval !== undefined) updateData.minFakeInterval = minFakeInterval;
+    if (maxFakeInterval !== undefined) updateData.maxFakeInterval = maxFakeInterval;
 
-    await settings.save();
+    await settings.update(updateData);
 
     res.status(200).json({
       success: true,

@@ -1,16 +1,16 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config/config');
+const { sequelize } = require('./models');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = config.PORT;
+const PORT = config.PORT || 5000;
 
 // Middleware
 app.use(cors({
@@ -65,21 +65,13 @@ app.get('/api/download/app', (req, res) => {
   });
 });
 
-// Health check endpoint – thực hiện ping thật vào DB để đảm bảo query hoạt động
+// Health check endpoint
 app.get('/api/health', async (req, res) => {
-  const dbState = mongoose.connection.readyState;
-
-  // readyState = 1 nhưng query vẫn có thể fail sau cold start
-  // → ping thật để xác nhận DB sẵn sàng
   let dbStatus = 'disconnected';
-  if (dbState === 1) {
-    try {
-      await mongoose.connection.db.admin().ping();
-      dbStatus = 'connected';
-    } catch {
-      dbStatus = 'connecting'; // ping fail → coi như chưa sẵn sàng
-    }
-  } else if (dbState === 2) {
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch (error) {
     dbStatus = 'connecting';
   }
 
@@ -89,41 +81,6 @@ app.get('/api/health', async (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
-// MongoDB connection
-const MONGO_OPTIONS = {
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 60000,
-  connectTimeoutMS: 10000,
-  heartbeatFrequencyMS: 10000,
-  family: 4,
-};
-
-const connectMongoDB = async () => {
-  try {
-    await mongoose.connect(config.MONGODB_URI, MONGO_OPTIONS);
-    console.log('Connected to MongoDB Atlas');
-  } catch (error) {
-    console.error('MongoDB connection error:', error.message);
-    // Retry after 5 seconds
-    setTimeout(connectMongoDB, 5000);
-  }
-};
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('MongoDB disconnected! Attempting to reconnect...');
-  setTimeout(connectMongoDB, 3000);
-});
-
-mongoose.connection.on('reconnected', () => {
-  console.log('MongoDB reconnected!');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error event:', err.message);
-});
-
-connectMongoDB();
 
 // Basic route
 app.get('/', (req, res) => {
@@ -136,25 +93,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-
-  // Self-ping mỗi 14 phút để tránh Render free-tier sleep
-  const BACKEND_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(async () => {
-    try {
-      const http = require('http');
-      const https = require('https');
-      const url = `${BACKEND_URL}/api/health`;
-      const client = url.startsWith('https') ? https : http;
-      client.get(url, (res) => {
-        console.log(`[Keep-alive] ping ${url} → ${res.statusCode}`);
-      }).on('error', (e) => {
-        console.warn('[Keep-alive] ping error:', e.message);
-      });
-    } catch (e) {
-      console.warn('[Keep-alive] error:', e.message);
-    }
-  }, 14 * 60 * 1000); // 14 phút
-});
-
+// Connect DB and Start Server
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connected to MySQL via Sequelize');
+    // For local dev, you can use sync({ alter: true }). 
+    // In production, migrations should be used.
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Unable to connect to the database:', error);
+  });

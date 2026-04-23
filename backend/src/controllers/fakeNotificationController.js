@@ -1,4 +1,4 @@
-const FakeNotification = require('../models/FakeNotification');
+const { FakeNotification, Admin } = require('../models');
 
 // @desc    Create new fake notification template
 // @route   POST /api/admin/fake-notifications
@@ -16,19 +16,21 @@ exports.createTemplate = async (req, res) => {
       carType,
       price,
       isActive: isActive !== undefined ? isActive : true,
-      createdBy: req.user.id || req.user._id
+      createdById: req.user.id || req.user._id
     });
+
+    const data = template.toJSON();
+    data._id = data.id;
 
     res.status(201).json({
       success: true,
-      data: template
+      data: data
     });
   } catch (error) {
     console.error('Error creating template:', error);
     
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(err => err.message);
       return res.status(400).json({
         success: false,
         message: messages.join(', ')
@@ -47,9 +49,20 @@ exports.createTemplate = async (req, res) => {
 // @access  Private/Admin
 exports.getAllTemplates = async (req, res) => {
   try {
-    const templates = await FakeNotification.find()
-      .sort({ createdAt: -1 })
-      .populate('createdBy', 'username');
+    const allTemplates = await FakeNotification.findAll({
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: Admin,
+        as: 'createdBy',
+        attributes: ['username']
+      }]
+    });
+
+    const templates = allTemplates.map(t => {
+      const data = t.toJSON();
+      data._id = data.id;
+      return data;
+    });
 
     res.status(200).json({
       success: true,
@@ -72,8 +85,13 @@ exports.getAllTemplates = async (req, res) => {
 // @access  Private/Admin
 exports.getTemplateById = async (req, res) => {
   try {
-    const template = await FakeNotification.findById(req.params.id)
-      .populate('createdBy', 'username');
+    const template = await FakeNotification.findByPk(req.params.id, {
+      include: [{
+        model: Admin,
+        as: 'createdBy',
+        attributes: ['username']
+      }]
+    });
 
     if (!template) {
       return res.status(404).json({
@@ -82,9 +100,12 @@ exports.getTemplateById = async (req, res) => {
       });
     }
 
+    const data = template.toJSON();
+    data._id = data.id;
+
     res.status(200).json({
       success: true,
-      data: template
+      data: data
     });
   } catch (error) {
     console.error('Error getting template:', error);
@@ -102,7 +123,7 @@ exports.updateTemplate = async (req, res) => {
   try {
     const { region, startPoint, endPoint, displayTime, carType, price, isActive } = req.body;
 
-    let template = await FakeNotification.findById(req.params.id);
+    const template = await FakeNotification.findByPk(req.params.id);
 
     if (!template) {
       return res.status(404).json({
@@ -112,26 +133,29 @@ exports.updateTemplate = async (req, res) => {
     }
 
     // Update fields
-    template.region = region || template.region;
-    template.startPoint = startPoint || template.startPoint;
-    template.endPoint = endPoint || template.endPoint;
-    template.displayTime = displayTime || template.displayTime;
-    template.carType = carType || template.carType;
-    template.price = price !== undefined ? price : template.price;
-    template.isActive = isActive !== undefined ? isActive : template.isActive;
+    const updateData = {};
+    if (region !== undefined) updateData.region = region;
+    if (startPoint !== undefined) updateData.startPoint = startPoint;
+    if (endPoint !== undefined) updateData.endPoint = endPoint;
+    if (displayTime !== undefined) updateData.displayTime = displayTime;
+    if (carType !== undefined) updateData.carType = carType;
+    if (price !== undefined) updateData.price = price;
+    if (isActive !== undefined) updateData.isActive = isActive;
 
-    await template.save();
+    await template.update(updateData);
+
+    const data = template.toJSON();
+    data._id = data.id;
 
     res.status(200).json({
       success: true,
-      data: template
+      data: data
     });
   } catch (error) {
     console.error('Error updating template:', error);
     
-    // Handle validation errors
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(err => err.message);
       return res.status(400).json({
         success: false,
         message: messages.join(', ')
@@ -150,7 +174,7 @@ exports.updateTemplate = async (req, res) => {
 // @access  Private/Admin
 exports.deleteTemplate = async (req, res) => {
   try {
-    const template = await FakeNotification.findById(req.params.id);
+    const template = await FakeNotification.findByPk(req.params.id);
 
     if (!template) {
       return res.status(404).json({
@@ -159,7 +183,7 @@ exports.deleteTemplate = async (req, res) => {
       });
     }
 
-    await template.deleteOne();
+    await template.destroy();
 
     res.status(200).json({
       success: true,
@@ -179,7 +203,7 @@ exports.deleteTemplate = async (req, res) => {
 // @access  Private/Admin
 exports.toggleTemplate = async (req, res) => {
   try {
-    const template = await FakeNotification.findById(req.params.id);
+    const template = await FakeNotification.findByPk(req.params.id);
 
     if (!template) {
       return res.status(404).json({
@@ -189,12 +213,14 @@ exports.toggleTemplate = async (req, res) => {
     }
 
     // Toggle isActive
-    template.isActive = !template.isActive;
-    await template.save();
+    await template.update({ isActive: !template.isActive });
+
+    const data = template.toJSON();
+    data._id = data.id;
 
     res.status(200).json({
       success: true,
-      data: template
+      data: data
     });
   } catch (error) {
     console.error('Error toggling template:', error);

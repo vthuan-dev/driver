@@ -1,12 +1,12 @@
-const User = require('../models/User');
-const WaitingRequest = require('../models/WaitingRequest');
+const { User, WaitingRequest } = require('../models');
+const { Op } = require('sequelize');
 
 const getDriverStats = async (req, res) => {
   try {
     const userId = req.user.id;
     
     // Get user's deposit balance
-    const user = await User.findById(userId).select('depositBalance');
+    const user = await User.findByPk(userId, { attributes: ['depositBalance'] });
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
@@ -17,23 +17,27 @@ const getDriverStats = async (req, res) => {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     
     // Count completed trips this month
-    const monthlyTrips = await WaitingRequest.countDocuments({
-      userId: userId,
-      status: 'completed',
-      createdAt: {
-        $gte: monthStart,
-        $lte: monthEnd
+    const monthlyTrips = await WaitingRequest.count({
+      where: {
+        userId: userId,
+        status: 'completed',
+        createdAt: {
+          [Op.gte]: monthStart,
+          [Op.lte]: monthEnd
+        }
       }
     });
     
     // Count total completed trips
-    const totalTrips = await WaitingRequest.countDocuments({
-      userId: userId,
-      status: 'completed'
+    const totalTrips = await WaitingRequest.count({
+      where: {
+        userId: userId,
+        status: 'completed'
+      }
     });
     
     res.json({
-      balance: user.depositBalance || 200000,
+      balance: user.depositBalance,
       monthlyTrips: monthlyTrips,
       totalTrips: totalTrips
     });

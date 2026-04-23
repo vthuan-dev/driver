@@ -1,4 +1,4 @@
-﻿const DriverPost = require('../models/DriverPost');
+const { DriverPost } = require('../models');
 
 const getDrivers = async (req, res) => {
   try {
@@ -8,16 +8,19 @@ const getDrivers = async (req, res) => {
       filter.region = region;
     }
 
-    // Debug logging
-    console.log('🔍 Filter:', filter);
-    const totalDrivers = await DriverPost.countDocuments();
-    const activeDrivers = await DriverPost.countDocuments({ isActive: true });
-    console.log(`📊 Total drivers: ${totalDrivers}, Active: ${activeDrivers}`);
+    const totalDrivers = await DriverPost.count();
+    const activeDrivers = await DriverPost.count({ where: { isActive: true } });
 
-    const drivers = await DriverPost.find(filter)
-      .sort({ createdAt: -1 });
+    const allDrivers = await DriverPost.findAll({
+      where: filter,
+      order: [['createdAt', 'DESC']]
+    });
     
-    console.log(`✅ Found ${drivers.length} drivers for region: ${region || 'all'}`);
+    const drivers = allDrivers.map(d => {
+      const data = d.toJSON();
+      data._id = data.id; // For frontend compatibility
+      return data;
+    });
     
     res.json({ 
       drivers,
@@ -38,7 +41,7 @@ const createDriver = async (req, res) => {
   try {
     const { name, phone, route, avatar, region } = req.body;
     
-    const driver = new DriverPost({
+    const driver = await DriverPost.create({
       name,
       phone,
       route,
@@ -46,11 +49,12 @@ const createDriver = async (req, res) => {
       region: ['north', 'central', 'south'].includes(region) ? region : 'north'
     });
     
-    await driver.save();
+    const data = driver.toJSON();
+    data._id = data.id;
     
     res.status(201).json({
       message: 'Driver post created successfully',
-      driver
+      driver: data
     });
   } catch (error) {
     console.error('Create driver error:', error);
@@ -66,19 +70,19 @@ const updateDriver = async (req, res) => {
       delete updateData.region;
     }
     
-    const driver = await DriverPost.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    );
-    
+    const driver = await DriverPost.findByPk(id);
     if (!driver) {
       return res.status(404).json({ message: 'Driver post not found' });
     }
     
+    await driver.update(updateData);
+    
+    const data = driver.toJSON();
+    data._id = data.id;
+    
     res.json({
       message: 'Driver post updated successfully',
-      driver
+      driver: data
     });
   } catch (error) {
     console.error('Update driver error:', error);
@@ -90,11 +94,13 @@ const deleteDriver = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const driver = await DriverPost.findByIdAndDelete(id);
+    const driver = await DriverPost.findByPk(id);
     
     if (!driver) {
       return res.status(404).json({ message: 'Driver post not found' });
     }
+    
+    await driver.destroy();
     
     res.json({ message: 'Driver post deleted successfully' });
   } catch (error) {
@@ -109,6 +115,3 @@ module.exports = {
   updateDriver,
   deleteDriver
 };
-
-
-
