@@ -96,7 +96,7 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
   };
 
   const handleConfirmPayment = () => {
-    setStep('showpass');
+    setStep('enterpass');
   };
 
   const handlePassSubmit = () => {
@@ -248,7 +248,7 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
                   Nhập mật khẩu để tải
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px' }}>
-                  Nhập mật khẩu bạn vừa ghi nhớ để xác nhận tải ứng dụng
+                  Nhập mật khẩu admin cung cấp để tải app
                 </p>
 
                 <input
