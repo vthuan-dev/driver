@@ -5,7 +5,7 @@ const { FakeNotification, Admin } = require('../models');
 // @access  Private/Admin
 exports.createTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, carType, price, isActive } = req.body;
+    const { region, startPoint, endPoint, displayTime, carType, price, isActive, note } = req.body;
 
     // Create template
     const template = await FakeNotification.create({
@@ -16,6 +16,7 @@ exports.createTemplate = async (req, res) => {
       carType,
       price,
       isActive: isActive !== undefined ? isActive : true,
+      note: note || null,
       createdById: req.user.id || req.user._id
     });
 
@@ -121,7 +122,7 @@ exports.getTemplateById = async (req, res) => {
 // @access  Private/Admin
 exports.updateTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, carType, price, isActive } = req.body;
+    const { region, startPoint, endPoint, displayTime, carType, price, isActive, note } = req.body;
 
     const template = await FakeNotification.findByPk(req.params.id);
 
@@ -141,6 +142,7 @@ exports.updateTemplate = async (req, res) => {
     if (carType !== undefined) updateData.carType = carType;
     if (price !== undefined) updateData.price = price;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (note !== undefined) updateData.note = note || null;
 
     await template.update(updateData);
 

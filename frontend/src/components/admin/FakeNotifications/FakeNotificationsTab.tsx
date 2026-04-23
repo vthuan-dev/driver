@@ -18,6 +18,7 @@ export type FakeNotification = {
   carType: CarType;
   price: number;
   isActive: boolean;
+  note?: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

@@ -34,6 +34,20 @@ const FakeNotificationCard = ({ template, onEdit, onDelete, onToggle }: Props) =
           <span className="car-type">🚗 {template.carType} chỗ</span>
           <span className="price">{template.price.toLocaleString('vi-VN')}đ</span>
         </div>
+
+        {template.note && (
+          <div className="note" style={{
+            marginTop: '8px',
+            padding: '6px 10px',
+            background: '#fffbea',
+            borderLeft: '3px solid #f39c12',
+            borderRadius: '4px',
+            fontSize: '13px',
+            color: '#7d6608'
+          }}>
+            📝 {template.note}
+          </div>
+        )}
       </div>
 
       <div className="card-actions">

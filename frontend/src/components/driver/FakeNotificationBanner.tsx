@@ -151,6 +151,20 @@ const FakeNotificationBanner = ({ user }: Props) => {
                   <div className="notification-price" style={{ color: '#e74c3c', fontSize: '16px' }}>
                     {notification.price.toLocaleString('vi-VN')}đ
                   </div>
+                  {notification.note && (
+                    <div className="notification-note" style={{
+                      marginTop: '8px',
+                      padding: '6px 10px',
+                      background: '#fffbea',
+                      borderLeft: '3px solid #f39c12',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      color: '#7d6608',
+                      lineHeight: '1.4'
+                    }}>
+                      📝 {notification.note}
+                    </div>
+                  )}
                 </div>
                 <button
                   className="accept-ride-btn"

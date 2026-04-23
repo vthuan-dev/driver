@@ -10,6 +10,7 @@ type FormData = {
   carType: '4' | '7' | '16';
   price: number;
   isActive: boolean;
+  note: string;
 };
 
 type Props = {
@@ -48,7 +49,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
     displayTime: '08:00',
     carType: '7',
     price: 0,
-    isActive: true
+    isActive: true,
+    note: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,7 +65,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
         displayTime: template.displayTime,
         carType: template.carType,
         price: template.price,
-        isActive: template.isActive
+        isActive: template.isActive,
+        note: template.note || ''
       });
     }
   }, [template]);
@@ -206,6 +209,17 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
             />
             {errors.price && <span className="error-text">{errors.price}</span>}
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>📝 Ghi chú (tùy chọn)</label>
+          <textarea
+            value={formData.note}
+            onChange={(e) => handleChange('note', e.target.value)}
+            placeholder="Nhập ghi chú hiển thị cho tài xế (VD: Liên hệ 0912345678, đón tại cổng chính...)"
+            rows={3}
+            style={{ resize: 'vertical', minHeight: '80px' }}
+          />
         </div>
 
         <div className="form-group">

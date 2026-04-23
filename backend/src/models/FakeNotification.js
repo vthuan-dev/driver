@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: { min: 0 }
     },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: null
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
