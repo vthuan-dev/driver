@@ -89,8 +89,24 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Global error handler:', err);
+  
+  // Ensure we always send JSON response
+  if (!res.headersSent) {
+    return res.status(err.status || 500).json({ 
+      success: false,
+      message: err.message || 'Something went wrong!',
+      error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  }
+});
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false,
+    message: 'Route not found' 
+  });
 });
 
 // Connect DB and Start Server

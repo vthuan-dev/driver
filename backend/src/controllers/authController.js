@@ -8,12 +8,25 @@ const generateToken = (payload) => {
 
 const register = async (req, res) => {
   try {
+    console.log('Register attempt:', { phone: req.body.phone, name: req.body.name });
     const { name, phone, password, carType, carYear, carImage } = req.body;
+
+    // Validate input
+    if (!name || !phone || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Vui lòng nhập đầy đủ thông tin' 
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ where: { phone } });
     if (existingUser) {
-      return res.status(400).json({ message: 'Số điện thoại này đã được đăng ký' });
+      console.log('User already exists:', phone);
+      return res.status(400).json({ 
+        success: false,
+        message: 'Số điện thoại này đã được đăng ký' 
+      });
     }
 
     // Create new user
@@ -27,7 +40,10 @@ const register = async (req, res) => {
       status: 'pending' // New users need approval
     });
 
-    res.status(201).json({
+    console.log('User registered successfully:', { id: user.id, phone: user.phone });
+
+    return res.status(201).json({
+      success: true,
       message: 'Đăng ký thành công. Vui lòng chờ admin phê duyệt.',
       user: {
         id: user.id,
@@ -40,29 +56,55 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Lỗi máy chủ khi đăng ký' });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Lỗi máy chủ khi đăng ký',
+      error: error.message 
+    });
   }
 };
 
 const login = async (req, res) => {
   try {
+    console.log('Login attempt:', { phone: req.body.phone });
     const { phone, password } = req.body;
+
+    // Validate input
+    if (!phone || !password) {
+      console.log('Missing phone or password');
+      return res.status(400).json({ 
+        success: false,
+        message: 'Vui lòng nhập đầy đủ số điện thoại và mật khẩu' 
+      });
+    }
 
     // Find user
     const user = await User.findOne({ where: { phone } });
     if (!user) {
-      return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
+      console.log('User not found:', phone);
+      return res.status(400).json({ 
+        success: false,
+        message: 'Thông tin đăng nhập không hợp lệ' 
+      });
     }
+
+    console.log('User found:', { id: user.id, status: user.status });
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Thông tin đăng nhập không hợp lệ' });
+      console.log('Password mismatch for user:', phone);
+      return res.status(400).json({ 
+        success: false,
+        message: 'Thông tin đăng nhập không hợp lệ' 
+      });
     }
 
     // Check if user is approved
     if (user.status !== 'approved') {
+      console.log('User not approved:', { phone, status: user.status });
       return res.status(403).json({
+        success: false,
         message: 'Tài khoản đang chờ phê duyệt',
         status: user.status
       });
@@ -75,7 +117,10 @@ const login = async (req, res) => {
       role: 'user'
     });
 
-    res.json({
+    console.log('Login successful for user:', phone);
+
+    return res.status(200).json({
+      success: true,
       token,
       user: {
         id: user.id,
@@ -90,7 +135,11 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Lỗi máy chủ khi đăng nhập' });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Lỗi máy chủ khi đăng nhập',
+      error: error.message 
+    });
   }
 };
 
