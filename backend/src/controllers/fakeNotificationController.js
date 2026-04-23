@@ -7,6 +7,15 @@ exports.createTemplate = async (req, res) => {
   try {
     const { region, startPoint, endPoint, displayTime, carType, price, isActive, note } = req.body;
 
+    // Get admin id - ensure it's an integer (not MongoDB ObjectId string)
+    const adminId = parseInt(req.user.id) || parseInt(req.user._id);
+    if (!adminId || isNaN(adminId)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng xuất và đăng nhập lại.'
+      });
+    }
+
     // Create template
     const template = await FakeNotification.create({
       region,
@@ -17,7 +26,7 @@ exports.createTemplate = async (req, res) => {
       price,
       isActive: isActive !== undefined ? isActive : true,
       note: note || null,
-      createdById: req.user.id || req.user._id
+      createdById: adminId
     });
 
     const data = template.toJSON();
