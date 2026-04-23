@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usersAPI, requestsAPI } from '../../services/adminApi';
+import { wakeUpServer } from '../../services/api';
 import FakeNotificationsTab from './FakeNotifications/FakeNotificationsTab';
 import './Dashboard.css';
 
@@ -35,6 +36,8 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
+  const [connecting, setConnecting] = useState(true); // đang kết nối server
+  const [connectMsg, setConnectMsg] = useState('Đang kết nối đến server...');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [requestSearchQuery, setRequestSearchQuery] = useState<string>('');
@@ -59,8 +62,21 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   };
 
   useEffect(() => {
-    loadUsers();
-    loadRequests();
+    // Wake server trước, sau đó mới load data
+    const init = async () => {
+      setConnecting(true);
+      setConnectMsg('Đang kết nối đến server...');
+      try {
+        await wakeUpServer();
+        setConnectMsg('Đang tải dữ liệu...');
+        await Promise.all([loadUsers(), loadRequests()]);
+      } catch {
+        setConnectMsg('Không thể kết nối. Vui lòng tải lại trang.');
+      } finally {
+        setConnecting(false);
+      }
+    };
+    init();
   }, []);
 
   const handleApproveUser = async (userId: string) => {
@@ -144,6 +160,32 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
         return numericQuery && request.phone.replace(/\D/g, '').includes(numericQuery);
       })
     : statusFilteredRequests;
+
+  // Hiển thị màn hình kết nối khi server đang khởi động
+  if (connecting) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%)',
+        gap: 20,
+      }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%',
+          border: '4px solid rgba(255,255,255,0.15)',
+          borderTopColor: '#7c3aed',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: '#fff', fontSize: 16, margin: 0, fontWeight: 500 }}>
+          {connectMsg}
+        </p>
+        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: 0 }}>
+          Server Render free-tier cần 30-50s để khởi động lại
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
