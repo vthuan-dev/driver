@@ -1159,7 +1159,7 @@ function MainApp() {
 
       {/* Hiển thị thông báo cuốc xe ảo cho tài xế ở trang chủ */}
       {user && user.status === 'approved' && !showDriverDashboard && (
-        <FakeNotificationBanner user={user} />
+        <FakeNotificationBanner user={user} region={activeRequestRegion} />
       )}
 
       <header className="ticker">

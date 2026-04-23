@@ -8,9 +8,10 @@ type Props = {
     status: string;
     [key: string]: any;
   };
+  region?: 'north' | 'central' | 'south';
 };
 
-const FakeNotificationBanner = ({ user }: Props) => {
+const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
   const [fakeNotifications, setFakeNotifications] = useState<any[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
@@ -19,13 +20,12 @@ const FakeNotificationBanner = ({ user }: Props) => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchFakeNotifications = async () => {
+  const fetchFakeNotifications = async (currentRegion: string) => {
     if (user.status !== 'approved') return;
 
     try {
       setLoadingNotifications(true);
-      const region = 'north'; // Default or from user profile
-      const response = await driverFakeNotificationsAPI.getFakeNotifications(region);
+      const response = await driverFakeNotificationsAPI.getFakeNotifications(currentRegion);
       
       const newNotifications = response.data.data || [];
       // Only update state if we actually got new notifications to avoid flickering empty state
@@ -71,7 +71,7 @@ const FakeNotificationBanner = ({ user }: Props) => {
       
       const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
       timeoutRef.current = setTimeout(() => {
-        fetchFakeNotifications();
+        fetchFakeNotifications(currentRegion);
       }, randomMinutes * 60 * 1000);
 
     } catch (error: any) {
@@ -87,12 +87,12 @@ const FakeNotificationBanner = ({ user }: Props) => {
       Notification.requestPermission();
     }
 
-    fetchFakeNotifications();
+    fetchFakeNotifications(region);
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (autoHideRef.current) clearTimeout(autoHideRef.current);
     };
-  }, [user.status]);
+  }, [user.status, region]);
 
   const handleAcceptFakeNotification = async (notificationId: string) => {
     if (autoHideRef.current) clearTimeout(autoHideRef.current);
