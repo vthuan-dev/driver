@@ -43,22 +43,29 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [requestSearchQuery, setRequestSearchQuery] = useState<string>('');
   const [requestStatusFilter, setRequestStatusFilter] = useState<'all' | 'waiting' | 'matched' | 'completed'>('waiting');
 
-  const loadUsers = async () => {
-    try {
-      const response = await usersAPI.getAllUsers();
-      setUsers(response.data.users);
-    } catch (error) {
-      console.error('Error loading users:', error);
+  // Helper: retry tối đa N lần nếu bị lỗi (dùng eslint-disable cho generic trong tsx)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const withRetry = async <T,>(fn: () => Promise<T>, retries = 3, delayMs = 2000): Promise<T> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        if (i === retries - 1) throw err;
+        console.warn(`[retry ${i + 1}/${retries}] Thử lại sau ${delayMs}ms...`);
+        await new Promise(r => setTimeout(r, delayMs));
+      }
     }
+    throw new Error('Unreachable');
+  };
+
+  const loadUsers = async () => {
+    const response = await withRetry(() => usersAPI.getAllUsers());
+    setUsers(response.data.users ?? []);
   };
 
   const loadRequests = async () => {
-    try {
-      const response = await requestsAPI.getAllRequests();
-      setRequests(response.data.requests);
-    } catch (error) {
-      console.error('Error loading requests:', error);
-    }
+    const response = await withRetry(() => requestsAPI.getAllRequests());
+    setRequests(response.data.requests ?? []);
   };
 
   useEffect(() => {
@@ -69,7 +76,10 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
       try {
         await wakeUpServer();
         setConnectMsg('Đang tải dữ liệu...');
-        await Promise.all([loadUsers(), loadRequests()]);
+        await Promise.allSettled([
+          loadUsers().catch(e => console.error('loadUsers failed:', e)),
+          loadRequests().catch(e => console.error('loadRequests failed:', e)),
+        ]);
       } catch {
         setConnectMsg('Không thể kết nối. Vui lòng tải lại trang.');
       } finally {

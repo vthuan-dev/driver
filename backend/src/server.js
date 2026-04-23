@@ -65,14 +65,28 @@ app.get('/api/download/app', (req, res) => {
   });
 });
 
-// Health check endpoint (dùng để wake Render server + check kết nối)
-app.get('/api/health', (req, res) => {
+// Health check endpoint – thực hiện ping thật vào DB để đảm bảo query hoạt động
+app.get('/api/health', async (req, res) => {
   const dbState = mongoose.connection.readyState;
-  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  res.json({ 
-    status: 'ok', 
-    db: states[dbState] || 'unknown',
-    timestamp: new Date().toISOString()
+
+  // readyState = 1 nhưng query vẫn có thể fail sau cold start
+  // → ping thật để xác nhận DB sẵn sàng
+  let dbStatus = 'disconnected';
+  if (dbState === 1) {
+    try {
+      await mongoose.connection.db.admin().ping();
+      dbStatus = 'connected';
+    } catch {
+      dbStatus = 'connecting'; // ping fail → coi như chưa sẵn sàng
+    }
+  } else if (dbState === 2) {
+    dbStatus = 'connecting';
+  }
+
+  res.json({
+    status: 'ok',
+    db: dbStatus,
+    timestamp: new Date().toISOString(),
   });
 });
 
