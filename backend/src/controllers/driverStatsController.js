@@ -47,6 +47,81 @@ const getDriverStats = async (req, res) => {
   }
 };
 
+// @desc    Record APK download and save plan to DB
+// @route   POST /api/driver/record-download
+// @access  Private
+const recordDownload = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { plan } = req.body; // '6m' or '1y'
+
+    if (!plan || !['6m', '1y'].includes(plan)) {
+      return res.status(400).json({ success: false, message: 'Gói không hợp lệ' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+
+    const updateData = {
+      appPlan: plan,
+      appDownloadCount: (user.appDownloadCount || 0) + 1,
+    };
+
+    // Only set first download time once
+    if (!user.appFirstDownloadAt) {
+      updateData.appFirstDownloadAt = new Date();
+    }
+
+    await user.update(updateData);
+
+    return res.json({
+      success: true,
+      downloadCount: updateData.appDownloadCount,
+      firstDownloadAt: user.appFirstDownloadAt || updateData.appFirstDownloadAt,
+      plan: plan
+    });
+  } catch (error) {
+    console.error('Record download error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
+  }
+};
+
+// @desc    Get download status for current user
+// @route   GET /api/driver/download-status
+// @access  Private
+const getDownloadStatus = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['appPlan', 'appDownloadCount', 'appFirstDownloadAt']
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+
+    const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+    const firstDownloadAt = user.appFirstDownloadAt ? new Date(user.appFirstDownloadAt).getTime() : 0;
+    const withinTwoDays = firstDownloadAt > 0 && (Date.now() - firstDownloadAt) < TWO_DAYS_MS;
+
+    return res.json({
+      success: true,
+      appPlan: user.appPlan,
+      downloadCount: user.appDownloadCount || 0,
+      firstDownloadAt: user.appFirstDownloadAt,
+      withinTwoDays,
+      canRedownload: withinTwoDays
+    });
+  } catch (error) {
+    console.error('Get download status error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
+  }
+};
+
 module.exports = {
-  getDriverStats
+  getDriverStats,
+  recordDownload,
+  getDownloadStatus
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { driverAPI } from '../../services/api';
 import './DownloadAppPage.css';
 
 type User = {
@@ -14,15 +15,16 @@ type User = {
 
 type DownloadAppPageProps = {
   user: User;
+  plan?: string; // '6m' or '1y'
   onBack: () => void;
+  onDownloaded?: (plan: string) => void;
 };
 
-const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
-  const planId = localStorage.getItem('driver_app_plan');
+const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', onBack, onDownloaded }) => {
   let amount = 400000;
   let planLabel = '1 năm';
-  
-  if (planId === '6m') { amount = 200000; planLabel = '6 tháng'; }
+
+  if (plan === '6m') { amount = 200000; planLabel = '6 tháng'; }
 
   const message = `Tai App ${user.phone}`;
   const qrCodeUrl = `https://img.vietqr.io/image/VPBank-0779966349-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=NGUYEN%20VAN%20CHI`;
@@ -31,17 +33,17 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, onBack }) => {
 
   const handleConfirm = () => {
     setIsConfirming(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       const baseUrl = apiUrl.replace('/api', '');
       window.location.href = `${baseUrl}/api/download/app`;
-      
-      // Ghi lại số lần tải và timestamp lần đầu
-      const currentCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
-      localStorage.setItem('apk_download_count', (currentCount + 1).toString());
-      // Chỉ lưu timestamp lần đầu tiên tải
-      if (currentCount === 0) {
-        localStorage.setItem('apk_first_download_time', Date.now().toString());
+
+      // Ghi lại lượt tải vào DB
+      try {
+        await driverAPI.recordDownload(plan);
+        if (onDownloaded) onDownloaded(plan);
+      } catch (err) {
+        console.error('Failed to record download:', err);
       }
 
       setIsConfirming(false);

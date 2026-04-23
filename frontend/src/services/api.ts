@@ -69,7 +69,9 @@ export const requestsAPI = {
 
 // ─── Driver API ────────────────────────────────────────────────────────────────
 export const driverAPI = {
-  getStats: () => api.get('/driver/stats'),
+  getStats:          ()              => api.get('/driver/stats'),
+  getDownloadStatus: ()              => api.get('/driver/download-status'),
+  recordDownload:    (plan: string)  => api.post('/driver/record-download', { plan }),
 };
 
 // ─── Driver Fake Notifications API ────────────────────────────────────────────

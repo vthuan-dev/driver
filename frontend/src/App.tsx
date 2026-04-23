@@ -3,7 +3,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
-import { authAPI, driversAPI, requestsAPI } from './services/api'
+import { authAPI, driversAPI, requestsAPI, driverAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
@@ -709,8 +709,14 @@ function MainApp() {
   const [showDriverDashboard, setShowDriverDashboard] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('1y');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorPopupTitle, setErrorPopupTitle] = useState('Thông báo');
+  const [downloadStatus, setDownloadStatus] = useState<{
+    downloadCount: number;
+    withinTwoDays: boolean;
+    appPlan: string | null;
+  }>({ downloadCount: 0, withinTwoDays: false, appPlan: null });
   
   // Fetch user info if logged in but missing status
   useEffect(() => {
@@ -743,6 +749,25 @@ function MainApp() {
     };
     fetchUserInfo();
   }, [user]);
+
+  // Fetch download status from DB when user is approved
+  useEffect(() => {
+    const fetchDownloadStatus = async () => {
+      if (user && user.status === 'approved') {
+        try {
+          const res = await driverAPI.getDownloadStatus();
+          setDownloadStatus({
+            downloadCount: res.data.downloadCount || 0,
+            withinTwoDays: res.data.withinTwoDays || false,
+            appPlan: res.data.appPlan || null,
+          });
+        } catch (error) {
+          console.error('Error fetching download status:', error);
+        }
+      }
+    };
+    fetchDownloadStatus();
+  }, [user?.status]);
   const [drivers, setDrivers] = useState<DriverPost[]>(posts)
   const [activeRegion, setActiveRegion] = useState<Region>('north')
   const [loading, setLoading] = useState(false)
@@ -1117,10 +1142,7 @@ function MainApp() {
                 color: '#1e293b'
               }}
               onClick={() => {
-                const downloadCount = parseInt(localStorage.getItem('apk_download_count') || '0', 10);
-                const firstDownloadTime = parseInt(localStorage.getItem('apk_first_download_time') || '0', 10);
-                const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
-                const withinTwoDays = firstDownloadTime > 0 && (Date.now() - firstDownloadTime) < TWO_DAYS_MS;
+                const { downloadCount, withinTwoDays } = downloadStatus;
 
                 // Đã tải rồi nhưng quá 2 ngày → block
                 if (downloadCount > 0 && !withinTwoDays) {
@@ -1748,7 +1770,7 @@ function MainApp() {
             isOpen={showPricingModal} 
             onClose={() => setShowPricingModal(false)}
             onConfirm={(plan) => {
-              localStorage.setItem('driver_app_plan', plan.id);
+              setSelectedPlan(plan.id);
               setShowPricingModal(false);
               setShowDownloadPage(true);
             }}
@@ -1756,7 +1778,16 @@ function MainApp() {
 
           {showDownloadPage && (
             <DownloadAppPage 
-              user={user} 
+              user={user}
+              plan={downloadStatus.downloadCount > 0 ? (downloadStatus.appPlan || selectedPlan) : selectedPlan}
+              onDownloaded={(plan) => {
+                setDownloadStatus(prev => ({
+                  ...prev,
+                  downloadCount: prev.downloadCount + 1,
+                  withinTwoDays: true,
+                  appPlan: plan,
+                }));
+              }}
               onBack={() => setShowDownloadPage(false)} 
             />
           )}

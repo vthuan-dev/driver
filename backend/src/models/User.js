@@ -54,6 +54,20 @@ module.exports = (sequelize, DataTypes) => {
         model: 'admins',
         key: 'id'
       }
+    },
+    appPlan: {
+      type: DataTypes.ENUM('6m', '1y'),
+      allowNull: true,
+      defaultValue: null
+    },
+    appDownloadCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    appFirstDownloadAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'users',
