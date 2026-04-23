@@ -31,6 +31,7 @@ const register = async (req, res) => {
       message: 'Đăng ký thành công. Vui lòng chờ admin phê duyệt.',
       user: {
         id: user.id,
+        _id: user.id,
         name: user.name,
         phone: user.phone,
         status: user.status,
@@ -78,6 +79,7 @@ const login = async (req, res) => {
       token,
       user: {
         id: user.id,
+        _id: user.id,
         name: user.name,
         phone: user.phone,
         carType: user.carType,
@@ -119,6 +121,7 @@ const adminLogin = async (req, res) => {
       token,
       admin: {
         id: admin.id,
+        _id: admin.id,
         username: admin.username,
         role: admin.role
       }
