@@ -3,6 +3,7 @@
 .download-modal-panel {
   max-width: 400px;
   width: 90%;
+  max-height: 90vh;
   padding: 0;
   overflow: hidden;
   background: white;
@@ -30,6 +31,8 @@
 .download-body-modal {
   padding: 24px;
   text-align: center;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .greeting-text {
