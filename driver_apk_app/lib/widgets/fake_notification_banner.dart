@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../models/fake_notification.dart';
 import '../services/api_service.dart';
 import '../utils/provinces.dart';
@@ -53,6 +54,10 @@ class _FakeNotificationBannerState extends State<FakeNotificationBanner> {
     super.dispose();
   }
 
+  void _playNotificationSound() {
+    FlutterRingtonePlayer().playNotification();
+  }
+
   Future<void> _fetchNotifications() async {
     try {
       final result = await widget.apiService.getFakeNotifications(
@@ -66,6 +71,7 @@ class _FakeNotificationBannerState extends State<FakeNotificationBanner> {
         final notifications = data.map((j) => FakeNotification.fromJson(j)).toList();
         notifications.shuffle();
         setState(() => _currentNotification = notifications.first);
+        _playNotificationSound();
 
         // Auto-hide after 30 seconds
         _hideTimer?.cancel();

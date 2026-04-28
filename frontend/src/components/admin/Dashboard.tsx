@@ -381,7 +381,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {userStatusFilter === 'pending' && filteredPendingUsers.length > 0 && (
+              {(searchQuery ? filteredPendingUsers.length > 0 : userStatusFilter === 'pending' && filteredPendingUsers.length > 0) && (
                 <div className="section">
                   <h3>Chờ phê duyệt ({filteredPendingUsers.length})</h3>
                   <div className="user-list">
@@ -429,7 +429,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {userStatusFilter === 'approved' && filteredApprovedUsers.length > 0 && (
+              {(searchQuery ? filteredApprovedUsers.length > 0 : userStatusFilter === 'approved' && filteredApprovedUsers.length > 0) && (
                 <div className="section">
                   <h3>Đã phê duyệt ({filteredApprovedUsers.length})</h3>
                   <div className="user-list">
@@ -487,7 +487,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {userStatusFilter === 'rejected' && filteredRejectedUsers.length > 0 && (
+              {(searchQuery ? filteredRejectedUsers.length > 0 : userStatusFilter === 'rejected' && filteredRejectedUsers.length > 0) && (
                 <div className="section">
                   <h3>Đã từ chối ({filteredRejectedUsers.length})</h3>
                   <div className="user-list">
