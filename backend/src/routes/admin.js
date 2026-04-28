@@ -18,6 +18,7 @@ router.get('/users', adminAuthMiddleware, userController.getAllUsers);
 router.get('/users/pending', adminAuthMiddleware, userController.getPendingUsers);
 router.put('/users/:id/approve', adminAuthMiddleware, userController.approveUser);
 router.put('/users/:id/reject', adminAuthMiddleware, userController.rejectUser);
+router.delete('/users/:id', adminAuthMiddleware, userController.deleteUser);
 
 // Request management
 router.get('/requests', adminAuthMiddleware, requestController.getAllRequests);

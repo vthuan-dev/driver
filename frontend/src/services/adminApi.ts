@@ -40,6 +40,7 @@ export const usersAPI = {
   getAllUsers:     ()           => api.get('/admin/users'),
   approveUser:    (id: string) => api.put(`/admin/users/${id}/approve`),
   rejectUser:     (id: string) => api.put(`/admin/users/${id}/reject`),
+  deleteUser:     (id: string) => api.delete(`/admin/users/${id}`),
 };
 
 // ─── Requests Management API ───────────────────────────────────────────────────

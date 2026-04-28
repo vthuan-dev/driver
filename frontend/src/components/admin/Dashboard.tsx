@@ -86,6 +86,22 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
+  const handleRemoveUser = async (userId: string, userName: string) => {
+    if (!confirm(`Xóa "${userName}" khỏi nhóm? Tài xế sẽ bị xóa khỏi hệ thống.`)) {
+      return;
+    }
+    setLoading(true);
+    try {
+      await usersAPI.deleteUser(userId);
+      await loadUsers();
+    } catch (error) {
+      console.error('Error removing user:', error);
+      alert('Có lỗi xảy ra khi xóa tài xế');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteRequest = async (requestId: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
       return;
@@ -380,7 +396,16 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                             Phê duyệt: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
                           </div>
                         </div>
-                        <div className="status-badge approved">Đã phê duyệt</div>
+                        <div className="user-actions">
+                          <div className="status-badge approved">Đã phê duyệt</div>
+                          <button
+                            className="remove-btn"
+                            onClick={() => handleRemoveUser(user._id, user.name)}
+                            disabled={loading}
+                          >
+                            Xóa khỏi nhóm
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
