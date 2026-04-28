@@ -100,6 +100,16 @@ const login = async (req, res) => {
       });
     }
 
+    // Check if user is banned
+    if (user.isBanned) {
+      const reason = user.banReason ? ` Lý do: ${user.banReason}` : '';
+      return res.status(403).json({
+        success: false,
+        message: `Tài khoản của bạn đã bị khóa.${reason}`,
+        status: 'banned'
+      });
+    }
+
     // Check if user is approved
     if (user.status !== 'approved') {
       console.log('User not approved:', { phone, status: user.status });

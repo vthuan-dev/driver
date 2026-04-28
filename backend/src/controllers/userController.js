@@ -116,6 +116,47 @@ const rejectUser = async (req, res) => {
   }
 };
 
+const banUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.isBanned = true;
+    user.banReason = reason || null;
+    await user.save();
+
+    res.json({ message: 'User banned successfully' });
+  } catch (error) {
+    console.error('Ban user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const unbanUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.isBanned = false;
+    user.banReason = null;
+    await user.save();
+
+    res.json({ message: 'User unbanned successfully' });
+  } catch (error) {
+    console.error('Unban user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -139,5 +180,7 @@ module.exports = {
   getAllUsers,
   approveUser,
   rejectUser,
+  banUser,
+  unbanUser,
   deleteUser
 };

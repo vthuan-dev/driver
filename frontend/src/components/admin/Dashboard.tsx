@@ -14,6 +14,8 @@ type User = {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   approvedAt?: string;
+  isBanned?: boolean;
+  banReason?: string;
 };
 
 type Request = {
@@ -81,6 +83,35 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
       await loadUsers();
     } catch (error) {
       console.error('Error rejecting user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBanUser = async (userId: string, userName: string) => {
+    const reason = prompt(`Lý do khóa tài khoản "${userName}"? (để trống nếu không cần)`);
+    if (reason === null) return;
+    setLoading(true);
+    try {
+      await usersAPI.banUser(userId, reason);
+      await loadUsers();
+    } catch (error) {
+      console.error('Error banning user:', error);
+      alert('Có lỗi xảy ra khi khóa tài khoản');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnbanUser = async (userId: string, userName: string) => {
+    if (!confirm(`Mở khóa tài khoản "${userName}"?`)) return;
+    setLoading(true);
+    try {
+      await usersAPI.unbanUser(userId);
+      await loadUsers();
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      alert('Có lỗi xảy ra khi mở khóa tài khoản');
     } finally {
       setLoading(false);
     }
@@ -397,7 +428,28 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                           </div>
                         </div>
                         <div className="user-actions">
-                          <div className="status-badge approved">Đã phê duyệt</div>
+                          {user.isBanned ? (
+                            <div className="status-badge banned">Đã khóa</div>
+                          ) : (
+                            <div className="status-badge approved">Đã phê duyệt</div>
+                          )}
+                          {user.isBanned ? (
+                            <button
+                              className="unban-btn"
+                              onClick={() => handleUnbanUser(user._id, user.name)}
+                              disabled={loading}
+                            >
+                              Mở khóa
+                            </button>
+                          ) : (
+                            <button
+                              className="ban-btn"
+                              onClick={() => handleBanUser(user._id, user.name)}
+                              disabled={loading}
+                            >
+                              Khóa tài khoản
+                            </button>
+                          )}
                           <button
                             className="remove-btn"
                             onClick={() => handleRemoveUser(user._id, user.name)}

@@ -68,6 +68,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null
+    },
+    isBanned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    banReason: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'users',

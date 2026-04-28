@@ -874,6 +874,8 @@ body {
   cursor: not-allowed;
 }
 
+.ban-btn,
+.unban-btn,
 .remove-btn {
   padding: 10px 20px;
   border: none;
@@ -885,8 +887,31 @@ body {
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   color: white;
+}
+
+.ban-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+.ban-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.5);
+}
+
+.unban-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.unban-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+}
+
+.remove-btn {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
 }
 
@@ -895,6 +920,8 @@ body {
   box-shadow: 0 8px 24px rgba(249, 115, 22, 0.5);
 }
 
+.ban-btn:disabled,
+.unban-btn:disabled,
 .remove-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -919,6 +946,11 @@ body {
 
 .status-badge.rejected {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.status-badge.banned {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
 }
 
