@@ -771,6 +771,7 @@ function MainApp() {
   const [drivers, setDrivers] = useState<DriverPost[]>(posts)
   const [activeRegion, setActiveRegion] = useState<Region>('north')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [authForm, setAuthForm] = useState({
     name: '',
     phone: '',
@@ -1678,7 +1679,29 @@ function MainApp() {
                 )}
                 <label className="field">
                   <span>Mật khẩu</span>
-                  <input type="password" name="password" value={authForm.password} onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })} placeholder="Ít nhất 4 ký tự" required />
+                  <div style={{position:'relative',display:'flex',alignItems:'center'}}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={authForm.password}
+                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                      placeholder="Ít nhất 4 ký tự"
+                      autoComplete={authModal === 'register' ? 'new-password' : 'current-password'}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      required
+                      style={{flex:1,paddingRight:'40px'}}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(v => !v)}
+                      style={{position:'absolute',right:'10px',background:'none',border:'none',cursor:'pointer',color:'#888',fontSize:'18px',padding:0}}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
                 </label>
                 {authModal === 'register' && (
                   <label className="field">
