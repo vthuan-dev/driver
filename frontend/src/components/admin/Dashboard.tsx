@@ -40,6 +40,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [requestSearchQuery, setRequestSearchQuery] = useState<string>('');
   const [requestStatusFilter, setRequestStatusFilter] = useState<'all' | 'waiting' | 'matched' | 'completed'>('waiting');
+  const [userStatusFilter, setUserStatusFilter] = useState<'pending' | 'approved' | 'rejected'>('approved');
 
   const loadUsers = async () => {
     try {
@@ -351,6 +352,28 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 )}
               </div>
               
+              {/* Status filter tabs */}
+              <div className="request-filter-tabs" style={{marginBottom: '16px'}}>
+                <button
+                  className={`filter-tab ${userStatusFilter === 'pending' ? 'active' : ''}`}
+                  onClick={() => setUserStatusFilter('pending')}
+                >
+                  Chờ phê duyệt ({pendingUsers.length})
+                </button>
+                <button
+                  className={`filter-tab ${userStatusFilter === 'approved' ? 'active' : ''}`}
+                  onClick={() => setUserStatusFilter('approved')}
+                >
+                  Đã phê duyệt ({approvedUsers.length})
+                </button>
+                <button
+                  className={`filter-tab ${userStatusFilter === 'rejected' ? 'active' : ''}`}
+                  onClick={() => setUserStatusFilter('rejected')}
+                >
+                  Đã từ chối ({rejectedUsers.length})
+                </button>
+              </div>
+
               {/* No results message */}
               {searchQuery && filteredPendingUsers.length === 0 && filteredApprovedUsers.length === 0 && filteredRejectedUsers.length === 0 && (
                 <div className="no-results">
@@ -358,7 +381,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {filteredPendingUsers.length > 0 && (
+              {userStatusFilter === 'pending' && filteredPendingUsers.length > 0 && (
                 <div className="section">
                   <h3>Chờ phê duyệt ({filteredPendingUsers.length})</h3>
                   <div className="user-list">
@@ -406,7 +429,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {filteredApprovedUsers.length > 0 && (
+              {userStatusFilter === 'approved' && filteredApprovedUsers.length > 0 && (
                 <div className="section">
                   <h3>Đã phê duyệt ({filteredApprovedUsers.length})</h3>
                   <div className="user-list">
@@ -464,7 +487,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </div>
               )}
 
-              {filteredRejectedUsers.length > 0 && (
+              {userStatusFilter === 'rejected' && filteredRejectedUsers.length > 0 && (
                 <div className="section">
                   <h3>Đã từ chối ({filteredRejectedUsers.length})</h3>
                   <div className="user-list">
@@ -591,6 +614,15 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         {request.status === 'waiting' ? 'Chờ ghép' : 
                          request.status === 'matched' ? 'Đã ghép' : 'Hoàn thành'}
                       </span>
+                      <button
+                        className="ban-btn"
+                        onClick={() => handleBanUser(request.userId, request.name)}
+                        disabled={loading}
+                        title="Khóa tài khoản tài xế"
+                        style={{fontSize: '12px', padding: '6px 10px'}}
+                      >
+                        🔒 Khóa
+                      </button>
                       <button 
                         className="delete-btn"
                         onClick={() => handleDeleteRequest(request._id)}
