@@ -38,7 +38,7 @@ exports.getSettings = async (req, res) => {
 // @access  Private/Admin
 exports.updateSettings = async (req, res) => {
   try {
-    const { minFakeCount, maxFakeCount, minFakeInterval, maxFakeInterval } = req.body;
+    const { minFakeCount, maxFakeCount, minFakeInterval, maxFakeInterval, bankCode, bankName, accountNo, accountName } = req.body;
 
     // Validate inputs
     if (minFakeCount > maxFakeCount) {
@@ -62,6 +62,10 @@ exports.updateSettings = async (req, res) => {
     if (maxFakeCount !== undefined) updateData.maxFakeCount = maxFakeCount;
     if (minFakeInterval !== undefined) updateData.minFakeInterval = minFakeInterval;
     if (maxFakeInterval !== undefined) updateData.maxFakeInterval = maxFakeInterval;
+    if (bankCode !== undefined) updateData.bankCode = bankCode;
+    if (bankName !== undefined) updateData.bankName = bankName;
+    if (accountNo !== undefined) updateData.accountNo = accountNo;
+    if (accountName !== undefined) updateData.accountName = accountName;
 
     await settings.update(updateData);
 

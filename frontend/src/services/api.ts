@@ -80,4 +80,9 @@ export const driverFakeNotificationsAPI = {
   acceptFakeNotification: (id: string)     => api.post(`/driver/fake-notifications/${id}/accept`),
 };
 
+// ─── Bank Config API (public, no auth) ─────────────────────────────────────────
+export const bankConfigAPI = {
+  getBankConfig: () => api.get('/settings/bank'),
+};
+
 export default api;

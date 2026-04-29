@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { driverAPI } from '../../services/api';
+import { driverAPI, bankConfigAPI } from '../../services/api';
 import './DownloadAppPage.css';
 
 type User = {
@@ -28,7 +28,23 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
   if (plan === '6m') { amount = 200000; planLabel = '6 tháng'; }
 
   const message = `Tai App ${user.phone}`;
-  const qrCodeUrl = `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=HOANG%20MANH%20DUY`;
+  const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});
+
+  useEffect(() => {
+    const loadBankConfig = async () => {
+      try {
+        const res = await bankConfigAPI.getBankConfig();
+        if (res.data?.success && res.data.data) {
+          setBankConfig(res.data.data);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    loadBankConfig();
+  }, []);
+
+  const qrCodeUrl = bankConfig.bankCode && bankConfig.accountNo
+    ? `https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=${encodeURIComponent(bankConfig.accountName || 'TEST')}`
+    : `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=HOANG%20MANH%20DUY`;
 
   // Step: 'qr' | 'showpass' | 'enterpass'
   const [step, setStep] = useState<'qr' | 'showpass' | 'enterpass'>('qr');

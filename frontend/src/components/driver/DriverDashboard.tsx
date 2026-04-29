@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { driverAPI } from '../../services/api';
+import { driverAPI, bankConfigAPI } from '../../services/api';
 import AppPricingModal from './AppPricingModal';
 import DownloadAppPage from './DownloadAppPage';
 import './DriverDashboard.css';
@@ -52,6 +52,20 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
 
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});
+
+  // Fetch bank config
+  useEffect(() => {
+    const loadBankConfig = async () => {
+      try {
+        const res = await bankConfigAPI.getBankConfig();
+        if (res.data?.success && res.data.data) {
+          setBankConfig(res.data.data);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    loadBankConfig();
+  }, []);
 
   // Fetch driver stats from API
   useEffect(() => {
@@ -291,14 +305,18 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                   <img
                     id="qr-code-image"
-                    src={`https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`}
-                    alt="VietQR VIB 092480168"
+                    src={bankConfig.bankCode && bankConfig.accountNo
+                      ? `https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=${encodeURIComponent(bankConfig.accountName || 'TEST')}`
+                      : `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`}
+                    alt="VietQR"
                     style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                   <button
                     onClick={async () => {
                       try {
-                        const imageUrl = `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`;
+                        const imageUrl = bankConfig.bankCode && bankConfig.accountNo
+                          ? `https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=${encodeURIComponent(bankConfig.accountName || 'TEST')}`
+                          : `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Huy%20app%20hoan%20tien&accountName=HOANG%20MANH%20DUY`;
                         
                         // Fetch the image as blob
                         const response = await fetch(imageUrl);

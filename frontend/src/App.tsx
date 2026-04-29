@@ -3,7 +3,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
-import { authAPI, driversAPI, requestsAPI, driverAPI } from './services/api'
+import { authAPI, driversAPI, requestsAPI, driverAPI, bankConfigAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
@@ -797,6 +797,7 @@ function MainApp() {
   })
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
+  const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -904,6 +905,19 @@ function MainApp() {
       }
     }
     loadDrivers()
+  }, [])
+
+  // Load bank config from backend
+  useEffect(() => {
+    const loadBankConfig = async () => {
+      try {
+        const res = await bankConfigAPI.getBankConfig();
+        if (res.data?.success && res.data.data) {
+          setBankConfig(res.data.data);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    loadBankConfig();
   }, [])
 
   // Load public waiting requests for homepage ticker/card list
@@ -1740,8 +1754,10 @@ function MainApp() {
                 <p style={{ marginTop: 0 }}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <img
-                    src={`https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=HOANG%20MANH%20DUY`}
-                    alt="VietQR VIB 092480168"
+                    src={bankConfig.bankCode && bankConfig.accountNo
+                      ? `https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=${encodeURIComponent(bankConfig.accountName || 'TEST')}`
+                      : `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=HOANG%20MANH%20DUY`}
+                    alt="VietQR"
                     style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                 </div>

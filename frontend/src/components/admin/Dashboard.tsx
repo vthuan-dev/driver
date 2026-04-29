@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { usersAPI, requestsAPI } from '../../services/adminApi';
+import { usersAPI, requestsAPI, settingsAPI } from '../../services/adminApi';
 import FakeNotificationsTab from './FakeNotifications/FakeNotificationsTab';
 import './Dashboard.css';
 
@@ -32,7 +32,7 @@ type Request = {
 };
 
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications'>('requests');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications' | 'settings'>('requests');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,6 +41,10 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [requestSearchQuery, setRequestSearchQuery] = useState<string>('');
   const [requestStatusFilter, setRequestStatusFilter] = useState<'all' | 'waiting' | 'matched' | 'completed'>('waiting');
   const [userStatusFilter, setUserStatusFilter] = useState<'pending' | 'approved' | 'rejected'>('approved');
+  const [bankConfig, setBankConfig] = useState<{ bankCode: string; bankName: string; accountNo: string; accountName: string }>({ bankCode: '', bankName: '', accountNo: '', accountName: '' });
+  const [banksList, setBanksList] = useState<{ id: string; name: string; shortName: string; code: string }[]>([]);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState('');
 
   const loadUsers = async () => {
     try {
@@ -60,9 +64,33 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
+  const loadSettings = async () => {
+    try {
+      const [settingsRes, banksRes] = await Promise.all([
+        settingsAPI.getSettings(),
+        fetch('https://api.vietqr.io/v2/banks').then(r => r.json())
+      ]);
+      const s = settingsRes.data.data;
+      if (s) {
+        setBankConfig({
+          bankCode: s.bankCode || '',
+          bankName: s.bankName || '',
+          accountNo: s.accountNo || '',
+          accountName: s.accountName || ''
+        });
+      }
+      if (banksRes.code === '00') {
+        setBanksList(banksRes.data);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
   useEffect(() => {
     loadUsers();
     loadRequests();
+    loadSettings();
   }, []);
 
   const handleApproveUser = async (userId: string) => {
@@ -256,6 +284,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>📢</span>
                 <span>Quản lý thông báo ảo</span>
               </button>
+              <button 
+                className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                <span>⚙️</span>
+                <span>Cấu hình ngân hàng</span>
+              </button>
             </div>
           </div>
         </div>
@@ -324,6 +359,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               >
                 <span>📢</span>
                 <span>Quản lý thông báo ảo</span>
+              </button>
+              <button 
+                className={`mobile-tab ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                <span>⚙️</span>
+                <span>Cấu hình NH</span>
               </button>
             </div>
           </div>
@@ -519,6 +561,107 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
 
           {activeTab === 'fake-notifications' && (
             <FakeNotificationsTab />
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="settings-section">
+              <h2>⚙️ Cấu hình ngân hàng VietQR</h2>
+              <p style={{ color: '#666', marginBottom: 20 }}>Thay đổi STK ngân hàng dùng cho toàn bộ QR thanh toán (đăng ký, mua app, hoàn tiền).</p>
+
+              {settingsMessage && (
+                <div style={{ padding: '10px 16px', borderRadius: 8, marginBottom: 16, background: settingsMessage.includes('thành công') ? '#d4edda' : '#f8d7da', color: settingsMessage.includes('thành công') ? '#155724' : '#721c24' }}>
+                  {settingsMessage}
+                </div>
+              )}
+
+              <div className="settings-form" style={{ maxWidth: 480 }}>
+                <label className="field" style={{ display: 'block', marginBottom: 16 }}>
+                  <span style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Ngân hàng</span>
+                  <select
+                    value={bankConfig.bankCode}
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      const bank = banksList.find(b => b.code === code);
+                      setBankConfig(prev => ({ ...prev, bankCode: code, bankName: bank?.shortName || bank?.name || '' }));
+                    }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: 15 }}
+                  >
+                    <option value="">-- Chọn ngân hàng --</option>
+                    {banksList.map(bank => (
+                      <option key={bank.id} value={bank.code}>
+                        {bank.shortName || bank.name} ({bank.code})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field" style={{ display: 'block', marginBottom: 16 }}>
+                  <span style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Số tài khoản</span>
+                  <input
+                    type="text"
+                    value={bankConfig.accountNo}
+                    onChange={(e) => setBankConfig(prev => ({ ...prev, accountNo: e.target.value.replace(/\D/g, '') }))}
+                    placeholder="VD: 092480168"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: 15 }}
+                  />
+                </label>
+
+                <label className="field" style={{ display: 'block', marginBottom: 16 }}>
+                  <span style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Tên chủ tài khoản <small style={{ color: '#888' }}>(IN HOA, không dấu)</small></span>
+                  <input
+                    type="text"
+                    value={bankConfig.accountName}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9\s]/g, '');
+                      setBankConfig(prev => ({ ...prev, accountName: val }));
+                    }}
+                    placeholder="VD: HOANG MANH DUY"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', fontSize: 15 }}
+                  />
+                </label>
+
+                {bankConfig.bankCode && bankConfig.accountNo && (
+                  <div style={{ marginBottom: 20, textAlign: 'center' }}>
+                    <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Xem trước QR:</p>
+                    <img
+                      src={`https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=${encodeURIComponent(bankConfig.accountName || 'TEST')}`}
+                      alt="Preview"
+                      style={{ width: 240, borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,.08)' }}
+                    />
+                  </div>
+                )}
+
+                <button
+                  className="submit"
+                  onClick={async () => {
+                    if (!bankConfig.bankCode || !bankConfig.accountNo || !bankConfig.accountName) {
+                      setSettingsMessage('Vui lòng nhập đầy đủ thông tin!');
+                      setTimeout(() => setSettingsMessage(''), 3000);
+                      return;
+                    }
+                    setSettingsLoading(true);
+                    try {
+                      await settingsAPI.updateSettings({
+                        bankCode: bankConfig.bankCode,
+                        bankName: bankConfig.bankName,
+                        accountNo: bankConfig.accountNo,
+                        accountName: bankConfig.accountName
+                      });
+                      setSettingsMessage('✅ Cập nhật thành công!');
+                      setTimeout(() => setSettingsMessage(''), 3000);
+                    } catch (err: any) {
+                      setSettingsMessage('❌ Lỗi: ' + (err.response?.data?.message || 'Không thể cập nhật'));
+                    } finally {
+                      setSettingsLoading(false);
+                    }
+                  }}
+                  disabled={settingsLoading}
+                  style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#4f46e5', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, cursor: settingsLoading ? 'not-allowed' : 'pointer', opacity: settingsLoading ? 0.7 : 1 }}
+                >
+                  {settingsLoading ? 'Đang lưu...' : '💾 Lưu cấu hình'}
+                </button>
+              </div>
+            </div>
           )}
 
           {activeTab === 'requests' && (

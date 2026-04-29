@@ -34,6 +34,34 @@ app.use('/api/admin/fake-notifications', require('./routes/fakeNotifications'));
 app.use('/api/admin/settings', require('./routes/settings'));
 app.use('/api/driver/fake-notifications', require('./routes/driverFakeNotifications'));
 
+// Public bank config endpoint (no auth required)
+const { AppSetting } = require('./models');
+app.get('/api/settings/bank', async (req, res) => {
+  try {
+    let settings = await AppSetting.findOne();
+    if (!settings) {
+      settings = await AppSetting.create({
+        minFakeCount: 3,
+        maxFakeCount: 4,
+        minFakeInterval: 15,
+        maxFakeInterval: 30
+      });
+    }
+    res.json({
+      success: true,
+      data: {
+        bankCode: settings.bankCode,
+        bankName: settings.bankName,
+        accountNo: settings.accountNo,
+        accountName: settings.accountName
+      }
+    });
+  } catch (error) {
+    console.error('Error getting bank settings:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+});
+
 // APK Download Route - Using streaming for large files
 app.get('/api/download/app', (req, res) => {
   const apkPath = path.join(__dirname, '..', 'driver-app.apk');

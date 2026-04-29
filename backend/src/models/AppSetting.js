@@ -24,6 +24,22 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 30,
       validate: { min: 1 }
+    },
+    bankCode: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    bankName: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    accountNo: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    accountName: {
+      type: DataTypes.STRING(200),
+      allowNull: true
     }
   }, {
     tableName: 'app_settings',
