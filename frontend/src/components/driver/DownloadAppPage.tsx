@@ -28,7 +28,7 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
   if (plan === '6m') { amount = 200000; planLabel = '6 tháng'; }
 
   const message = `Tai App ${user.phone}`;
-  const qrCodeUrl = `https://img.vietqr.io/image/VPBank-0779966349-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=NGUYEN%20VAN%20CHI`;
+  const qrCodeUrl = `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(message)}&accountName=HOANG%20MANH%20DUY`;
 
   // Step: 'qr' | 'showpass' | 'enterpass'
   const [step, setStep] = useState<'qr' | 'showpass' | 'enterpass'>('qr');
