@@ -1302,7 +1302,7 @@ function MainApp() {
               <button className="copy-btn" onClick={() => {
                 const text = `${r.name}\n${r.phone}\n${r.startPoint} -> ${r.endPoint}\nGiá: ${r.price?.toLocaleString('vi-VN')} VND`
                 navigator.clipboard.writeText(text)
-              }}>SAO CHÉP</button>
+              }}>GỌI TÀI XẾ NGAY</button>
             </div>
           ))}
         </section>
