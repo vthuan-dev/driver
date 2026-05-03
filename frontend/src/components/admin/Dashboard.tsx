@@ -32,7 +32,7 @@ type Request = {
 };
 
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications' | 'settings'>('requests');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications' | 'settings' | 'change-password'>('requests');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
@@ -295,6 +295,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>⚙️</span>
                 <span>Cấu hình ngân hàng</span>
               </button>
+              <button 
+                className={`tab ${activeTab === 'change-password' ? 'active' : ''}`}
+                onClick={() => setActiveTab('change-password')}
+              >
+                <span>🔑</span>
+                <span>Đổi mật khẩu</span>
+              </button>
             </div>
           </div>
         </div>
@@ -370,6 +377,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               >
                 <span>⚙️</span>
                 <span>Cấu hình NH</span>
+              </button>
+              <button 
+                className={`mobile-tab ${activeTab === 'change-password' ? 'active' : ''}`}
+                onClick={() => setActiveTab('change-password')}
+              >
+                <span>🔑</span>
+                <span>Đổi MK</span>
               </button>
             </div>
           </div>
@@ -666,23 +680,27 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 </button>
               </div>
 
-              {/* ---- Đổi mật khẩu ---- */}
-              <div style={{ maxWidth: 480, marginTop: 36, paddingTop: 28, borderTop: '1px solid #e5e7eb' }}>
-                <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700, color: '#1f2937' }}>🔑 Đổi mật khẩu Admin</h3>
-                <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280' }}>Mật khẩu mới phải có ít nhất 6 ký tự.</p>
+            </div>
+          )}
 
-                {pwMessage && (
-                  <div style={{ padding: '10px 16px', borderRadius: 8, marginBottom: 16, background: pwMessage.includes('thành công') ? '#d4edda' : '#f8d7da', color: pwMessage.includes('thành công') ? '#155724' : '#721c24' }}>
-                    {pwMessage}
-                  </div>
-                )}
+          {activeTab === 'change-password' && (
+            <div className="settings-section">
+              <h2>🔑 Đổi mật khẩu Admin</h2>
+              <p style={{ color: '#6b7280', marginBottom: 24, fontSize: 14 }}>Mật khẩu mới phải có ít nhất 6 ký tự.</p>
 
+              {pwMessage && (
+                <div style={{ padding: '10px 16px', borderRadius: 8, marginBottom: 16, background: pwMessage.includes('thành công') ? '#d4edda' : '#f8d7da', color: pwMessage.includes('thành công') ? '#155724' : '#721c24' }}>
+                  {pwMessage}
+                </div>
+              )}
+
+              <div style={{ maxWidth: 420 }}>
                 {(['currentPassword', 'newPassword', 'confirmPassword'] as const).map((field) => {
                   const labels: Record<string, string> = { currentPassword: 'Mật khẩu hiện tại', newPassword: 'Mật khẩu mới', confirmPassword: 'Xác nhận mật khẩu mới' };
                   const keys: Record<string, keyof typeof pwShow> = { currentPassword: 'current', newPassword: 'next', confirmPassword: 'confirm' };
                   const showKey = keys[field];
                   return (
-                    <div key={field} style={{ display: 'block', marginBottom: 14 }}>
+                    <div key={field} style={{ marginBottom: 16 }}>
                       <span style={{ display: 'block', fontWeight: 600, fontSize: 13, color: '#374151', marginBottom: 6 }}>{labels[field]}</span>
                       <div style={{ position: 'relative' }}>
                         <input
@@ -691,15 +709,12 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                           onChange={(e) => setPwForm(prev => ({ ...prev, [field]: e.target.value }))}
                           placeholder="••••••••"
                           autoComplete="new-password"
-                          style={{ width: '100%', padding: '11px 40px 11px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', padding: '11px 42px 11px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
                           onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)'; }}
                           onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setPwShow(prev => ({ ...prev, [showKey]: !prev[showKey] }))}
-                          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#6b7280' }}
-                        >
+                        <button type="button" onClick={() => setPwShow(prev => ({ ...prev, [showKey]: !prev[showKey] }))}
+                          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#6b7280', padding: 0 }}>
                           {pwShow[showKey] ? '🙈' : '👁️'}
                         </button>
                       </div>
@@ -710,19 +725,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <button
                   onClick={async () => {
                     if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
-                      setPwMessage('Vui lòng nhập đầy đủ thông tin!');
-                      setTimeout(() => setPwMessage(''), 3000);
-                      return;
+                      setPwMessage('Vui lòng nhập đầy đủ thông tin!'); setTimeout(() => setPwMessage(''), 3000); return;
                     }
                     if (pwForm.newPassword !== pwForm.confirmPassword) {
-                      setPwMessage('Mật khẩu xác nhận không khớp!');
-                      setTimeout(() => setPwMessage(''), 3000);
-                      return;
+                      setPwMessage('Mật khẩu xác nhận không khớp!'); setTimeout(() => setPwMessage(''), 3000); return;
                     }
                     if (pwForm.newPassword.length < 6) {
-                      setPwMessage('Mật khẩu mới phải có ít nhất 6 ký tự!');
-                      setTimeout(() => setPwMessage(''), 3000);
-                      return;
+                      setPwMessage('Mật khẩu mới phải có ít nhất 6 ký tự!'); setTimeout(() => setPwMessage(''), 3000); return;
                     }
                     setPwLoading(true);
                     try {
@@ -733,9 +742,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                     } catch (err: any) {
                       setPwMessage('❌ ' + (err.response?.data?.message || 'Không thể đổi mật khẩu'));
                       setTimeout(() => setPwMessage(''), 4000);
-                    } finally {
-                      setPwLoading(false);
-                    }
+                    } finally { setPwLoading(false); }
                   }}
                   disabled={pwLoading}
                   style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#0f766e', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.7 : 1, marginTop: 4 }}
