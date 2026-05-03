@@ -7,6 +7,7 @@ const requestController = require('../controllers/requestController');
 
 // Admin authentication
 router.post('/login', authController.adminLogin);
+router.put('/change-password', adminAuthMiddleware, authController.changePassword);
 
 // Get admin profile
 router.get('/profile', adminAuthMiddleware, (req, res) => {

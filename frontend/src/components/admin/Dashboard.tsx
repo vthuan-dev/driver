@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { usersAPI, requestsAPI, settingsAPI } from '../../services/adminApi';
+import { usersAPI, requestsAPI, settingsAPI, adminAuthAPI } from '../../services/adminApi';
 import FakeNotificationsTab from './FakeNotifications/FakeNotificationsTab';
 import './Dashboard.css';
 
@@ -45,6 +45,10 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [banksList, setBanksList] = useState<{ id: string; name: string; shortName: string; code: string }[]>([]);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState('');
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMessage, setPwMessage] = useState('');
+  const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
 
   const loadUsers = async () => {
     try {
@@ -659,6 +663,84 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#4f46e5', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, cursor: settingsLoading ? 'not-allowed' : 'pointer', opacity: settingsLoading ? 0.7 : 1 }}
                 >
                   {settingsLoading ? 'Đang lưu...' : '💾 Lưu cấu hình'}
+                </button>
+              </div>
+
+              {/* ---- Đổi mật khẩu ---- */}
+              <div style={{ maxWidth: 480, marginTop: 36, paddingTop: 28, borderTop: '1px solid #e5e7eb' }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700, color: '#1f2937' }}>🔑 Đổi mật khẩu Admin</h3>
+                <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280' }}>Mật khẩu mới phải có ít nhất 6 ký tự.</p>
+
+                {pwMessage && (
+                  <div style={{ padding: '10px 16px', borderRadius: 8, marginBottom: 16, background: pwMessage.includes('thành công') ? '#d4edda' : '#f8d7da', color: pwMessage.includes('thành công') ? '#155724' : '#721c24' }}>
+                    {pwMessage}
+                  </div>
+                )}
+
+                {(['currentPassword', 'newPassword', 'confirmPassword'] as const).map((field) => {
+                  const labels: Record<string, string> = { currentPassword: 'Mật khẩu hiện tại', newPassword: 'Mật khẩu mới', confirmPassword: 'Xác nhận mật khẩu mới' };
+                  const keys: Record<string, keyof typeof pwShow> = { currentPassword: 'current', newPassword: 'next', confirmPassword: 'confirm' };
+                  const showKey = keys[field];
+                  return (
+                    <div key={field} style={{ display: 'block', marginBottom: 14 }}>
+                      <span style={{ display: 'block', fontWeight: 600, fontSize: 13, color: '#374151', marginBottom: 6 }}>{labels[field]}</span>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={pwShow[showKey] ? 'text' : 'password'}
+                          value={pwForm[field]}
+                          onChange={(e) => setPwForm(prev => ({ ...prev, [field]: e.target.value }))}
+                          placeholder="••••••••"
+                          autoComplete="new-password"
+                          style={{ width: '100%', padding: '11px 40px 11px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14.5, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                          onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)'; }}
+                          onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setPwShow(prev => ({ ...prev, [showKey]: !prev[showKey] }))}
+                          style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#6b7280' }}
+                        >
+                          {pwShow[showKey] ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button
+                  onClick={async () => {
+                    if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
+                      setPwMessage('Vui lòng nhập đầy đủ thông tin!');
+                      setTimeout(() => setPwMessage(''), 3000);
+                      return;
+                    }
+                    if (pwForm.newPassword !== pwForm.confirmPassword) {
+                      setPwMessage('Mật khẩu xác nhận không khớp!');
+                      setTimeout(() => setPwMessage(''), 3000);
+                      return;
+                    }
+                    if (pwForm.newPassword.length < 6) {
+                      setPwMessage('Mật khẩu mới phải có ít nhất 6 ký tự!');
+                      setTimeout(() => setPwMessage(''), 3000);
+                      return;
+                    }
+                    setPwLoading(true);
+                    try {
+                      await adminAuthAPI.changePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
+                      setPwMessage('✅ Đổi mật khẩu thành công!');
+                      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                      setTimeout(() => setPwMessage(''), 4000);
+                    } catch (err: any) {
+                      setPwMessage('❌ ' + (err.response?.data?.message || 'Không thể đổi mật khẩu'));
+                      setTimeout(() => setPwMessage(''), 4000);
+                    } finally {
+                      setPwLoading(false);
+                    }
+                  }}
+                  disabled={pwLoading}
+                  style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#0f766e', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, cursor: pwLoading ? 'not-allowed' : 'pointer', opacity: pwLoading ? 0.7 : 1, marginTop: 4 }}
+                >
+                  {pwLoading ? 'Đang xử lý...' : '🔑 Đổi mật khẩu'}
                 </button>
               </div>
             </div>

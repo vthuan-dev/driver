@@ -31,7 +31,8 @@ api.interceptors.response.use(
 
 // ─── Admin Auth API ────────────────────────────────────────────────────────────
 export const adminAuthAPI = {
-  login: (credentials: any) => api.post('/admin/login', credentials),
+  login:          (credentials: any) => api.post('/admin/login', credentials),
+  changePassword: (data: any)        => api.put('/admin/change-password', data),
 };
 
 // ─── Users Management API ──────────────────────────────────────────────────────
