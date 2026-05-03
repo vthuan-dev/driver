@@ -74,9 +74,9 @@ const Login = ({ onLogin }: { onLogin: (admin: any) => void }) => {
           </motion.button>
         </form>
 
-        <div className="login-footer">
+        {/* <div className="login-footer">
           <p>Mặc định: admin / admin123</p>
-        </div>
+        </div> */}
       </motion.div>
     </div>
   );
