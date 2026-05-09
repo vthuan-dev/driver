@@ -7,6 +7,7 @@ const getPendingUsers = async (req, res) => {
       attributes: { exclude: ['password'] },
       order: [['createdAt', 'DESC']]
     });
+    // plainPassword được include tự động (không exclude)
     
     // Convert to expected frontend format if needed
     const users = pendingUsers.map(u => {
