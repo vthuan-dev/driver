@@ -508,8 +508,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
-                          <div className="user-phone">{user.phone}</div>
-                          <div className="user-car">{user.carType} - {user.carYear}</div>
+                          <div className="user-phone">Tài khoản: {user.phone}</div>
+                          {user.plainPassword && (
+                            <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
+                          )}
+                          <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
                           <div className="user-date">
                             Phê duyệt: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
                           </div>
@@ -566,8 +569,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                         </div>
                         <div className="user-info">
                           <div className="user-name">{user.name}</div>
-                          <div className="user-phone">{user.phone}</div>
-                          <div className="user-car">{user.carType} - {user.carYear}</div>
+                          <div className="user-phone">Tài khoản: {user.phone}</div>
+                          {user.plainPassword && (
+                            <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
+                          )}
+                          <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
                           <div className="user-date">
                             Từ chối: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
                           </div>
