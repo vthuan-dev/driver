@@ -4,14 +4,15 @@ import { driverFakeNotificationsAPI } from '../../services/api';
 import './DriverDashboard.css'; // Reuse styles
 
 type Props = {
-  user: {
+  user?: {
     status: string;
     [key: string]: any;
-  };
+  } | null;
   region?: 'north' | 'central' | 'south';
+  onRequireAuth?: () => void;
 };
 
-const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
+const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props) => {
   const [fakeNotifications, setFakeNotifications] = useState<any[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
@@ -21,7 +22,6 @@ const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchFakeNotifications = async (currentRegion: string) => {
-    if (user.status !== 'approved') return;
 
     try {
       setLoadingNotifications(true);
@@ -82,17 +82,17 @@ const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
   };
 
   useEffect(() => {
-    // Xin quyền hiển thị thông báo đẩy khi tài xế vừa mở app
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+    if (user?.status === 'approved') {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     }
-
     fetchFakeNotifications(region);
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (autoHideRef.current) clearTimeout(autoHideRef.current);
     };
-  }, [user.status, region]);
+  }, [user?.status, region]);
 
   const handleAcceptFakeNotification = async (notificationId: string) => {
     if (autoHideRef.current) clearTimeout(autoHideRef.current);
@@ -114,13 +114,12 @@ const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
     }
   };
 
-  if (user.status !== 'approved') return null;
   if (fakeNotifications.length === 0 && !showErrorPopup) return null;
 
   return (
     <div className="fake-notifications-section" style={{ margin: '15px 20px', borderRadius: '12px' }}>
       <div className="section-header">
-        <h3 style={{ fontSize: '1rem' }}>🔔 Cuốc xe dành riêng cho bạn</h3>
+        <h3 style={{ fontSize: '1rem' }}>🔔 Bạn có cuốc xe có thể nhận</h3>
         {loadingNotifications && <span className="loading-spinner">⟳</span>}
       </div>
       
@@ -168,7 +167,13 @@ const FakeNotificationBanner = ({ user, region = 'north' }: Props) => {
                 </div>
                 <button
                   className="accept-ride-btn"
-                  onClick={() => handleAcceptFakeNotification(notification._id)}
+                  onClick={() => {
+                    if (!user || user.status !== 'approved') {
+                      if (onRequireAuth) onRequireAuth();
+                      return;
+                    }
+                    handleAcceptFakeNotification(notification._id);
+                  }}
                   disabled={acceptingNotificationId === notification._id}
                   style={{ marginTop: '10px', padding: '10px' }}
                 >

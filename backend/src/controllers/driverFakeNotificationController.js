@@ -5,15 +5,6 @@ const { User, FakeNotification, AppSetting } = require('../models');
 // @access  Private (Driver/Customer)
 exports.getFakeNotifications = async (req, res) => {
   try {
-    // Check if user is approved
-    const user = await User.findByPk(req.user.id);
-    if (!user || user.status !== 'approved') {
-      return res.status(200).json({
-        success: true,
-        data: []
-      });
-    }
-
     // Get region from query or default to 'north'
     const region = req.query.region || 'north';
 

@@ -11,8 +11,8 @@ type Plan = {
 };
 
 const PLANS: Plan[] = [
-  { id: '6m', label: '6 tháng', months: 6, price: 200000, badge: null, description: 'Gói cơ bản' },
-  { id: '1y', label: '1 năm', months: 12, price: 400000, badge: 'Tiết kiệm ⭐', description: 'Tiết kiệm nhất cho lâu dài' },
+  { id: '1y', label: '1 năm', months: 12, price: 400000, badge: 'Phổ biến ⭐', description: 'Tiết kiệm nhất cho lâu dài' },
+  { id: 'lifetime', label: 'Dùng vĩnh viễn', months: 9999, price: 1000000, badge: 'Tốt nhất 👑', description: 'Một lần - dùng mãi mãi' },
 ];
 
 type AppPricingModalProps = {

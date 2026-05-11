@@ -1201,9 +1201,17 @@ function MainApp() {
         </div>
       )}
 
-      {/* Hiển thị thông báo cuốc xe ảo cho tài xế ở trang chủ */}
-      {user && user.status === 'approved' && !showDriverDashboard && (
-        <FakeNotificationBanner user={user} region={activeRequestRegion} />
+      {/* Hiển thị thông báo cuốc xe ảo cho tất cả người dùng ở trang chủ */}
+      {!showDriverDashboard && (
+        <FakeNotificationBanner
+          user={user}
+          region={activeRequestRegion}
+          onRequireAuth={() => {
+            setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+            setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+            setShowErrorPopup(true);
+          }}
+        />
       )}
 
       <header className="ticker">

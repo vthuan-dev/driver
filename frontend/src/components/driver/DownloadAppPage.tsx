@@ -25,7 +25,7 @@ const SECRET_PASS = '838668';
 const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', onBack, onDownloaded }) => {
   let amount = 400000;
   let planLabel = '1 năm';
-  if (plan === '6m') { amount = 200000; planLabel = '6 tháng'; }
+  if (plan === 'lifetime') { amount = 1000000; planLabel = 'Vĩnh viễn'; }
 
   const message = `Tai App ${user.phone}`;
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});

@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     appPlan: {
-      type: DataTypes.ENUM('6m', '1y'),
+      type: DataTypes.ENUM('6m', '1y', 'lifetime'),
       allowNull: true,
       defaultValue: null
     },
