@@ -138,7 +138,10 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
               >
                 <div className="notification-time">
                   <span className="time-icon">🕐</span>
-                  <span className="time-text">{notification.displayTime}</span>
+                  <span className="time-text">
+                    {notification.displayTime}
+                    {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
+                  </span>
                 </div>
                 <div className="notification-content">
                   <div className="notification-title" style={{ fontSize: '15px' }}>

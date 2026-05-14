@@ -5,7 +5,7 @@ const { FakeNotification, Admin } = require('../models');
 // @access  Private/Admin
 exports.createTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, carType, price, isActive, note } = req.body;
+    const { region, startPoint, endPoint, displayTime, displayDate, carType, price, isActive, note } = req.body;
 
     // Get admin id - ensure it's an integer (not MongoDB ObjectId string)
     const adminId = parseInt(req.user.id) || parseInt(req.user._id);
@@ -22,6 +22,7 @@ exports.createTemplate = async (req, res) => {
       startPoint,
       endPoint,
       displayTime,
+      displayDate: displayDate || null,
       carType,
       price,
       isActive: isActive !== undefined ? isActive : true,
@@ -131,7 +132,7 @@ exports.getTemplateById = async (req, res) => {
 // @access  Private/Admin
 exports.updateTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, carType, price, isActive, note } = req.body;
+    const { region, startPoint, endPoint, displayTime, displayDate, carType, price, isActive, note } = req.body;
 
     const template = await FakeNotification.findByPk(req.params.id);
 
@@ -148,6 +149,7 @@ exports.updateTemplate = async (req, res) => {
     if (startPoint !== undefined) updateData.startPoint = startPoint;
     if (endPoint !== undefined) updateData.endPoint = endPoint;
     if (displayTime !== undefined) updateData.displayTime = displayTime;
+    if (displayDate !== undefined) updateData.displayDate = displayDate || null;
     if (carType !== undefined) updateData.carType = carType;
     if (price !== undefined) updateData.price = price;
     if (isActive !== undefined) updateData.isActive = isActive;

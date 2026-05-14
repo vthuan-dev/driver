@@ -7,6 +7,7 @@ type FormData = {
   startPoint: string;
   endPoint: string;
   displayTime: string;
+  displayDate: string;
   carType: '4' | '7' | '16';
   price: number;
   isActive: boolean;
@@ -47,6 +48,7 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
     startPoint: '',
     endPoint: '',
     displayTime: '08:00',
+    displayDate: '',
     carType: '7',
     price: 0,
     isActive: true,
@@ -63,6 +65,7 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
         startPoint: template.startPoint,
         endPoint: template.endPoint,
         displayTime: template.displayTime,
+        displayDate: template.displayDate || '',
         carType: template.carType,
         price: template.price,
         isActive: template.isActive,
@@ -195,6 +198,16 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
               required
             />
             {errors.displayTime && <span className="error-text">{errors.displayTime}</span>}
+          </div>
+
+          <div className="form-group">
+            <label>Ngày hiển thị (tùy chọn)</label>
+            <input
+              type="date"
+              value={formData.displayDate}
+              onChange={(e) => handleChange('displayDate', e.target.value)}
+            />
+            <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>Để trống nếu không muốn hiển thị ngày</span>
           </div>
 
           <div className="form-group">

@@ -17,7 +17,7 @@ const FakeNotificationCard = ({ template, onEdit, onDelete, onToggle }: Props) =
       whileHover={{ y: -4 }}
     >
       <div className="card-header">
-        <span className="time">🕐 {template.displayTime}</span>
+        <span className="time">🕐 {template.displayTime}{template.displayDate ? ` ngày ${new Date(template.displayDate).toLocaleDateString('vi-VN')}` : ''}</span>
         <span className={`status-indicator ${template.isActive ? 'active' : 'inactive'}`}>
           {template.isActive ? '●' : '○'}
         </span>

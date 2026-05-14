@@ -26,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
         is: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
       }
     },
+    displayDate: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      defaultValue: null
+    },
     carType: {
       type: DataTypes.ENUM('4', '7', '16'),
       allowNull: false
