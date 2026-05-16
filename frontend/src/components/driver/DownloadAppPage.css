@@ -172,6 +172,8 @@
 .pricing-modal-panel {
   display: flex;
   flex-direction: column;
+  max-height: 90dvh;
+  max-height: 90vh;
 }
 
 .pricing-header {
@@ -198,6 +200,9 @@
 .pricing-body {
   padding: 24px 20px;
   background: #f8fafc;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .pricing-cards {
