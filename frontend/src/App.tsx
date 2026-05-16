@@ -11,6 +11,8 @@ import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
+import { Joyride, STATUS } from 'react-joyride'
+import type { Step } from 'react-joyride'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -712,6 +714,37 @@ function MainApp() {
   const [showDownloadPage, setShowDownloadPage] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('1y');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [runTour, setRunTour] = useState(false);
+
+  const tourSteps: Step[] = [
+    {
+      target: '#joyride-download-btn',
+      title: '📱 Tải ứng dụng di động',
+      content: 'Nhấn vào đây để tải app về điện thoại. App hỗ trợ thông báo cuốc xe TỨC THÌ – không bỏ lỡ kèo nào!',
+      placement: 'bottom',
+    },
+    {
+      target: '#joyride-download-btn',
+      title: '💳 Chọn gói phù hợp',
+      content: 'Bạn sẽ được chọn gói trước khi tải: 1 năm – 400.000đ ⭐ hoặc Dùng vĩnh viễn – 1.000.000đ 👑. Sau khi thanh toán bạn nhận link tải APK ngay!',
+      placement: 'bottom',
+    },
+  ];
+
+  const handleJoyrideCallback = (data: any) => {
+    const { status } = data;
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      setRunTour(false);
+      localStorage.setItem('joyride_done', '1');
+    }
+  };
+
+  const startTour = () => {
+    if (user?.status === 'approved' && !localStorage.getItem('joyride_done')) {
+      setRunTour(true);
+    }
+  };
+
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorPopupTitle, setErrorPopupTitle] = useState('Thông báo');
 
@@ -1085,11 +1118,28 @@ function MainApp() {
   return (
     <div className="app">
 
+      {/* Joyride tour hướng dẫn tải APK */}
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        onEvent={handleJoyrideCallback}
+        locale={{
+          back: 'Quay lại',
+          close: 'Đóng',
+          last: 'Xong',
+          next: 'Tiếp theo',
+          skip: 'Bỏ qua',
+        }}
+        options={{ primaryColor: '#22c55e', showProgress: true, zIndex: 10000 }}
+      />
+
       {/* Welcome modal hiện sau khi login */}
       <LoginWelcomeModal
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
         onHide2Hours={handleHideWelcome2Hours}
+        onAfterClose={startTour}
       />
 
       {/* Show Driver Dashboard only when user clicks to open it */}
@@ -1176,7 +1226,8 @@ function MainApp() {
 
           {/* Nút tải ứng dụng ở trang chủ */}
           {user.status === 'approved' && (
-            <button 
+            <button
+              id="joyride-download-btn"
               className="main-action-btn"
               style={{
                 borderColor: '#e2e8f0',

@@ -4,9 +4,12 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onHide2Hours: () => void;
+  onAfterClose?: () => void;
 };
 
-const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours }: Props) => {
+const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours, onAfterClose }: Props) => {
+  const handleClose = () => { onClose(); if (onAfterClose) setTimeout(onAfterClose, 400); };
+  const handleHide2Hours = () => { onHide2Hours(); if (onAfterClose) setTimeout(onAfterClose, 400); };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -53,7 +56,7 @@ const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours }: Props) => {
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 style={{
                   background: 'rgba(255,255,255,0.2)', border: 'none',
                   borderRadius: '50%', width: '32px', height: '32px',
@@ -166,7 +169,7 @@ const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours }: Props) => {
 
               {/* Actions */}
               <button
-                onClick={onHide2Hours}
+                onClick={handleHide2Hours}
                 style={{
                   width: '100%', padding: '12px',
                   background: '#e74c3c', color: '#fff',
