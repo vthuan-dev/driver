@@ -10,6 +10,7 @@ import DriverDashboard from './components/driver/DriverDashboard'
 import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
+import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -710,8 +711,20 @@ function MainApp() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('1y');
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorPopupTitle, setErrorPopupTitle] = useState('Thông báo');
+
+  const checkShouldShowWelcome = () => {
+    const hiddenUntil = localStorage.getItem('welcome_modal_hidden_until');
+    if (!hiddenUntil) return true;
+    return Date.now() > parseInt(hiddenUntil, 10);
+  };
+
+  const handleHideWelcome2Hours = () => {
+    localStorage.setItem('welcome_modal_hidden_until', String(Date.now() + 2 * 60 * 60 * 1000));
+    setShowWelcomeModal(false);
+  };
   const [downloadStatus, setDownloadStatus] = useState<{
     downloadCount: number;
     withinTwoDays: boolean;
@@ -749,6 +762,14 @@ function MainApp() {
     };
     fetchUserInfo();
   }, [user]);
+
+  // Show welcome modal on app load if user already logged in
+  useEffect(() => {
+    if (user && checkShouldShowWelcome()) {
+      const timer = setTimeout(() => setShowWelcomeModal(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Fetch download status from DB when user is approved
   useEffect(() => {
@@ -1063,6 +1084,13 @@ function MainApp() {
 
   return (
     <div className="app">
+
+      {/* Welcome modal hiện sau khi login */}
+      <LoginWelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        onHide2Hours={handleHideWelcome2Hours}
+      />
 
       {/* Show Driver Dashboard only when user clicks to open it */}
       {showDriverDashboard && user && user.status === 'approved' && (
@@ -1635,6 +1663,9 @@ function MainApp() {
                     setAuthModal(null)
                     setShowSuccess(true)
                     setTimeout(() => setShowSuccess(false), 1600)
+                    if (checkShouldShowWelcome()) {
+                      setTimeout(() => setShowWelcomeModal(true), 800);
+                    }
 
                     if (pendingAction) {
                       if (pendingAction.type === 'wait') openModal()
