@@ -722,12 +722,14 @@ function MainApp() {
       title: '📱 Tải ứng dụng di động',
       content: 'Nhấn vào đây để tải app về điện thoại. App hỗ trợ thông báo cuốc xe TỨC THÌ – không bỏ lỡ kèo nào!',
       placement: 'bottom',
+      skipBeacon: true,
     },
     {
       target: '#joyride-download-btn',
       title: '💳 Chọn gói phù hợp',
       content: 'Bạn sẽ được chọn gói trước khi tải: 1 năm – 400.000đ ⭐ hoặc Dùng vĩnh viễn – 1.000.000đ 👑. Sau khi thanh toán bạn nhận link tải APK ngay!',
       placement: 'bottom',
+      skipBeacon: true,
     },
   ];
 
