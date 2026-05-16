@@ -11,7 +11,7 @@ import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
-import { Joyride, STATUS } from 'react-joyride'
+import { Joyride, STATUS, EVENTS } from 'react-joyride'
 import type { Step } from 'react-joyride'
 
 // Error Boundary Component
@@ -725,16 +725,20 @@ function MainApp() {
       skipBeacon: true,
     },
     {
-      target: '#joyride-download-btn',
+      target: '#joyride-pricing-cards',
       title: '💳 Chọn gói phù hợp',
-      content: 'Bạn sẽ được chọn gói trước khi tải: 1 năm – 400.000đ ⭐ hoặc Dùng vĩnh viễn – 1.000.000đ 👑. Sau khi thanh toán bạn nhận link tải APK ngay!',
-      placement: 'bottom',
+      content: 'Chọn gói 1 năm – 400.000đ ⭐ hoặc Dùng vĩnh viễn – 1.000.000đ 👑. Xác nhận thanh toán là nhận link tải APK ngay!',
+      placement: 'top',
       skipBeacon: true,
+      targetWaitTimeout: 4000,
     },
   ];
 
   const handleJoyrideCallback = (data: any) => {
-    const { status } = data;
+    const { status, type, index } = data;
+    if (type === EVENTS.STEP_AFTER && index === 0) {
+      setShowPricingModal(true);
+    }
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       setRunTour(false);
       localStorage.setItem('joyride_done', '1');

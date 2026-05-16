@@ -57,7 +57,7 @@ const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onCo
             </div>
 
             <div className="pricing-body">
-              <div className="pricing-cards">
+              <div id="joyride-pricing-cards" className="pricing-cards">
                 {PLANS.map((plan) => (
                   <div
                     key={plan.id}
