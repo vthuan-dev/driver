@@ -1242,23 +1242,15 @@ function MainApp() {
                 color: '#1e293b'
               }}
               onClick={() => {
-                const { downloadCount, withinTwoDays } = downloadStatus;
+                const { downloadCount } = downloadStatus;
 
-                // Đã tải rồi nhưng quá 2 ngày → block
-                if (downloadCount > 0 && !withinTwoDays) {
-                  setErrorPopupTitle('Thông báo');
-                  setErrorMessage('Bạn đã tải ứng dụng rồi. Nếu cần tải lại, vui lòng liên hệ Admin!');
-                  setShowErrorPopup(true);
-                  return;
-                }
-
-                // Đã tải rồi và còn trong 2 ngày → tải lại không cần chọn gói
-                if (downloadCount > 0 && withinTwoDays) {
+                // Đã tải trước đó → vào trang download trực tiếp
+                if (downloadCount > 0) {
                   setShowDownloadPage(true);
                   return;
                 }
 
-                // Chưa tải lần nào → luôn phải chọn gói
+                // Chưa tải lần nào → phải chọn gói
                 setShowPricingModal(true);
               }}
             >
