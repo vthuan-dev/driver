@@ -1145,6 +1145,7 @@ function MainApp() {
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
         onHide2Hours={handleHideWelcome2Hours}
+        onDownloadGuide={() => setShowPricingModal(true)}
         onAfterClose={startTour}
       />
 

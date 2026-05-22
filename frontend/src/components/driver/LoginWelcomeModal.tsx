@@ -4,12 +4,14 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onHide2Hours: () => void;
+  onDownloadGuide?: () => void;
   onAfterClose?: () => void;
 };
 
-const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours, onAfterClose }: Props) => {
+const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours, onDownloadGuide, onAfterClose }: Props) => {
   const handleClose = () => { onClose(); if (onAfterClose) setTimeout(onAfterClose, 400); };
   const handleHide2Hours = () => { onHide2Hours(); if (onAfterClose) setTimeout(onAfterClose, 400); };
+  const handleDownloadGuide = () => { onClose(); if (onDownloadGuide) setTimeout(onDownloadGuide, 200); };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -168,19 +170,34 @@ const LoginWelcomeModal = ({ isOpen, onClose, onHide2Hours, onAfterClose }: Prop
               </div>
 
               {/* Actions */}
-              <button
-                onClick={handleHide2Hours}
-                style={{
-                  width: '100%', padding: '12px',
-                  background: '#e74c3c', color: '#fff',
-                  border: 'none', borderRadius: '10px',
-                  fontWeight: 700, fontSize: '14px',
-                  cursor: 'pointer',
-                  letterSpacing: '0.3px',
-                }}
-              >
-                Không hiển thị lại trong 2 giờ
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleHide2Hours}
+                  style={{
+                    flex: 1, padding: '12px',
+                    background: '#e74c3c', color: '#fff',
+                    border: 'none', borderRadius: '10px',
+                    fontWeight: 700, fontSize: '13px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  Không hiển thị lại trong 2 giờ
+                </button>
+                <button
+                  onClick={handleDownloadGuide}
+                  style={{
+                    flex: 1, padding: '12px',
+                    background: 'linear-gradient(135deg, #1a8a3c 0%, #27ae60 100%)', color: '#fff',
+                    border: 'none', borderRadius: '10px',
+                    fontWeight: 700, fontSize: '13px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  📱 Hướng dẫn tải app
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
