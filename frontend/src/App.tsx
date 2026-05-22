@@ -1145,7 +1145,7 @@ function MainApp() {
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
         onHide2Hours={handleHideWelcome2Hours}
-        onDownloadGuide={() => setShowPricingModal(true)}
+        onDownloadGuide={() => { localStorage.removeItem('joyride_done'); setTimeout(() => setRunTour(true), 300); }}
         onAfterClose={startTour}
       />
 
