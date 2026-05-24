@@ -145,9 +145,9 @@ const fallbackDriversByRegion: Record<Region, DriverPost[]> = posts.reduce((acc,
 }, { north: [], central: [], south: [] } as Record<Region, DriverPost[]>)
 
 const regionLabels: Record<Region, string> = {
-  north: 'Miền Bắc',
-  central: 'Miền Trung',
-  south: 'Miền Nam',
+  north: '🏔️ Miền Bắc',
+  central: '🌊 Miền Trung',
+  south: '🌴 Miền Nam',
 }
 
 const provincesVN63 = [
