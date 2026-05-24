@@ -88,13 +88,13 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
 }
 
 .fake-notification-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
-  border-color: #4caf50;
+  box-shadow: 0 8px 20px rgba(229, 57, 53, 0.15);
+  border-color: #e53935;
 }
 
 .notification-time {
@@ -144,7 +144,7 @@
 }
 
 .accept-ride-btn {
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -153,13 +153,13 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
   margin-top: 4px;
 }
 
 .accept-ride-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
 }
 
 .accept-ride-btn:active {

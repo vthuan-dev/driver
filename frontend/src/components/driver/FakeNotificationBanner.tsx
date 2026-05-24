@@ -147,7 +147,7 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                   <div className="notification-title" style={{ fontSize: '15px' }}>
                     🚗 Có tài xế bắn cuốc {notification.carType} chỗ
                   </div>
-                  <div className="notification-route" style={{ color: '#2ecc71', fontWeight: 'bold' }}>
+                  <div className="notification-route" style={{ color: '#00b14f', fontWeight: 'bold' }}>
                     {notification.startPoint} → {notification.endPoint}
                   </div>
                   <div className="notification-price" style={{ color: '#e74c3c', fontSize: '16px' }}>
