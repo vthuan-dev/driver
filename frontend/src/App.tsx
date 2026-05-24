@@ -842,6 +842,7 @@ function MainApp() {
     carImage: ''
   })
   // Removed car image preview state
+  const [menuOpen, setMenuOpen] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -1166,8 +1167,22 @@ function MainApp() {
       {!showDriverDashboard && (
         <>
       <div className="app-header">
+        <button className="app-header__menu" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <div className="app-header__logo">DRIVER <span>APP</span></div>
+        <button className="app-header__bell" aria-label="Thông báo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
       </div>
+      {menuOpen && (
+        <div className="menu-popover">
+        </div>
+      )}
 
       {/* Hero Banner */}
       {!user && (
@@ -1306,7 +1321,6 @@ function MainApp() {
                 className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
                 onClick={() => setActiveRequestRegion(region)}
               >
-                <span className="region-tab__icon">{{ north: '⛰️', central: '☀️', south: '🌴' }[region]}</span>
                 {regionLabels[region]}
               </button>
             ))}
@@ -1418,7 +1432,6 @@ function MainApp() {
                 className={`region-tab ${activeRegion === region ? 'active' : ''}`}
                 onClick={() => setActiveRegion(region)}
               >
-                <span className="region-tab__icon">{{ north: '⛰️', central: '☀️', south: '🌴' }[region]}</span>
                 {regionLabels[region]}
               </button>
             ))}

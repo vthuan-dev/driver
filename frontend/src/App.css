@@ -49,8 +49,7 @@
 
 /* Region switcher */
 .region-tabs { display: flex; gap: 8px; margin: 12px 0 8px; }
-.region-tab { flex: 1; border: 0; background: #e2e8f0; color: #1e293b; padding: 10px 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 5px; }
-.region-tab__icon { font-size: 14px; line-height: 1; }
+.region-tab { flex: 1; border: 0; background: #e2e8f0; color: #1e293b; padding: 10px 12px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
 .region-tab.active { background: #00b14f; color: #fff; box-shadow: 0 6px 16px rgba(0, 177, 79, 0.2); }
 .region-heading { margin: 0 0 12px; font-size: 18px; font-weight: 800; color: #111827; }
 .empty-state { padding: 16px; text-align: center; color: #64748b; background: #fff; border: 1px dashed #cbd5f5; border-radius: 12px; margin-bottom: 12px; }
@@ -651,17 +650,12 @@
 .app-header__menu:active,
 .app-header__bell:active { background: #f3f4f6; }
 .app-header__logo {
-  font-family: 'Bebas Neue', 'Be Vietnam Pro', sans-serif;
-  font-size: 24px;
-  font-weight: 400;
+  font-size: 18px;
+  font-weight: 900;
   color: #111827;
-  letter-spacing: 2px;
-  line-height: 1;
+  letter-spacing: -0.3px;
 }
-.app-header__logo span {
-  color: #00b14f;
-  letter-spacing: 3px;
-}
+.app-header__logo span { color: #00b14f; }
 
 /* ============================
    HERO BANNER
@@ -891,105 +885,3 @@
   box-shadow: 0 6px 16px rgba(0,177,79,0.38);
 }
 .call-driver-btn:active { transform: translateY(0); }
-
-/* ============================
-   FAKE NOTIFICATION BANNER
-   ============================ */
-.fnb-section {
-  margin: 0 12px 4px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  border: 1px solid #f1f5f9;
-  overflow: hidden;
-}
-.fnb-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 14px 10px;
-  border-bottom: 1px solid #f1f5f9;
-  font-weight: 700;
-  font-size: 14px;
-  color: #111827;
-}
-.fnb-spinner {
-  margin-left: auto;
-  font-size: 14px;
-  color: #00b14f;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.fnb-card {
-  padding: 12px 14px;
-  border-bottom: 1px solid #f9fafb;
-}
-.fnb-card:last-child { border-bottom: 0; }
-.fnb-card__meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.fnb-card__time {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  color: #6b7280;
-}
-.fnb-card__type {
-  font-size: 12px;
-  font-weight: 700;
-  color: #15803d;
-  background: #dcfce7;
-  padding: 2px 9px;
-  border-radius: 999px;
-}
-.fnb-card__route {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-  align-self: flex-start;
-}
-.fnb-route-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-}
-.fnb-card__note {
-  font-size: 13px;
-  color: #6b7280;
-  font-style: italic;
-  margin-bottom: 6px;
-}
-.fnb-card__price {
-  text-align: right;
-  font-size: 16px;
-  font-weight: 800;
-  color: #00b14f;
-  margin-bottom: 10px;
-}
-.fnb-card__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  background: #00b14f;
-  color: #fff;
-  border: 0;
-  border-radius: 12px;
-  padding: 12px;
-  font-weight: 800;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,177,79,0.25);
-}
-.fnb-card__btn:hover { background: #009140; transform: translateY(-1px); }
-.fnb-card__btn:active { transform: translateY(0); }
-.fnb-card__btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
