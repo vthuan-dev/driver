@@ -52,7 +52,7 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
         if (autoHideRef.current) clearTimeout(autoHideRef.current);
         autoHideRef.current = setTimeout(() => {
           setFakeNotifications([]);
-        }, 30000);
+        }, 3 * 60 * 1000);
         
       } else {
         // If empty, we can choose to clear it or keep the old one until next tick
