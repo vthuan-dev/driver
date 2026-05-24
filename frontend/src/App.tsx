@@ -842,7 +842,6 @@ function MainApp() {
     carImage: ''
   })
   // Removed car image preview state
-  const [menuOpen, setMenuOpen] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -877,7 +876,6 @@ function MainApp() {
 
   const regionDrivers = normalizedDrivers.filter((driver) => driver.region === activeRegion)
   const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
-  const tickerDrivers = (displayedDrivers.length > 0 ? displayedDrivers : normalizedDrivers).slice(0, 6)
 
   // Filter requests by region and province, then sort newest first
   const regionRequests = requests
@@ -1167,34 +1165,22 @@ function MainApp() {
       {/* Show main app (hide when dashboard is open) */}
       {!showDriverDashboard && (
         <>
-      {!user && (
-        <div className="topbar">
-          <button className="hamburger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}> MENU</button>
-          {menuOpen && (
-            <div className="menu-popover">
-              {/* Menu chỉ hiển thị khi chưa đăng nhập */}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="app-header">
+        <div className="app-header__logo">DRIVER <span>APP</span></div>
+      </div>
 
-      {/* Auth Box - Tách riêng khỏi menu */}
+      {/* Hero Banner */}
       {!user && (
-        <div className="auth-box">
-          <div className="auth-box__content">
-            <h3 className="auth-box__title">Tham gia nhóm tài xế</h3>
-            <p className="auth-box__subtitle">Đăng ký để có thể liên hệ và đăng cuốc xe</p>
-            <div className="auth-box__buttons">
-              <button
-                className="auth-box__btn auth-box__btn--primary"
-                onClick={() => setAuthModal('register')}
-              >
+        <div className="hero-banner">
+          <div className="hero-banner__content">
+            <h3 className="hero-banner__title">Tham gia nhóm tài xế</h3>
+            <p className="hero-banner__subtitle">Đăng ký để có thể liên hệ và đón cuốc</p>
+            <div className="hero-banner__buttons">
+              <button className="hero-banner__btn hero-banner__btn--primary" onClick={() => setAuthModal('register')}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Đăng ký thành viên
               </button>
-              <button
-                className="auth-box__btn auth-box__btn--secondary"
-                onClick={() => setAuthModal('login')}
-              >
+              <button className="hero-banner__btn hero-banner__btn--secondary" onClick={() => setAuthModal('login')}>
                 Đăng nhập
               </button>
             </div>
@@ -1292,31 +1278,26 @@ function MainApp() {
         />
       )}
 
-      <header className="ticker">
-        <div className="ticker__track">
-          {tickerDrivers.map((p) => (
-            <div className="ticker__item" key={`ticker-${p._id}`}>
-              <span className="dot" />
-              <span className="ticker__text">
-                {p.name} đang nhờ: {p.route} - Liên hệ {formatPhone(p.phone)}
-              </span>
-            </div>
-          ))}
-          {tickerDrivers.map((p) => (
-            <div className="ticker__item" key={`ticker-dup-${p._id}`}>
-              <span className="dot" />
-              <span className="ticker__text">
-                {p.name} đang nhờ: {p.route} - Liên hệ {formatPhone(p.phone)}
-              </span>
-            </div>
-          ))}
+      <div className="info-bar">
+        <div className="info-bar__item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.72A2 2 0 012 .18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/>
+          </svg>
+          <span>Liên hệ <strong>039 xxxx 932</strong></span>
         </div>
-      </header>
+        <div className="info-bar__divider" />
+        <div className="info-bar__item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span>{requests.length > 0 ? `Tài xế ${requests.length} đang chờ: ${requests[0].startPoint} ⇌ ${requests[0].endPoint}` : 'Đang chờ cuốc xe...'}</span>
+        </div>
+      </div>
 
       <main className="content">
         {/* Yêu cầu chở cuốc xe - Hiển thị luôn trên màn hình chính */}
         <section className="requests-section" id="requests">
-          <h2 className="requests-heading">Yêu cầu chở cuốc xe</h2>
+          <h2 className="requests-heading">Cuốc xe phù hợp</h2>
 
           <div className="region-tabs" style={{ marginBottom: 16 }}>
             {(['north', 'central', 'south'] as Region[]).map((region) => (
@@ -1325,6 +1306,7 @@ function MainApp() {
                 className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
                 onClick={() => setActiveRequestRegion(region)}
               >
+                <span className="region-tab__icon">{{ north: '⛰️', central: '☀️', south: '🌴' }[region]}</span>
                 {regionLabels[region]}
               </button>
             ))}
@@ -1374,23 +1356,55 @@ function MainApp() {
           </h3>
 
           {regionRequests.length === 0 && (
-            <div className="empty-state">Chưa có yêu cầu nào trong {regionLabels[activeRequestRegion]}.</div>
+            <div className="empty-state">Chưa có cuốc xe nào trong {regionLabels[activeRequestRegion]}.</div>
           )}
-          {regionRequests.map((r) => (
-            <div className="request-card" key={r._id}>
-              <div className="request-main">
-                <div className="request-name">{r.name}</div>
-                <div className="request-phone">Số điện thoại khách hàng: {formatPhone(r.phone)}</div>
-                <div className="request-route">{r.startPoint} -&gt; {r.endPoint}</div>
-                {r.note && <div className="request-note">Ghi chú: {r.note}</div>}
-                <div className="request-price">Giá: {r.price?.toLocaleString('vi-VN')} VND</div>
+          {regionRequests.map((r) => {
+            const isNew = (Date.now() - new Date(r.createdAt).getTime()) < 30 * 60 * 1000;
+            return (
+              <div className="request-card" key={r._id}>
+                <div className="request-card__top">
+                  <span className={`request-badge ${isNew ? 'request-badge--new' : 'request-badge--dim'}`}>
+                    ⚡ Mới
+                  </span>
+                  <span className="request-card__name">{r.name}</span>
+                  <span className={`request-badge ${!isNew ? 'request-badge--done' : 'request-badge--dim'}`}>
+                    🕐 Vừa xong
+                  </span>
+                </div>
+                <div className="request-card__phone">Số điện thoại khách hàng: {formatPhone(r.phone)}</div>
+                <div className="request-card__route">
+                  <div className="request-card__route-row">
+                    <span className="route-dot route-dot--green" />
+                    <span>{r.startPoint}</span>
+                  </div>
+                  <div className="route-line" />
+                  <div className="request-card__route-row">
+                    <span className="route-dot route-dot--red" />
+                    <span>{r.endPoint}</span>
+                  </div>
+                </div>
+                {r.note && <div className="request-card__note">Ghi chú: {r.note}</div>}
+                <div className="request-card__price">
+                  <span className="request-card__price-label">Giá: </span>
+                  <span className="request-card__price-value">{r.price?.toLocaleString('vi-VN')} VND</span>
+                </div>
+                <button className="call-driver-btn" onClick={() => {
+                  if (!user) {
+                    setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+                    setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+                    setShowErrorPopup(true);
+                    return;
+                  }
+                  setCallSheet({ phone: r.phone });
+                }}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff">
+                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
+                  </svg>
+                  GỌI TÀI XẾ NGAY
+                </button>
               </div>
-              <button className="copy-btn" onClick={() => {
-                const text = `${r.name}\n${r.phone}\n${r.startPoint} -> ${r.endPoint}\nGiá: ${r.price?.toLocaleString('vi-VN')} VND`
-                navigator.clipboard.writeText(text)
-              }}>GỌI TÀI XẾ NGAY</button>
-            </div>
-          ))}
+            );
+          })}
         </section>
 
         {/* Danh sách tài xế */}
@@ -1404,6 +1418,7 @@ function MainApp() {
                 className={`region-tab ${activeRegion === region ? 'active' : ''}`}
                 onClick={() => setActiveRegion(region)}
               >
+                <span className="region-tab__icon">{{ north: '⛰️', central: '☀️', south: '🌴' }[region]}</span>
                 {regionLabels[region]}
               </button>
             ))}

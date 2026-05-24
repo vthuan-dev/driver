@@ -48,11 +48,11 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
           };
         }
         
-        // Auto hide after 30 seconds
+        // Auto hide after 5 minutes
         if (autoHideRef.current) clearTimeout(autoHideRef.current);
         autoHideRef.current = setTimeout(() => {
           setFakeNotifications([]);
-        }, 30000);
+        }, 5 * 60 * 1000);
         
       } else {
         // If empty, we can choose to clear it or keep the old one until next tick
@@ -117,75 +117,67 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
   if (fakeNotifications.length === 0 && !showErrorPopup) return null;
 
   return (
-    <div className="fake-notifications-section" style={{ margin: '15px 20px', borderRadius: '12px' }}>
-      <div className="section-header">
-        <h3 style={{ fontSize: '1rem' }}>🔔 Bạn có cuốc xe có thể nhận</h3>
-        {loadingNotifications && <span className="loading-spinner">⟳</span>}
+    <div className="fnb-section">
+      <div className="fnb-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span>Bạn có cuốc xe có thể nhận</span>
+        {loadingNotifications && <span className="fnb-spinner">⟳</span>}
       </div>
-      
+
       <AnimatePresence>
-        {fakeNotifications.length > 0 && (
-          <div className="fake-notifications-list">
-            {fakeNotifications.map((notification, index) => (
-              <motion.div
-                key={notification._id}
-                className="fake-notification-card"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                style={{ padding: '12px', marginBottom: '10px' }}
-              >
-                <div className="notification-time">
-                  <span className="time-icon">🕐</span>
-                  <span className="time-text">
-                    {notification.displayTime}
-                    {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
-                  </span>
-                </div>
-                <div className="notification-content">
-                  <div className="notification-title" style={{ fontSize: '15px' }}>
-                    🚗 Có tài xế bắn cuốc {notification.carType} chỗ
-                  </div>
-                  <div className="notification-route" style={{ color: '#2ecc71', fontWeight: 'bold' }}>
-                    {notification.startPoint} → {notification.endPoint}
-                  </div>
-                  <div className="notification-price" style={{ color: '#e74c3c', fontSize: '16px' }}>
-                    {notification.price.toLocaleString('vi-VN')}đ
-                  </div>
-                  {notification.note && (
-                    <div className="notification-note" style={{
-                      marginTop: '8px',
-                      padding: '6px 10px',
-                      background: '#fffbea',
-                      borderLeft: '3px solid #f39c12',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      color: '#7d6608',
-                      lineHeight: '1.4'
-                    }}>
-                      📝 {notification.note}
-                    </div>
-                  )}
-                </div>
-                <button
-                  className="accept-ride-btn"
-                  onClick={() => {
-                    if (!user || user.status !== 'approved') {
-                      if (onRequireAuth) onRequireAuth();
-                      return;
-                    }
-                    handleAcceptFakeNotification(notification._id);
-                  }}
-                  disabled={acceptingNotificationId === notification._id}
-                  style={{ marginTop: '10px', padding: '10px' }}
-                >
-                  {acceptingNotificationId === notification._id ? 'Đang xử lý...' : 'Nhận chuyến ngay'}
-                </button>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        {fakeNotifications.map((notification, index) => (
+          <motion.div
+            key={notification._id}
+            className="fnb-card"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.25, delay: index * 0.08 }}
+          >
+            <div className="fnb-card__meta">
+              <span className="fnb-card__time">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {notification.displayTime}
+                {notification.displayDate ? ` · ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
+              </span>
+              <span className="fnb-card__type">Cuốc {notification.carType} chỗ</span>
+            </div>
+
+            <div className="fnb-card__route">
+              <div className="fnb-route-row">
+                <span className="route-dot route-dot--green" />
+                <span>{notification.startPoint}</span>
+              </div>
+              <div className="route-line" />
+              <div className="fnb-route-row">
+                <span className="route-dot route-dot--red" />
+                <span>{notification.endPoint}</span>
+              </div>
+            </div>
+
+            {notification.note && (
+              <div className="fnb-card__note">Ghi chú: {notification.note}</div>
+            )}
+
+            <div className="fnb-card__price">{notification.price.toLocaleString('vi-VN')}đ</div>
+
+            <button
+              className="fnb-card__btn"
+              onClick={() => {
+                if (!user || user.status !== 'approved') {
+                  if (onRequireAuth) onRequireAuth();
+                  return;
+                }
+                handleAcceptFakeNotification(notification._id);
+              }}
+              disabled={acceptingNotificationId === notification._id}
+            >
+              {acceptingNotificationId === notification._id ? 'Đang xử lý...' : 'Nhận chuyến ngay'}
+            </button>
+          </motion.div>
+        ))}
       </AnimatePresence>
 
       {/* Error Popup Modal */}
