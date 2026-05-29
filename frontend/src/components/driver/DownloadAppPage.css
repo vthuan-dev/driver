@@ -365,6 +365,48 @@
   box-shadow: 0 6px 16px rgba(0, 177, 79, 0.35);
 }
 
+/* Download buttons - Android & iOS */
+.btn-download-android,
+.btn-download-ios {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-download-android {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.btn-download-android:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+}
+
+.btn-download-ios {
+  background: linear-gradient(135deg, #1c1c1e, #3a3a3c);
+  color: white;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.btn-download-ios:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.btn-download-android:active,
+.btn-download-ios:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 600px) {
   .download-card {
     padding: 24px 20px;

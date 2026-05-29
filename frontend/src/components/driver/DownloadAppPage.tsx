@@ -52,9 +52,7 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
   const [passInput, setPassInput] = useState('');
   const [passError, setPassError] = useState('');
   const [downloading, setDownloading] = useState(false);
-  const [downloadCountdown, setDownloadCountdown] = useState(3);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const downloadRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Countdown for showpass step (10s)
   useEffect(() => {
@@ -75,26 +73,6 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, [step]);
-
-  // Countdown 3s before auto download
-  useEffect(() => {
-    if (downloading) {
-      setDownloadCountdown(3);
-      downloadRef.current = setInterval(() => {
-        setDownloadCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(downloadRef.current!);
-            triggerDownload();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (downloadRef.current) clearInterval(downloadRef.current);
-    };
-  }, [downloading]);
 
   const triggerDownload = async () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -325,18 +303,35 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e', marginBottom: '8px' }}>
+                <div style={{ fontSize: '56px', marginBottom: '12px' }}>✅</div>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#22c55e', marginBottom: '6px' }}>
                   Xác nhận thành công!
                 </h3>
-                <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>
-                  Tải xuống sẽ bắt đầu sau <strong style={{ color: '#2563eb', fontSize: '20px' }}>{downloadCountdown}</strong> giây...
+                <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '24px' }}>
+                  Chọn phiên bản để tải về thiết bị của bạn
                 </p>
-                <div style={{
-                  width: '60px', height: '60px', borderRadius: '50%',
-                  border: '4px solid #e2e8f0', borderTopColor: '#2563eb',
-                  animation: 'spin 1s linear infinite', margin: '0 auto'
-                }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                  <button
+                    className="btn-download-android"
+                    onClick={triggerDownload}
+                  >
+                    <span style={{ fontSize: '20px' }}>📱</span>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 700 }}>Tải APK (Android)</div>
+                      <div style={{ fontSize: '12px', opacity: 0.85 }}>Cài đặt trực tiếp trên điện thoại Android</div>
+                    </div>
+                  </button>
+                  <button
+                    className="btn-download-ios"
+                    onClick={() => window.open('https://testflight.apple.com/join/PQhVBMvz', '_blank')}
+                  >
+                    <span style={{ fontSize: '20px' }}></span>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '15px', fontWeight: 700 }}>Tải iOS (TestFlight)</div>
+                      <div style={{ fontSize: '12px', opacity: 0.85 }}>Cài đặt qua TestFlight trên iPhone / iPad</div>
+                    </div>
+                  </button>
+                </div>
               </motion.div>
             )}
           </motion.div>
