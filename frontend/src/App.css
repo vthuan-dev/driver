@@ -718,11 +718,13 @@
 }
 .hero-banner__btn--primary:hover { background: #f0fdf4; transform: translateY(-1px); }
 .hero-banner__btn--secondary {
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.92);
+  color: #00873c;
+  border: 1.5px solid rgba(255,255,255,0.95);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  font-weight: 800;
 }
-.hero-banner__btn--secondary:hover { background: rgba(255,255,255,0.28); }
+.hero-banner__btn--secondary:hover { background: #fff; transform: translateY(-1px); }
 
 /* ============================
    INFO BAR
