@@ -1232,41 +1232,85 @@ function MainApp() {
         </button>
       </div>
 
-      {/* Notification panel */}
+      {/* Notification panel — mobile-first bottom sheet */}
       {showNotifPanel && (
-        <div style={{
-          position: 'fixed', top: 56, right: 0, left: 0, zIndex: 200,
-          background: '#fff', borderBottom: '1px solid #e5e7eb',
-          maxHeight: '70vh', overflowY: 'auto',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
-        }}>
-          <div style={{ padding: '12px 16px 8px', fontWeight: 800, fontSize: 15, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>🔔 Yêu cầu đặt xe</span>
-            <button onClick={() => setShowNotifPanel(false)} style={{ border: 0, background: 'none', fontSize: 18, cursor: 'pointer', color: '#9ca3af' }}>×</button>
-          </div>
-          {notifList.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>Chưa có yêu cầu nào</div>
-          ) : notifList.map((r: any) => (
-            <div key={r._id} style={{
-              padding: '12px 16px', borderBottom: '1px solid #f9fafb',
-              background: r.isReadByDriver ? '#fff' : '#f0fdf4'
-            }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
-                {r.startPoint} → {r.endPoint}
-              </div>
-              <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
-                👤 {r.name} · 📞 {r.phone}
-              </div>
-              <div style={{ fontSize: 13, color: '#00b14f', fontWeight: 700, marginTop: 2 }}>
-                {Number(r.price).toLocaleString('vi-VN')}đ
-              </div>
-              {r.note && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>📝 {r.note}</div>}
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
-                {new Date(r.createdAt).toLocaleString('vi-VN')}
-              </div>
+        <>
+          {/* Backdrop */}
+          <div onClick={() => setShowNotifPanel(false)} style={{
+            position: 'fixed', inset: 0, zIndex: 198,
+            background: 'rgba(0,0,0,0.4)',
+          }} />
+          {/* Sheet */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 199,
+            background: '#fff',
+            borderRadius: '20px 20px 0 0',
+            maxHeight: '75vh',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.18)',
+          }}>
+            {/* Handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 0' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
             </div>
-          ))}
-        </div>
+            {/* Header */}
+            <div style={{
+              padding: '10px 16px 12px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              borderBottom: '1px solid #f3f4f6', flexShrink: 0,
+            }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 16, color: '#111827' }}>🔔 Yêu cầu đặt xe</div>
+                {unreadCount > 0 && <div style={{ fontSize: 12, color: '#00b14f', fontWeight: 600, marginTop: 2 }}>{unreadCount} yêu cầu mới</div>}
+              </div>
+              <button onClick={() => setShowNotifPanel(false)} style={{
+                border: 0, background: '#f3f4f6', borderRadius: 999,
+                width: 30, height: 30, fontSize: 16, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280',
+              }}>×</button>
+            </div>
+            {/* List */}
+            <div style={{ overflowY: 'auto', flex: 1, paddingBottom: 24 }}>
+              {notifList.length === 0 ? (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: '#9ca3af' }}>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>📭</div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Chưa có yêu cầu nào</div>
+                </div>
+              ) : notifList.map((r: any) => (
+                <div key={r._id} style={{
+                  padding: '14px 16px',
+                  borderBottom: '1px solid #f3f4f6',
+                  background: r.isReadByDriver ? '#fff' : '#f0fdf4',
+                  position: 'relative',
+                }}>
+                  {!r.isReadByDriver && (
+                    <span style={{
+                      position: 'absolute', top: 14, right: 14,
+                      width: 8, height: 8, borderRadius: 999,
+                      background: '#22c55e', display: 'block',
+                    }} />
+                  )}
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#111827', paddingRight: 20 }}>
+                    📍 {r.startPoint} → {r.endPoint}
+                  </div>
+                  <div style={{ marginTop: 6, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>👤 {r.name}</span>
+                    <span style={{ fontSize: 13, color: '#374151' }}>📞 {r.phone}</span>
+                  </div>
+                  <div style={{ fontSize: 15, color: '#00b14f', fontWeight: 800, marginTop: 6 }}>
+                    {Number(r.price).toLocaleString('vi-VN')}đ
+                  </div>
+                  {r.note && (
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, fontStyle: 'italic' }}>📝 {r.note}</div>
+                  )}
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
+                    🕐 {new Date(r.createdAt).toLocaleString('vi-VN')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {menuOpen && (
