@@ -1233,7 +1233,7 @@ function MainApp() {
       </div>
 
       {/* Notification panel — mobile-first bottom sheet */}
-      {showNotifPanel && (
+      {showNotifPanel && user && user.status === 'approved' && (
         <>
           {/* Backdrop */}
           <div onClick={() => setShowNotifPanel(false)} style={{
