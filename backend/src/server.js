@@ -13,8 +13,17 @@ const app = express();
 const PORT = config.PORT || 5000;
 
 // Middleware
+const allowedOrigins = [
+  'https://driver-uenm.vercel.app',
+  'https://driver-client-bice.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:24326',
+];
 app.use(cors({
-  origin: true, // Cho phép tất cả origins
+  origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
