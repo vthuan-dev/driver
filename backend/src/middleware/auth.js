@@ -36,4 +36,16 @@ const adminAuthMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = { authMiddleware, adminAuthMiddleware };
+const optionalAuthMiddleware = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (token) {
+    try {
+      req.user = jwt.verify(token, config.JWT_SECRET);
+    } catch {
+      // invalid token — ignore, proceed as guest
+    }
+  }
+  next();
+};
+
+module.exports = { authMiddleware, adminAuthMiddleware, optionalAuthMiddleware };

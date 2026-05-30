@@ -3,7 +3,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import './App.css'
-import { authAPI, driversAPI, requestsAPI, driverAPI, bankConfigAPI } from './services/api'
+import api, { authAPI, driversAPI, requestsAPI, driverAPI, bankConfigAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
@@ -708,6 +708,47 @@ function MainApp() {
     }
   })
   
+  // ── Driver notifications ──
+  const [driverPostId, setDriverPostId] = useState<number | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifList, setNotifList] = useState<any[]>([])
+  const [showNotifPanel, setShowNotifPanel] = useState(false)
+
+  useEffect(() => {
+    if (!user || user.status !== 'approved') return
+    const findPost = async () => {
+      try {
+        const res = await api.get('/drivers')
+        const posts: any[] = res.data.drivers || res.data || []
+        const mine = posts.find((p: any) => p.phone === user.phone)
+        if (mine) setDriverPostId(Number(mine.id ?? mine._id))
+      } catch {}
+    }
+    findPost()
+  }, [user])
+
+  useEffect(() => {
+    if (!driverPostId) return
+    const poll = async () => {
+      try {
+        const res = await api.get(`/requests/for-driver/${driverPostId}`)
+        setUnreadCount(res.data.unreadCount || 0)
+        setNotifList(res.data.requests || [])
+      } catch {}
+    }
+    poll()
+    const timer = setInterval(poll, 30000)
+    return () => clearInterval(timer)
+  }, [driverPostId])
+
+  const handleBellClick = async () => {
+    setShowNotifPanel(v => !v)
+    if (driverPostId && unreadCount > 0) {
+      try { await api.post(`/requests/for-driver/${driverPostId}/mark-read`) } catch {}
+      setUnreadCount(0)
+    }
+  }
+
   // State to control showing driver dashboard
   const [showDriverDashboard, setShowDriverDashboard] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -1173,12 +1214,61 @@ function MainApp() {
           </svg>
         </button>
         <div className="app-header__logo">DRIVER <span>APP</span></div>
-        <button className="app-header__bell" aria-label="Thông báo">
+        <button className="app-header__bell" aria-label="Thông báo" onClick={handleBellClick} style={{ position: 'relative' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
+          {unreadCount > 0 && (
+            <span style={{
+              position: 'absolute', top: 4, right: 4,
+              background: '#ef4444', color: '#fff',
+              fontSize: 10, fontWeight: 800,
+              minWidth: 16, height: 16, borderRadius: 999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '0 3px', pointerEvents: 'none',
+              border: '1.5px solid #fff'
+            }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+          )}
         </button>
       </div>
+
+      {/* Notification panel */}
+      {showNotifPanel && (
+        <div style={{
+          position: 'fixed', top: 56, right: 0, left: 0, zIndex: 200,
+          background: '#fff', borderBottom: '1px solid #e5e7eb',
+          maxHeight: '70vh', overflowY: 'auto',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }}>
+          <div style={{ padding: '12px 16px 8px', fontWeight: 800, fontSize: 15, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>🔔 Yêu cầu đặt xe</span>
+            <button onClick={() => setShowNotifPanel(false)} style={{ border: 0, background: 'none', fontSize: 18, cursor: 'pointer', color: '#9ca3af' }}>×</button>
+          </div>
+          {notifList.length === 0 ? (
+            <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>Chưa có yêu cầu nào</div>
+          ) : notifList.map((r: any) => (
+            <div key={r._id} style={{
+              padding: '12px 16px', borderBottom: '1px solid #f9fafb',
+              background: r.isReadByDriver ? '#fff' : '#f0fdf4'
+            }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+                {r.startPoint} → {r.endPoint}
+              </div>
+              <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
+                👤 {r.name} · 📞 {r.phone}
+              </div>
+              <div style={{ fontSize: 13, color: '#00b14f', fontWeight: 700, marginTop: 2 }}>
+                {Number(r.price).toLocaleString('vi-VN')}đ
+              </div>
+              {r.note && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>📝 {r.note}</div>}
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                {new Date(r.createdAt).toLocaleString('vi-VN')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {menuOpen && (
         <div className="menu-popover">
         </div>

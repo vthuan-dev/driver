@@ -8,10 +8,15 @@ module.exports = (sequelize, DataTypes) => {
     userId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
+      references: { model: 'users', key: 'id' }
+    },
+    driverPostId: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    isReadByDriver: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     },
     name: {
       type: DataTypes.STRING,

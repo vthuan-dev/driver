@@ -2,13 +2,14 @@ const { WaitingRequest, User } = require('../models');
 
 const createRequest = async (req, res) => {
   try {
-    const { name, phone, startPoint, endPoint, price, note, region } = req.body;
+    const { name, phone, startPoint, endPoint, price, note, region, driverPostId } = req.body;
     const userId = req.user ? req.user.id : null;
     
     console.log('Creating request with data:', { name, phone, startPoint, endPoint, price, note, region, userId });
     
     const request = await WaitingRequest.create({
       userId,
+      driverPostId: driverPostId ? parseInt(driverPostId) : null,
       name,
       phone,
       startPoint,
@@ -150,10 +151,40 @@ const deleteRequest = async (req, res) => {
   }
 };
 
+const getForDriver = async (req, res) => {
+  try {
+    const { driverPostId } = req.params;
+    const requests = await WaitingRequest.findAll({
+      where: { driverPostId: parseInt(driverPostId) },
+      order: [['createdAt', 'DESC']]
+    });
+    const unreadCount = requests.filter(r => !r.isReadByDriver).length;
+    res.json({ requests: requests.map(r => { const d = r.toJSON(); d._id = d.id; return d; }), unreadCount });
+  } catch (error) {
+    console.error('Get for driver error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const markReadByDriver = async (req, res) => {
+  try {
+    const { driverPostId } = req.params;
+    await WaitingRequest.update(
+      { isReadByDriver: true },
+      { where: { driverPostId: parseInt(driverPostId), isReadByDriver: false } }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createRequest,
   getMyRequests,
   getAllRequests,
   updateRequest,
-  deleteRequest
+  deleteRequest,
+  getForDriver,
+  markReadByDriver
 };
