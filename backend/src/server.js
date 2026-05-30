@@ -16,6 +16,8 @@ const PORT = config.PORT || 5000;
 const allowedOrigins = [
   'https://driver-uenm.vercel.app',
   'https://driver-client-bice.vercel.app',
+  'https://180-93-35-55.sslip.io',
+  'https://us.180-93-35-55.sslip.io',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
