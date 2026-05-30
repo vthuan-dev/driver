@@ -1233,7 +1233,7 @@ function MainApp() {
       </div>
 
       {/* Notification panel — mobile-first bottom sheet */}
-      {showNotifPanel && user && user.status === 'approved' && (
+      {showNotifPanel && (
         <>
           {/* Backdrop */}
           <div onClick={() => setShowNotifPanel(false)} style={{
@@ -1271,7 +1271,13 @@ function MainApp() {
             </div>
             {/* List */}
             <div style={{ overflowY: 'auto', flex: 1, paddingBottom: 24 }}>
-              {notifList.length === 0 ? (
+              {(!user || user.status !== 'approved') ? (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: '#9ca3af' }}>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🔒</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>Đăng nhập để xem yêu cầu</div>
+                  <div style={{ fontSize: 12, marginTop: 6 }}>Chỉ tài xế đã được duyệt mới nhận thông báo</div>
+                </div>
+              ) : notifList.length === 0 ? (
                 <div style={{ padding: '40px 24px', textAlign: 'center', color: '#9ca3af' }}>
                   <div style={{ fontSize: 36, marginBottom: 8 }}>📭</div>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>Chưa có yêu cầu nào</div>
