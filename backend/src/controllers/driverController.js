@@ -1,4 +1,4 @@
-const { DriverPost, Sequelize } = require('../models');
+const { DriverPost, WaitingRequest, Sequelize } = require('../models');
 const { Op } = Sequelize;
 
 const getDrivers = async (req, res) => {
@@ -36,10 +36,31 @@ const getDrivers = async (req, res) => {
       where: filter,
       order: [['createdAt', 'DESC']]
     });
-    
+
+    // Enrich with latest WaitingRequest price/note by matching phone
+    const phones = allDrivers.map(d => d.phone).filter(Boolean);
+    const latestRequests = phones.length > 0
+      ? await WaitingRequest.findAll({
+          where: { phone: { [Op.in]: phones }, status: 'waiting' },
+          attributes: ['phone', 'price', 'note', 'startPoint', 'endPoint', 'createdAt'],
+          order: [['createdAt', 'DESC']]
+        })
+      : [];
+
+    // Map phone → latest request
+    const phoneToRequest = {};
+    for (const r of latestRequests) {
+      if (!phoneToRequest[r.phone]) phoneToRequest[r.phone] = r;
+    }
+
     const drivers = allDrivers.map(d => {
       const data = d.toJSON();
-      data._id = data.id; // For frontend compatibility
+      data._id = data.id;
+      const req = phoneToRequest[d.phone];
+      if (req) {
+        if (!data.price) data.price = Number(req.price);
+        if (!data.note)  data.note  = req.note;
+      }
       return data;
     });
     
