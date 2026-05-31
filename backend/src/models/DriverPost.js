@@ -28,6 +28,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('north', 'central', 'south'),
       defaultValue: 'north'
     },
+    price: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      defaultValue: null
+    },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: null
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true

@@ -60,14 +60,16 @@ const getDrivers = async (req, res) => {
 
 const createDriver = async (req, res) => {
   try {
-    const { name, phone, route, avatar, region } = req.body;
+    const { name, phone, route, avatar, region, price, note } = req.body;
     
     const driver = await DriverPost.create({
       name,
       phone,
       route,
       avatar: avatar || '',
-      region: ['north', 'central', 'south'].includes(region) ? region : 'north'
+      region: ['north', 'central', 'south'].includes(region) ? region : 'north',
+      price: price ? parseInt(price) : null,
+      note: note || null
     });
     
     const data = driver.toJSON();
