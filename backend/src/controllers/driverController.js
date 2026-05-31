@@ -39,9 +39,14 @@ const getDrivers = async (req, res) => {
 
     // Enrich with latest WaitingRequest price/note by matching phone
     const phones = allDrivers.map(d => d.phone).filter(Boolean);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const latestRequests = phones.length > 0
       ? await WaitingRequest.findAll({
-          where: { phone: { [Op.in]: phones }, status: 'waiting' },
+          where: {
+            phone: { [Op.in]: phones },
+            status: 'waiting',
+            createdAt: { [Op.gte]: thirtyDaysAgo }
+          },
           attributes: ['phone', 'price', 'note', 'startPoint', 'endPoint', 'createdAt'],
           order: [['createdAt', 'DESC']]
         })
