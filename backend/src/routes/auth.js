@@ -3,8 +3,11 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/auth');
 
-// User registration
+// User registration (driver)
 router.post('/register', authController.register);
+
+// Customer registration (auto-approved)
+router.post('/customer/register', authController.customerRegister);
 
 // User login
 router.post('/login', authController.login);

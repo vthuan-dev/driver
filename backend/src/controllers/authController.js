@@ -124,7 +124,7 @@ const login = async (req, res) => {
     const token = generateToken({
       id: user.id,
       phone: user.phone,
-      role: 'user'
+      role: user.role || 'driver'
     });
 
     console.log('Login successful for user:', phone);
@@ -137,6 +137,7 @@ const login = async (req, res) => {
         _id: user.id,
         name: user.name,
         phone: user.phone,
+        role: user.role || 'driver',
         carType: user.carType,
         carYear: user.carYear,
         carImage: user.carImage,
@@ -150,6 +151,36 @@ const login = async (req, res) => {
       message: 'Lỗi máy chủ khi đăng nhập',
       error: error.message 
     });
+  }
+};
+
+const customerRegister = async (req, res) => {
+  try {
+    const { name, phone, password } = req.body;
+    if (!name || !phone || !password) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập đầy đủ thông tin' });
+    }
+    const existingUser = await User.findOne({ where: { phone } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Số điện thoại này đã được đăng ký' });
+    }
+    const user = await User.create({
+      name,
+      phone,
+      password,
+      role: 'customer',
+      status: 'approved'
+    });
+    const token = generateToken({ id: user.id, phone: user.phone, role: 'customer' });
+    return res.status(201).json({
+      success: true,
+      message: 'Đăng ký thành công!',
+      token,
+      user: { id: user.id, _id: user.id, name: user.name, phone: user.phone, role: user.role, status: user.status }
+    });
+  } catch (error) {
+    console.error('Customer register error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ khi đăng ký', error: error.message });
   }
 };
 
@@ -276,6 +307,7 @@ const changePassword = async (req, res) => {
 
 module.exports = {
   register,
+  customerRegister,
   login,
   adminLogin,
   getMe,

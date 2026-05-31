@@ -1,11 +1,32 @@
-const { DriverPost } = require('../models');
+const { DriverPost, Sequelize } = require('../models');
+const { Op } = Sequelize;
 
 const getDrivers = async (req, res) => {
   try {
-    const { region } = req.query;
+    const { region, keyword } = req.query;
     const filter = { isActive: true };
     if (region && ['north', 'central', 'south'].includes(region)) {
       filter.region = region;
+    }
+    if (keyword && keyword.trim()) {
+      filter[Op.or] = [
+        { route: { [Op.like]: `%${keyword.trim()}%` } },
+        { name: { [Op.like]: `%${keyword.trim()}%` } }
+      ];
+    }
+    const { from, to } = req.query;
+    if (from && from.trim()) {
+      filter.route = { ...(filter.route || {}), [Op.like]: `%${from.trim()}%` };
+    }
+    if (to && to.trim()) {
+      filter.route = { ...(filter.route || {}), [Op.like]: `%${to.trim()}%` };
+    }
+    if (from && from.trim() && to && to.trim()) {
+      filter[Op.and] = [
+        { route: { [Op.like]: `%${from.trim()}%` } },
+        { route: { [Op.like]: `%${to.trim()}%` } }
+      ];
+      delete filter.route;
     }
 
     const totalDrivers = await DriverPost.count();

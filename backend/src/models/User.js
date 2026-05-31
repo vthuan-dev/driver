@@ -23,13 +23,17 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: { len: [4, 100] }
     },
+    role: {
+      type: DataTypes.ENUM('driver', 'customer'),
+      defaultValue: 'driver'
+    },
     carType: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     carYear: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     carImage: {
       type: DataTypes.TEXT('long'),
