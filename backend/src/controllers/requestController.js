@@ -58,7 +58,8 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const { status, limit, region } = req.query;
+    const { status, limit, region, province } = req.query;
+    const { Op } = require('sequelize');
 
     const filter = {};
     if (status && ['waiting', 'matched', 'completed'].includes(String(status))) {
@@ -66,6 +67,13 @@ const getAllRequests = async (req, res) => {
     }
     if (region && ['north', 'central', 'south'].includes(String(region))) {
       filter.region = region;
+    }
+    if (province && String(province).trim()) {
+      const p = String(province).trim();
+      filter[Op.or] = [
+        { startPoint: { [Op.like]: `%${p}%` } },
+        { endPoint:   { [Op.like]: `%${p}%` } }
+      ];
     }
 
     const queryOptions = {
