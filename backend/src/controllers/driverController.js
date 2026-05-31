@@ -57,9 +57,8 @@ const getDrivers = async (req, res) => {
       const data = d.toJSON();
       data._id = data.id;
       const req = phoneToRequest[d.phone];
-      if (req) {
-        if (!data.price) data.price = Number(req.price);
-        if (!data.note)  data.note  = req.note;
+      if (req && !data.price) {
+        data.price = Number(req.price);
       }
       return data;
     });
