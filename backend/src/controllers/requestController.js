@@ -58,11 +58,14 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const { status, limit } = req.query;
+    const { status, limit, region } = req.query;
 
     const filter = {};
     if (status && ['waiting', 'matched', 'completed'].includes(String(status))) {
       filter.status = status;
+    }
+    if (region && ['north', 'central', 'south'].includes(String(region))) {
+      filter.region = region;
     }
 
     const queryOptions = {
