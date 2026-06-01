@@ -158,8 +158,70 @@ const deleteDriver = async (req, res) => {
   }
 };
 
+const searchDrivers = async (req, res) => {
+  try {
+    const { from, to, q } = req.query;
+    const keyword = q || '';
+    const filter = { isActive: true };
+
+    const andClauses = [];
+    if (from && from.trim()) {
+      andClauses.push({ route: { [Op.like]: `%${from.trim()}%` } });
+    }
+    if (to && to.trim()) {
+      andClauses.push({ route: { [Op.like]: `%${to.trim()}%` } });
+    }
+    if (keyword.trim()) {
+      andClauses.push({
+        [Op.or]: [
+          { route: { [Op.like]: `%${keyword.trim()}%` } },
+          { name:  { [Op.like]: `%${keyword.trim()}%` } }
+        ]
+      });
+    }
+    if (andClauses.length > 0) filter[Op.and] = andClauses;
+
+    const allDrivers = await DriverPost.findAll({
+      where: filter,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const phones = allDrivers.map(d => d.phone).filter(Boolean);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const latestRequests = phones.length > 0
+      ? await WaitingRequest.findAll({
+          where: { phone: { [Op.in]: phones }, status: 'waiting', createdAt: { [Op.gte]: thirtyDaysAgo } },
+          attributes: ['phone', 'price', 'note', 'startPoint', 'endPoint', 'createdAt'],
+          order: [['createdAt', 'DESC']]
+        })
+      : [];
+
+    const phoneToRequest = {};
+    for (const r of latestRequests) {
+      if (!phoneToRequest[r.phone]) phoneToRequest[r.phone] = r;
+    }
+
+    const drivers = allDrivers.map(d => {
+      const data = d.toJSON();
+      data._id = data.id;
+      const req = phoneToRequest[d.phone];
+      if (req) {
+        if (!data.price) data.price = Number(req.price);
+        if (!data.note)  data.note  = req.note;
+      }
+      return data;
+    });
+
+    res.json({ drivers, total: drivers.length });
+  } catch (error) {
+    console.error('Search drivers error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDrivers,
+  searchDrivers,
   createDriver,
   updateDriver,
   deleteDriver
