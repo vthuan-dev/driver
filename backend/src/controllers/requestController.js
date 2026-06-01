@@ -100,7 +100,7 @@ const getAllRequests = async (req, res) => {
       order: [['createdAt', 'DESC']]
     };
 
-    const max = Math.min(parseInt(limit || '0', 10) || 0, 100);
+    const max = Math.min(parseInt(limit || '0', 10) || 0, 500);
     if (max > 0) {
       queryOptions.limit = max;
     }
