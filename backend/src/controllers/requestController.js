@@ -58,7 +58,7 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const { status, limit, region, province } = req.query;
+    const { status, limit, region, province, keyword } = req.query;
     const { Op } = require('sequelize');
 
     const filter = {};
@@ -68,13 +68,27 @@ const getAllRequests = async (req, res) => {
     if (region && ['north', 'central', 'south'].includes(String(region))) {
       filter.region = region;
     }
+
+    const andClauses = [];
     if (province && String(province).trim()) {
       const p = String(province).trim();
-      filter[Op.or] = [
-        { startPoint: { [Op.like]: `%${p}%` } },
-        { endPoint:   { [Op.like]: `%${p}%` } }
-      ];
+      andClauses.push({
+        [Op.or]: [
+          { startPoint: { [Op.like]: `%${p}%` } },
+          { endPoint:   { [Op.like]: `%${p}%` } }
+        ]
+      });
     }
+    if (keyword && String(keyword).trim()) {
+      const kw = String(keyword).trim();
+      andClauses.push({
+        [Op.or]: [
+          { name:  { [Op.like]: `%${kw}%` } },
+          { phone: { [Op.like]: `%${kw}%` } }
+        ]
+      });
+    }
+    if (andClauses.length > 0) filter[Op.and] = andClauses;
 
     const queryOptions = {
       where: filter,
