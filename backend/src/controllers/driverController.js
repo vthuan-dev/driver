@@ -187,24 +187,33 @@ const searchDrivers = async (req, res) => {
     });
 
     const phones = allDrivers.map(d => d.phone).filter(Boolean);
+    const names  = allDrivers.map(d => d.name).filter(Boolean);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const latestRequests = phones.length > 0
+    const latestRequests = (phones.length > 0 || names.length > 0)
       ? await WaitingRequest.findAll({
-          where: { phone: { [Op.in]: phones }, status: 'waiting', createdAt: { [Op.gte]: thirtyDaysAgo } },
-          attributes: ['phone', 'price', 'note', 'startPoint', 'endPoint', 'createdAt'],
+          where: {
+            createdAt: { [Op.gte]: thirtyDaysAgo },
+            [Op.or]: [
+              ...(phones.length ? [{ phone: { [Op.in]: phones } }] : []),
+              ...(names.length  ? [{ name:  { [Op.in]: names  } }] : [])
+            ]
+          },
+          attributes: ['phone', 'name', 'price', 'note', 'startPoint', 'endPoint', 'createdAt'],
           order: [['createdAt', 'DESC']]
         })
       : [];
 
-    const phoneToRequest = {};
+    const phoneToReq = {};
+    const nameToReq  = {};
     for (const r of latestRequests) {
-      if (!phoneToRequest[r.phone]) phoneToRequest[r.phone] = r;
+      if (r.phone && !phoneToReq[r.phone]) phoneToReq[r.phone] = r;
+      if (r.name  && !nameToReq[r.name])   nameToReq[r.name]   = r;
     }
 
     const drivers = allDrivers.map(d => {
       const data = d.toJSON();
       data._id = data.id;
-      const req = phoneToRequest[d.phone];
+      const req = phoneToReq[d.phone] || nameToReq[d.name];
       if (req) {
         if (!data.price) data.price = Number(req.price);
         if (!data.note)  data.note  = req.note;
