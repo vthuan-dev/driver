@@ -58,7 +58,7 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const { status, limit, region, province, keyword } = req.query;
+    const { status, limit, region, province, keyword, from, to } = req.query;
     const { Op } = require('sequelize');
 
     const filter = {};
@@ -70,7 +70,19 @@ const getAllRequests = async (req, res) => {
     }
 
     const andClauses = [];
-    if (province && String(province).trim()) {
+    if (from && String(from).trim()) {
+      const f = String(from).trim();
+      andClauses.push({
+        startPoint: { [Op.like]: `%${f}%` }
+      });
+    }
+    if (to && String(to).trim()) {
+      const t = String(to).trim();
+      andClauses.push({
+        endPoint: { [Op.like]: `%${t}%` }
+      });
+    }
+    if (!from && !to && province && String(province).trim()) {
       const p = String(province).trim();
       andClauses.push({
         [Op.or]: [
