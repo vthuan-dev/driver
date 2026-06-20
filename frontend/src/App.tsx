@@ -885,6 +885,7 @@ function MainApp() {
   })
   // Removed car image preview state
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuShowIncome, setMenuShowIncome] = useState(false)
   const [dragStartY, setDragStartY] = useState(0)
   const [dragCurrentY, setDragCurrentY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -1162,6 +1163,21 @@ function MainApp() {
     }
   }
 
+  // ── Shared drawer menu item styles ────────────────────────────
+  const menuItemStyle: React.CSSProperties = {
+    width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+    padding: '14px 16px', borderRadius: 14, border: 'none',
+    background: '#f9fafb', cursor: 'pointer', fontSize: 15,
+    fontWeight: 600, color: '#1f2937', marginBottom: 8,
+    textAlign: 'left', transition: 'background 0.15s',
+  }
+  const menuIconStyle: React.CSSProperties = {
+    fontSize: 20, width: 28, textAlign: 'center', flexShrink: 0
+  }
+  const menuArrowStyle: React.CSSProperties = {
+    marginLeft: 'auto', fontSize: 22, color: '#9ca3af', lineHeight: 1
+  }
+
   return (
     <div className="app">
 
@@ -1278,12 +1294,150 @@ function MainApp() {
         </>
       )}
 
-      {menuOpen && user?.status === 'approved' && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#f5f5f5', overflowY: 'auto' }}>
-          <DriverIncomePage onBack={() => setMenuOpen(false)} />
+      {/* ── Income page (full-screen, opened from menu) ── */}
+      {menuShowIncome && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3000, background: '#f5f5f5', overflowY: 'auto' }}>
+          <DriverIncomePage onBack={() => { setMenuShowIncome(false); setMenuOpen(false); }} />
         </div>
       )}
 
+      {/* ── Hamburger drawer ── */}
+      {menuOpen && (
+        <AnimatePresence>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 2000,
+                background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)'
+              }}
+            />
+            {/* Drawer panel */}
+            <motion.div
+              key="menu-drawer"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              style={{
+                position: 'fixed', top: 0, left: 0, bottom: 0,
+                width: 280, zIndex: 2001,
+                background: '#fff',
+                boxShadow: '4px 0 32px rgba(0,0,0,0.18)',
+                display: 'flex', flexDirection: 'column',
+                overflowY: 'auto'
+              }}
+            >
+              {/* Drawer header */}
+              <div style={{
+                background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)',
+                padding: '28px 20px 22px',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Đóng menu"
+                  style={{
+                    position: 'absolute', top: 14, right: 14,
+                    width: 32, height: 32, borderRadius: '50%',
+                    border: 'none', background: 'rgba(255,255,255,0.15)',
+                    color: '#fff', fontSize: 20, lineHeight: 1,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >×</button>
+                {user ? (
+                  <>
+                    <div style={{
+                      width: 52, height: 52, borderRadius: '50%',
+                      background: 'linear-gradient(135deg,#00b14f,#009140)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 22, fontWeight: 800, color: '#fff',
+                      marginBottom: 12, boxShadow: '0 4px 14px rgba(0,177,79,0.4)'
+                    }}>
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{user.name}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{user.phone}</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>DRIVER APP</div>
+                )}
+              </div>
+
+              {/* Menu items */}
+              <div style={{ flex: 1, padding: '12px 12px' }}>
+                {user?.status === 'approved' && (
+                  <>
+                    <button
+                      onClick={() => { setMenuOpen(false); setShowDriverDashboard(true); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={menuIconStyle}>🏠</span>
+                      <span>Dashboard tài xế</span>
+                      <span style={menuArrowStyle}>›</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setMenuShowIncome(true); }}
+                      style={{ ...menuItemStyle, background: 'linear-gradient(135deg,#e8f5e9,#f1f8e9)' }}
+                    >
+                      <span style={menuIconStyle}>💵</span>
+                      <span style={{ fontWeight: 700, color: '#1a2340' }}>Thu nhập tài xế</span>
+                      <span style={{ ...menuArrowStyle, color: '#00b14f' }}>›</span>
+                    </button>
+                  </>
+                )}
+
+                {!user && (
+                  <>
+                    <button onClick={() => { setMenuOpen(false); setAuthModal('login'); }} style={menuItemStyle}>
+                      <span style={menuIconStyle}>🔑</span>
+                      <span>Đăng nhập</span>
+                      <span style={menuArrowStyle}>›</span>
+                    </button>
+                    <button onClick={() => { setMenuOpen(false); setAuthModal('register'); }} style={menuItemStyle}>
+                      <span style={menuIconStyle}>📝</span>
+                      <span>Đăng ký</span>
+                      <span style={menuArrowStyle}>›</span>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Logout at bottom */}
+              {user && (
+                <div style={{ padding: '12px 12px 24px' }}>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('driver_user');
+                      localStorage.removeItem('driver_registered');
+                      setUser(null);
+                      setShowDriverDashboard(false);
+                    }}
+                    style={{
+                      ...menuItemStyle,
+                      background: '#fef2f2',
+                      color: '#ef4444',
+                      border: '1.5px solid #fecaca'
+                    }}
+                  >
+                    <span style={menuIconStyle}>🚪</span>
+                    <span style={{ fontWeight: 700 }}>Đăng xuất</span>
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </>
+        </AnimatePresence>
+      )}
       {/* Hero Banner */}
       {!user && (
         <div className="hero-banner">
