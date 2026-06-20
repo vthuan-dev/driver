@@ -472,7 +472,13 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
 
       {/* Income Page Overlay */}
       {showIncomePage && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#f5f5f5', overflowY: 'auto' }}>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: '#f5f5f5',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+        }}>
           <DriverIncomePage onBack={() => setShowIncomePage(false)} />
         </div>
       )}

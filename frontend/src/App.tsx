@@ -1296,7 +1296,13 @@ function MainApp() {
 
       {/* ── Income page (full-screen, opened from menu) ── */}
       {menuShowIncome && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 3000, background: '#f5f5f5', overflowY: 'auto' }}>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 3000,
+          background: '#f5f5f5',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+        }}>
           <DriverIncomePage onBack={() => { setMenuShowIncome(false); setMenuOpen(false); }} />
         </div>
       )}
