@@ -732,32 +732,90 @@
 .info-bar {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-bottom: 1px solid #f1f5f9;
-  padding: 10px 16px;
-  gap: 10px;
+  background: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
+  padding: 0 0 0 12px;
+  gap: 0;
   font-size: 13px;
   color: #374151;
+  height: 36px;
+  overflow: hidden;
 }
-.info-bar__item {
+
+.info-bar__item--phone {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-.info-bar__item > span {
+  gap: 5px;
+  flex-shrink: 0;
+  padding-right: 10px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 12px;
 }
-.info-bar__item strong { color: #111827; font-weight: 700; }
+.info-bar__item--phone strong { color: #111827; font-weight: 700; }
+
 .info-bar__divider {
   width: 1px;
-  height: 18px;
-  background: #e5e7eb;
-  flex: none;
+  height: 20px;
+  background: #86efac;
+  flex-shrink: 0;
+  margin-right: 0;
 }
+
+/* ── Ticker ── */
+.info-bar__ticker-wrap {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+}
+
+.info-bar__ticker {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  animation: ticker-scroll 45s linear infinite;
+  will-change: transform;
+}
+
+.info-bar__ticker:hover {
+  animation-play-state: paused;
+}
+
+.info-bar__ticker-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 28px;
+  font-size: 12.5px;
+  color: #1f2937;
+  font-weight: 500;
+  position: relative;
+}
+
+.info-bar__ticker-item::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #86efac;
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* legacy selectors kept for safety */
+.info-bar__item { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.info-bar__item > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-bar__item strong { color: #111827; font-weight: 700; }
 
 /* ============================
    REQUEST CARDS (redesign)

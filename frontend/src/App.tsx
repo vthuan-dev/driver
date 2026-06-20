@@ -1554,18 +1554,48 @@ function MainApp() {
       )}
 
       <div className="info-bar">
-        <div className="info-bar__item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="info-bar__item info-bar__item--phone">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.72A2 2 0 012 .18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/>
           </svg>
           <span>Liên hệ <strong>039 xxxx 932</strong></span>
         </div>
         <div className="info-bar__divider" />
-        <div className="info-bar__item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-          </svg>
-          <span>{requests.length > 0 ? `Tài xế ${requests.length} đang chờ: ${requests[0].startPoint} ⇌ ${requests[0].endPoint}` : 'Đang chờ cuốc xe...'}</span>
+        {/* Scrolling ticker */}
+        <div className="info-bar__ticker-wrap">
+          <div className="info-bar__ticker">
+            {[
+              '🚗 Cần xe đi sáng mai 7h từ Hà Nội → Quảng Ninh',
+              '👶 TP.HCM → Vũng Tàu, có trẻ em đi cùng',
+              '📞 039 xxxx 214 · Hà Nội → Lào Cai, đi gấp hôm nay',
+              '🌙 Cần xe đêm nay 21h từ Đà Nẵng → Huế',
+              '📞 097 xxxx 881 · Cần Thơ → Cà Mau, 4 người lớn',
+              '⚡ Đặt gấp! Hải Phòng → Hà Nội, xe 7 chỗ',
+              '📞 093 xxxx 456 · TP.HCM → Bình Dương, đi công tác',
+              '🧳 Hà Nội → Thanh Hóa, có hành lý nhiều',
+              requests.length > 0
+                ? `📍 ${requests[0].startPoint} → ${requests[0].endPoint} · ${requests[0].price.toLocaleString('vi-VN')}đ`
+                : '📍 Đang cập nhật cuốc xe mới nhất...',
+            ].map((msg, i) => (
+              <span key={i} className="info-bar__ticker-item">{msg}</span>
+            ))}
+            {/* Duplicate for seamless loop */}
+            {[
+              '🚗 Cần xe đi sáng mai 7h từ Hà Nội → Quảng Ninh',
+              '👶 TP.HCM → Vũng Tàu, có trẻ em đi cùng',
+              '📞 039 xxxx 214 · Hà Nội → Lào Cai, đi gấp hôm nay',
+              '🌙 Cần xe đêm nay 21h từ Đà Nẵng → Huế',
+              '📞 097 xxxx 881 · Cần Thơ → Cà Mau, 4 người lớn',
+              '⚡ Đặt gấp! Hải Phòng → Hà Nội, xe 7 chỗ',
+              '📞 093 xxxx 456 · TP.HCM → Bình Dương, đi công tác',
+              '🧳 Hà Nội → Thanh Hóa, có hành lý nhiều',
+              requests.length > 0
+                ? `📍 ${requests[0].startPoint} → ${requests[0].endPoint} · ${requests[0].price.toLocaleString('vi-VN')}đ`
+                : '📍 Đang cập nhật cuốc xe mới nhất...',
+            ].map((msg, i) => (
+              <span key={`dup-${i}`} className="info-bar__ticker-item">{msg}</span>
+            ))}
+          </div>
         </div>
       </div>
 
