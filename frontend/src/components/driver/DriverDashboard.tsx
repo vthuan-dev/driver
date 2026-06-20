@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { driverAPI, bankConfigAPI } from '../../services/api';
 import AppPricingModal from './AppPricingModal';
 import DownloadAppPage from './DownloadAppPage';
+import DriverIncomePage from './DriverIncomePage';
 import './DriverDashboard.css';
 
 type User = {
@@ -52,6 +53,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
 
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [showIncomePage, setShowIncomePage] = useState(false);
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});
 
   // Fetch bank config
@@ -143,7 +145,10 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
                 <span>Rút tiền</span>
                 <span className="arrow">›</span>
               </button>
-
+              <button className="action-btn action-btn--income" onClick={() => setShowIncomePage(true)}>
+                <span>💵 Thu nhập tài xế</span>
+                <span className="arrow">›</span>
+              </button>
             </div>
 
             {/* Stats Card */}
@@ -463,6 +468,13 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
           user={user} 
           onBack={() => setShowDownloadPage(false)} 
         />
+      )}
+
+      {/* Income Page Overlay */}
+      {showIncomePage && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#f5f5f5', overflowY: 'auto' }}>
+          <DriverIncomePage onBack={() => setShowIncomePage(false)} />
+        </div>
       )}
     </div>
   );

@@ -51,6 +51,16 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [pwMessage, setPwMessage] = useState('');
   const [pwShow, setPwShow] = useState({ current: false, next: false, confirm: false });
 
+  // ── Income modal state ──
+  const [incomeModalUser, setIncomeModalUser] = useState<User | null>(null);
+  const [incomeForm, setIncomeForm] = useState({
+    fakeIncomeAmount: '',
+    fakeIncomeTips: '',
+    historyRaw: '',  // JSON text, e.g. [{"date":"20/06","amount":1000000},...]
+  });
+  const [incomeLoading, setIncomeLoading] = useState(false);
+  const [incomeMsg, setIncomeMsg] = useState('');
+
   const loadUsers = async () => {
     try {
       const response = await usersAPI.getAllUsers();
@@ -167,8 +177,55 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
-  const handleDeleteRequest = async (requestId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
+  // Open income modal for a specific user
+  const openIncomeModal = (user: User) => {
+    setIncomeModalUser(user);
+    setIncomeForm({ fakeIncomeAmount: '', fakeIncomeTips: '', historyRaw: '' });
+    setIncomeMsg('');
+  };
+
+  const handleSetIncome = async () => {
+    if (!incomeModalUser) return;
+    const amount = parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g, ''), 10) || 0;
+    const tips = parseInt(incomeForm.fakeIncomeTips.replace(/\D/g, ''), 10) || 0;
+    let history: { date: string; amount: number }[] = [];
+    if (incomeForm.historyRaw.trim()) {
+      try {
+        history = JSON.parse(incomeForm.historyRaw);
+        if (!Array.isArray(history)) throw new Error('Not array');
+      } catch {
+        setIncomeMsg('❌ Lịch sử không đúng định dạng JSON');
+        return;
+      }
+    } else {
+      // Auto-generate history from today
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      if (amount + tips > 0) {
+        history = [{ date: `${dd}/${mm}`, amount: amount + tips }];
+      }
+    }
+    setIncomeLoading(true);
+    try {
+      await usersAPI.setDriverIncome(incomeModalUser._id, {
+        fakeIncomeAmount: amount,
+        fakeIncomeTips: tips,
+        fakeIncomeHistory: history,
+      });
+      setIncomeMsg('✅ Đã cập nhật thu nhập thành công!');
+      setTimeout(() => {
+        setIncomeModalUser(null);
+        setIncomeMsg('');
+      }, 1500);
+    } catch (err: any) {
+      setIncomeMsg('❌ Lỗi: ' + (err.response?.data?.message || 'Không thể cập nhật'));
+    } finally {
+      setIncomeLoading(false);
+    }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
       return;
     }
     
@@ -547,7 +604,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                           >
                             Xóa khỏi nhóm
                           </button>
-                        </div>
+                          <button
+                            className="income-btn"
+                            onClick={() => openIncomeModal(user)}
+                            disabled={loading}
+                          >
+                            💵 Cài thu nhập
+                          </button>                        </div>
                       </div>
                     ))}
                   </div>
@@ -882,6 +945,165 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
           </div>
         </div>
       </div>
+
+      {/* ── Income Modal ───────────────────────────────────────── */}
+      {incomeModalUser && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 20, width: '100%', maxWidth: 460,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '18px 20px', borderBottom: '1px solid #e5e7eb',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)'
+            }}>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>💵 Cài thu nhập ảo</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                  {incomeModalUser?.name} · {incomeModalUser?.phone}
+                </div>
+              </div>
+              <button onClick={() => setIncomeModalUser(null)} style={{
+                width: 36, height: 36, borderRadius: '50%', border: 'none',
+                background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: 22,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>×</button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 20px 24px' }}>
+              {incomeMsg && (
+                <div style={{
+                  padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+                  background: incomeMsg.includes('✅') ? '#d1fae5' : '#fee2e2',
+                  color: incomeMsg.includes('✅') ? '#065f46' : '#991b1b',
+                  fontWeight: 600, fontSize: 14
+                }}>{incomeMsg}</div>
+              )}
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                  Cước xe hoàn thành (VNĐ)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="VD: 36000000"
+                  value={incomeForm.fakeIncomeAmount}
+                  onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeAmount: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '11px 14px', borderRadius: 10,
+                    border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none',
+                    boxSizing: 'border-box', fontFamily: 'inherit',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                />
+                {incomeForm.fakeIncomeAmount && !isNaN(parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10)) && (
+                  <div style={{ fontSize: 12, color: '#10b981', marginTop: 4, fontWeight: 600 }}>
+                    = {parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                  Tips khách hàng (VNĐ)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="VD: 82972"
+                  value={incomeForm.fakeIncomeTips}
+                  onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeTips: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '11px 14px', borderRadius: 10,
+                    border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none',
+                    boxSizing: 'border-box', fontFamily: 'inherit',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                />
+                {incomeForm.fakeIncomeTips && !isNaN(parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10)) && (
+                  <div style={{ fontSize: 12, color: '#10b981', marginTop: 4, fontWeight: 600 }}>
+                    = {parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4 }}>
+                  Lịch sử thanh toán <span style={{ fontWeight: 400, color: '#9ca3af' }}>(JSON, để trống = tự tạo)</span>
+                </label>
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
+                  VD: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>
+                    {`[{"date":"20/06","amount":1000000},{"date":"15/06","amount":800000}]`}
+                  </code>
+                </div>
+                <textarea
+                  rows={3}
+                  placeholder={`[{"date":"20/06","amount":1000000}]`}
+                  value={incomeForm.historyRaw}
+                  onChange={e => setIncomeForm(f => ({ ...f, historyRaw: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '11px 14px', borderRadius: 10,
+                    border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none',
+                    boxSizing: 'border-box', fontFamily: 'monospace', resize: 'vertical',
+                    lineHeight: 1.6, transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                />
+              </div>
+
+              {/* Preview total */}
+              {(incomeForm.fakeIncomeAmount || incomeForm.fakeIncomeTips) && (
+                <div style={{
+                  background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)',
+                  borderRadius: 12, padding: '14px 18px', marginBottom: 18, color: '#fff'
+                }}>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 4 }}>Tổng thu nhập (xem trước)</div>
+                  <div style={{ fontSize: 24, fontWeight: 800 }}>
+                    {((parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10)||0) + (parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10)||0)).toLocaleString('vi-VN')} VNĐ
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={handleSetIncome}
+                  disabled={incomeLoading}
+                  style={{
+                    flex: 1, padding: '13px 0', borderRadius: 12, border: 'none',
+                    background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)',
+                    color: '#fff', fontSize: 15, fontWeight: 700, cursor: incomeLoading ? 'not-allowed' : 'pointer',
+                    opacity: incomeLoading ? 0.7 : 1, transition: 'all 0.2s'
+                  }}
+                >
+                  {incomeLoading ? 'Đang lưu...' : '💾 Lưu thu nhập'}
+                </button>
+                <button
+                  onClick={() => setIncomeModalUser(null)}
+                  style={{
+                    flex: 1, padding: '13px 0', borderRadius: 12, border: 'none',
+                    background: '#f3f4f6', color: '#6b7280', fontSize: 15, fontWeight: 700, cursor: 'pointer'
+                  }}
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

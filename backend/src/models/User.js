@@ -86,6 +86,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(100),
       allowNull: true,
       defaultValue: null
+    },
+    // Fake income fields (set by admin, shown to driver)
+    fakeIncomeAmount: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      defaultValue: 0
+    },
+    fakeIncomeTips: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      defaultValue: 0
+    },
+    // JSON string: [{date: "20/06", amount: 1000000}, ...]
+    fakeIncomeHistory: {
+      type: DataTypes.TEXT('long'),
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'users',

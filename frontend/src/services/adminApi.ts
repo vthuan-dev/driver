@@ -44,6 +44,8 @@ export const usersAPI = {
   deleteUser:     (id: string)                    => api.delete(`/admin/users/${id}`),
   banUser:        (id: string, reason: string)    => api.put(`/admin/users/${id}/ban`, { reason }),
   unbanUser:      (id: string)                    => api.put(`/admin/users/${id}/unban`),
+  setDriverIncome: (id: string, data: { fakeIncomeAmount: number; fakeIncomeTips: number; fakeIncomeHistory: { date: string; amount: number }[] }) =>
+    api.put(`/admin/users/${id}/income`, data),
 };
 
 // ─── Requests Management API ───────────────────────────────────────────────────

@@ -10,4 +10,7 @@ router.get('/stats', authMiddleware, driverStatsController.getDriverStats);
 router.post('/record-download', authMiddleware, driverStatsController.recordDownload);
 router.get('/download-status', authMiddleware, driverStatsController.getDownloadStatus);
 
+// Driver fake income
+router.get('/income', authMiddleware, driverStatsController.getDriverIncome);
+
 module.exports = router;

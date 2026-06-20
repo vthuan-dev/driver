@@ -120,8 +120,80 @@ const getDownloadStatus = async (req, res) => {
   }
 };
 
+// @desc    Get driver fake income data
+// @route   GET /api/driver/income
+// @access  Private (driver)
+const getDriverIncome = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['fakeIncomeAmount', 'fakeIncomeTips', 'fakeIncomeHistory']
+    });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+
+    let history = [];
+    try {
+      if (user.fakeIncomeHistory) {
+        history = JSON.parse(user.fakeIncomeHistory);
+      }
+    } catch (_) {
+      history = [];
+    }
+
+    const amount = Number(user.fakeIncomeAmount) || 0;
+    const tips = Number(user.fakeIncomeTips) || 0;
+
+    return res.json({
+      success: true,
+      data: {
+        totalIncome: amount + tips,
+        completedRidesAmount: amount,
+        tipsAmount: tips,
+        history,
+      }
+    });
+  } catch (error) {
+    console.error('Get driver income error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
+  }
+};
+
+// @desc    Admin sets fake income for a driver
+// @route   PUT /api/admin/users/:id/income
+// @access  Private (admin)
+const setDriverIncome = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fakeIncomeAmount, fakeIncomeTips, fakeIncomeHistory } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+
+    const updateData = {};
+    if (fakeIncomeAmount !== undefined) updateData.fakeIncomeAmount = Number(fakeIncomeAmount) || 0;
+    if (fakeIncomeTips !== undefined) updateData.fakeIncomeTips = Number(fakeIncomeTips) || 0;
+    if (fakeIncomeHistory !== undefined) {
+      // fakeIncomeHistory should be an array of {date, amount}
+      updateData.fakeIncomeHistory = JSON.stringify(fakeIncomeHistory);
+    }
+
+    await user.update(updateData);
+
+    return res.json({ success: true, message: 'Cập nhật thu nhập thành công' });
+  } catch (error) {
+    console.error('Set driver income error:', error);
+    res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
+  }
+};
+
 module.exports = {
   getDriverStats,
   recordDownload,
-  getDownloadStatus
+  getDownloadStatus,
+  getDriverIncome,
+  setDriverIncome,
 };

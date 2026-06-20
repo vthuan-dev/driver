@@ -409,6 +409,20 @@
   overflow: visible;
 }
 
+.action-btn--income {
+  background: linear-gradient(135deg, #fff9f0 0%, #fffdf5 100%);
+  color: #1f2937;
+  border: 2px solid #fde68a;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.15);
+}
+
+.action-btn--income:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.25);
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
 .action-btn--download .download-badge {
   background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
   color: white;

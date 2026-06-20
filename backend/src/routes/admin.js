@@ -4,6 +4,7 @@ const { adminAuthMiddleware } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 const requestController = require('../controllers/requestController');
+const driverStatsController = require('../controllers/driverStatsController');
 
 // Admin authentication
 router.post('/login', authController.adminLogin);
@@ -22,6 +23,7 @@ router.put('/users/:id/reject', adminAuthMiddleware, userController.rejectUser);
 router.put('/users/:id/ban', adminAuthMiddleware, userController.banUser);
 router.put('/users/:id/unban', adminAuthMiddleware, userController.unbanUser);
 router.delete('/users/:id', adminAuthMiddleware, userController.deleteUser);
+router.put('/users/:id/income', adminAuthMiddleware, driverStatsController.setDriverIncome);
 
 // Request management
 router.get('/requests', adminAuthMiddleware, requestController.getAllRequests);

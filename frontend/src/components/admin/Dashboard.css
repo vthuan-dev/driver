@@ -888,7 +888,8 @@ body {
 
 .ban-btn,
 .unban-btn,
-.remove-btn {
+.remove-btn,
+.income-btn {
   padding: 10px 20px;
   border: none;
   border-radius: 12px;
@@ -932,9 +933,22 @@ body {
   box-shadow: 0 8px 24px rgba(249, 115, 22, 0.5);
 }
 
+/* Income button */
+.income-btn {
+  background: linear-gradient(135deg, #1a2340 0%, #243252 100%);
+  box-shadow: 0 4px 14px rgba(26, 35, 64, 0.35);
+  color: #fff !important;
+}
+
+.income-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(26, 35, 64, 0.45);
+}
+
 .ban-btn:disabled,
 .unban-btn:disabled,
-.remove-btn:disabled {
+.remove-btn:disabled,
+.income-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
