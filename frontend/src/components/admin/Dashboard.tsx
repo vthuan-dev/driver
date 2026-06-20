@@ -56,8 +56,8 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [incomeForm, setIncomeForm] = useState({
     fakeIncomeAmount: '',
     fakeIncomeTips: '',
-    historyRaw: '',  // JSON text, e.g. [{"date":"20/06","amount":1000000},...]
   });
+  const [incomeHistory, setIncomeHistory] = useState<{ date: string; amount: string }[]>([]);
   const [incomeLoading, setIncomeLoading] = useState(false);
   const [incomeMsg, setIncomeMsg] = useState('');
 
@@ -180,32 +180,40 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   // Open income modal for a specific user
   const openIncomeModal = (user: User) => {
     setIncomeModalUser(user);
-    setIncomeForm({ fakeIncomeAmount: '', fakeIncomeTips: '', historyRaw: '' });
+    setIncomeForm({ fakeIncomeAmount: '', fakeIncomeTips: '' });
+    // Pre-populate today as first history row
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    setIncomeHistory([{ date: `${dd}/${mm}`, amount: '' }]);
     setIncomeMsg('');
+  };
+
+  const fmtInput = (raw: string) => raw.replace(/\D/g, '');
+  const parseMoney = (s: string) => parseInt(s.replace(/\D/g, ''), 10) || 0;
+  const displayMoney = (s: string) => {
+    const n = parseMoney(s);
+    return n > 0 ? n.toLocaleString('vi-VN') + ' VNĐ' : '';
   };
 
   const handleSetIncome = async () => {
     if (!incomeModalUser) return;
-    const amount = parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g, ''), 10) || 0;
-    const tips = parseInt(incomeForm.fakeIncomeTips.replace(/\D/g, ''), 10) || 0;
-    let history: { date: string; amount: number }[] = [];
-    if (incomeForm.historyRaw.trim()) {
-      try {
-        history = JSON.parse(incomeForm.historyRaw);
-        if (!Array.isArray(history)) throw new Error('Not array');
-      } catch {
-        setIncomeMsg('❌ Lịch sử không đúng định dạng JSON');
-        return;
-      }
-    } else {
-      // Auto-generate history from today
+    const amount = parseMoney(incomeForm.fakeIncomeAmount);
+    const tips = parseMoney(incomeForm.fakeIncomeTips);
+
+    // Build history from rows that have both date + amount filled
+    const history = incomeHistory
+      .filter(r => r.date.trim() && r.amount.trim())
+      .map(r => ({ date: r.date.trim(), amount: parseMoney(r.amount) }));
+
+    // If no history rows provided and total > 0, auto-generate one entry for today
+    if (history.length === 0 && amount + tips > 0) {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
-      if (amount + tips > 0) {
-        history = [{ date: `${dd}/${mm}`, amount: amount + tips }];
-      }
+      history.push({ date: `${dd}/${mm}`, amount: amount + tips });
     }
+
     setIncomeLoading(true);
     try {
       await usersAPI.setDriverIncome(incomeModalUser._id, {
@@ -951,155 +959,248 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          padding: 0,
         }}>
+          {/* Bottom sheet style on mobile, centered on desktop */}
           <div style={{
-            background: '#fff', borderRadius: 20, width: '100%', maxWidth: 460,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden'
+            background: '#fff',
+            borderRadius: '24px 24px 0 0',
+            width: '100%', maxWidth: 520,
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+            maxHeight: '92vh',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
           }}>
-            {/* Modal Header */}
+            {/* Drag handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#e5e7eb' }} />
+            </div>
+
+            {/* Header */}
             <div style={{
-              padding: '18px 20px', borderBottom: '1px solid #e5e7eb',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)'
+              padding: '8px 20px 16px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+              borderBottom: '1px solid #f3f4f6',
             }}>
               <div>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>💵 Cài thu nhập ảo</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
-                  {incomeModalUser?.name} · {incomeModalUser?.phone}
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    width: 36, height: 36, borderRadius: 10,
+                    background: 'linear-gradient(135deg,#1a2340,#243252)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18
+                  }}>💵</span>
+                  Cài thu nhập ảo
+                </div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+                  👤 {incomeModalUser?.name} &nbsp;·&nbsp; {incomeModalUser?.phone}
                 </div>
               </div>
               <button onClick={() => setIncomeModalUser(null)} style={{
                 width: 36, height: 36, borderRadius: '50%', border: 'none',
-                background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: 22,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                background: '#f3f4f6', color: '#6b7280', fontSize: 20,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, marginTop: 4,
               }}>×</button>
             </div>
 
-            {/* Modal Body */}
-            <div style={{ padding: '20px 20px 24px' }}>
+            {/* Scrollable body */}
+            <div style={{ overflowY: 'auto', padding: '20px 20px 8px', flex: 1 }}>
               {incomeMsg && (
                 <div style={{
-                  padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+                  padding: '12px 16px', borderRadius: 12, marginBottom: 16,
                   background: incomeMsg.includes('✅') ? '#d1fae5' : '#fee2e2',
                   color: incomeMsg.includes('✅') ? '#065f46' : '#991b1b',
-                  fontWeight: 600, fontSize: 14
+                  fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
                 }}>{incomeMsg}</div>
               )}
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
-                  Cước xe hoàn thành (VNĐ)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="VD: 36000000"
-                  value={incomeForm.fakeIncomeAmount}
-                  onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeAmount: e.target.value }))}
-                  style={{
-                    width: '100%', padding: '11px 14px', borderRadius: 10,
-                    border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none',
-                    boxSizing: 'border-box', fontFamily: 'inherit',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
-                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
-                />
-                {incomeForm.fakeIncomeAmount && !isNaN(parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10)) && (
-                  <div style={{ fontSize: 12, color: '#10b981', marginTop: 4, fontWeight: 600 }}>
-                    = {parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10).toLocaleString('vi-VN')} VNĐ
+              {/* ── Two income fields side by side ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                {/* Cước xe */}
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    🚗 Cước xe
                   </div>
-                )}
-              </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
-                  Tips khách hàng (VNĐ)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="VD: 82972"
-                  value={incomeForm.fakeIncomeTips}
-                  onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeTips: e.target.value }))}
-                  style={{
-                    width: '100%', padding: '11px 14px', borderRadius: 10,
-                    border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none',
-                    boxSizing: 'border-box', fontFamily: 'inherit',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
-                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
-                />
-                {incomeForm.fakeIncomeTips && !isNaN(parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10)) && (
-                  <div style={{ fontSize: 12, color: '#10b981', marginTop: 4, fontWeight: 600 }}>
-                    = {parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10).toLocaleString('vi-VN')} VNĐ
-                  </div>
-                )}
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4 }}>
-                  Lịch sử thanh toán <span style={{ fontWeight: 400, color: '#9ca3af' }}>(JSON, để trống = tự tạo)</span>
-                </label>
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
-                  VD: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>
-                    {`[{"date":"20/06","amount":1000000},{"date":"15/06","amount":800000}]`}
-                  </code>
+                  <input
+                    type="text" inputMode="numeric"
+                    placeholder="0"
+                    value={incomeForm.fakeIncomeAmount}
+                    onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeAmount: fmtInput(e.target.value) }))}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: 12,
+                      border: '2px solid #e5e7eb', fontSize: 15, outline: 'none',
+                      boxSizing: 'border-box', fontWeight: 600, fontFamily: 'inherit',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                  />
+                  {displayMoney(incomeForm.fakeIncomeAmount) && (
+                    <div style={{ fontSize: 11, color: '#10b981', marginTop: 4, fontWeight: 700 }}>
+                      {displayMoney(incomeForm.fakeIncomeAmount)}
+                    </div>
+                  )}
                 </div>
-                <textarea
-                  rows={3}
-                  placeholder={`[{"date":"20/06","amount":1000000}]`}
-                  value={incomeForm.historyRaw}
-                  onChange={e => setIncomeForm(f => ({ ...f, historyRaw: e.target.value }))}
-                  style={{
-                    width: '100%', padding: '11px 14px', borderRadius: 10,
-                    border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none',
-                    boxSizing: 'border-box', fontFamily: 'monospace', resize: 'vertical',
-                    lineHeight: 1.6, transition: 'border-color 0.2s'
-                  }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
-                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
-                />
+
+                {/* Tips */}
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    🎁 Tips
+                  </div>
+                  <input
+                    type="text" inputMode="numeric"
+                    placeholder="0"
+                    value={incomeForm.fakeIncomeTips}
+                    onChange={e => setIncomeForm(f => ({ ...f, fakeIncomeTips: fmtInput(e.target.value) }))}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: 12,
+                      border: '2px solid #e5e7eb', fontSize: 15, outline: 'none',
+                      boxSizing: 'border-box', fontWeight: 600, fontFamily: 'inherit',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                  />
+                  {displayMoney(incomeForm.fakeIncomeTips) && (
+                    <div style={{ fontSize: 11, color: '#10b981', marginTop: 4, fontWeight: 700 }}>
+                      {displayMoney(incomeForm.fakeIncomeTips)}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Preview total */}
-              {(incomeForm.fakeIncomeAmount || incomeForm.fakeIncomeTips) && (
+              {/* ── Live total preview ── */}
+              <div style={{
+                background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)',
+                borderRadius: 16, padding: '16px 20px', marginBottom: 20,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>Tổng thu nhập</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
+                  {(parseMoney(incomeForm.fakeIncomeAmount) + parseMoney(incomeForm.fakeIncomeTips)).toLocaleString('vi-VN')} VNĐ
+                </div>
+              </div>
+
+              {/* ── Payment history rows ── */}
+              <div style={{ marginBottom: 8 }}>
                 <div style={{
-                  background: 'linear-gradient(135deg,#1a2340 0%,#243252 100%)',
-                  borderRadius: 12, padding: '14px 18px', marginBottom: 18, color: '#fff'
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10
                 }}>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 4 }}>Tổng thu nhập (xem trước)</div>
-                  <div style={{ fontSize: 24, fontWeight: 800 }}>
-                    {((parseInt(incomeForm.fakeIncomeAmount.replace(/\D/g,''),10)||0) + (parseInt(incomeForm.fakeIncomeTips.replace(/\D/g,''),10)||0)).toLocaleString('vi-VN')} VNĐ
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    📅 Lịch sử thanh toán
                   </div>
+                  <button
+                    onClick={() => setIncomeHistory(h => [...h, { date: '', amount: '' }])}
+                    style={{
+                      padding: '6px 14px', borderRadius: 20, border: '2px solid #6366f1',
+                      background: 'transparent', color: '#6366f1', fontSize: 13, fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >+ Thêm dòng</button>
                 </div>
-              )}
 
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  onClick={handleSetIncome}
-                  disabled={incomeLoading}
-                  style={{
-                    flex: 1, padding: '13px 0', borderRadius: 12, border: 'none',
-                    background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)',
-                    color: '#fff', fontSize: 15, fontWeight: 700, cursor: incomeLoading ? 'not-allowed' : 'pointer',
-                    opacity: incomeLoading ? 0.7 : 1, transition: 'all 0.2s'
-                  }}
-                >
-                  {incomeLoading ? 'Đang lưu...' : '💾 Lưu thu nhập'}
-                </button>
-                <button
-                  onClick={() => setIncomeModalUser(null)}
-                  style={{
-                    flex: 1, padding: '13px 0', borderRadius: 12, border: 'none',
-                    background: '#f3f4f6', color: '#6b7280', fontSize: 15, fontWeight: 700, cursor: 'pointer'
-                  }}
-                >
-                  Hủy
-                </button>
+                {incomeHistory.length === 0 && (
+                  <div style={{
+                    textAlign: 'center', padding: '20px', borderRadius: 12,
+                    background: '#f9fafb', border: '2px dashed #e5e7eb', color: '#9ca3af', fontSize: 13,
+                  }}>
+                    Chưa có dòng nào — ấn "+ Thêm dòng" để thêm
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {incomeHistory.map((row, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex', gap: 8, alignItems: 'center',
+                      background: '#f9fafb', borderRadius: 12, padding: '10px 12px',
+                      border: '1.5px solid #e5e7eb',
+                    }}>
+                      {/* Date */}
+                      <input
+                        type="text"
+                        placeholder="DD/MM  vd: 20/06"
+                        value={row.date}
+                        maxLength={5}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9/]/g, '');
+                          setIncomeHistory(h => h.map((r, i) => i === idx ? { ...r, date: val } : r));
+                        }}
+                        style={{
+                          width: 90, padding: '8px 10px', borderRadius: 8,
+                          border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none',
+                          fontFamily: 'inherit', fontWeight: 600, background: '#fff',
+                          flexShrink: 0,
+                        }}
+                        onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                        onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                      />
+                      {/* Amount */}
+                      <input
+                        type="text" inputMode="numeric"
+                        placeholder="Số tiền"
+                        value={row.amount}
+                        onChange={e => {
+                          const val = fmtInput(e.target.value);
+                          setIncomeHistory(h => h.map((r, i) => i === idx ? { ...r, amount: val } : r));
+                        }}
+                        style={{
+                          flex: 1, padding: '8px 10px', borderRadius: 8,
+                          border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none',
+                          fontFamily: 'inherit', fontWeight: 600, background: '#fff',
+                        }}
+                        onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                        onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                      />
+                      {/* Amount preview */}
+                      {row.amount && (
+                        <div style={{ fontSize: 11, color: '#10b981', fontWeight: 700, flexShrink: 0, minWidth: 60 }}>
+                          {parseMoney(row.amount).toLocaleString('vi-VN')}đ
+                        </div>
+                      )}
+                      {/* Delete */}
+                      <button
+                        onClick={() => setIncomeHistory(h => h.filter((_, i) => i !== idx))}
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%', border: 'none',
+                          background: '#fee2e2', color: '#ef4444', fontSize: 16,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            {/* Footer actions – always visible */}
+            <div style={{ padding: '16px 20px 24px', borderTop: '1px solid #f3f4f6', display: 'flex', gap: 12 }}>
+              <button
+                onClick={handleSetIncome}
+                disabled={incomeLoading}
+                style={{
+                  flex: 2, padding: '14px 0', borderRadius: 14, border: 'none',
+                  background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)',
+                  color: '#fff', fontSize: 15, fontWeight: 800,
+                  cursor: incomeLoading ? 'not-allowed' : 'pointer',
+                  opacity: incomeLoading ? 0.7 : 1,
+                  boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {incomeLoading ? '⏳ Đang lưu...' : '💾 Lưu thu nhập'}
+              </button>
+              <button
+                onClick={() => setIncomeModalUser(null)}
+                style={{
+                  flex: 1, padding: '14px 0', borderRadius: 14, border: '2px solid #e5e7eb',
+                  background: '#fff', color: '#6b7280', fontSize: 15, fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Hủy
+              </button>
             </div>
           </div>
         </div>
