@@ -11,6 +11,7 @@ import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
+import DriverIncomePage from './components/driver/DriverIncomePage'
 import { Joyride, STATUS, EVENTS } from 'react-joyride'
 import type { Step } from 'react-joyride'
 
@@ -1277,8 +1278,9 @@ function MainApp() {
         </>
       )}
 
-      {menuOpen && (
-        <div className="menu-popover">
+      {menuOpen && user?.status === 'approved' && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#f5f5f5', overflowY: 'auto' }}>
+          <DriverIncomePage onBack={() => setMenuOpen(false)} />
         </div>
       )}
 
