@@ -1008,22 +1008,18 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px',
         }}>
           <div style={{
-            background: '#fff', borderRadius: '24px 24px 0 0',
-            width: '100%', maxWidth: 520,
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+            background: '#fff', borderRadius: 24,
+            width: '100%', maxWidth: 480,
+            boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
             maxHeight: '80vh', display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
           }}>
-            {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#e5e7eb' }} />
-            </div>
-
             {/* Header */}
-            <div style={{ padding: '8px 20px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#1a2340,#243252)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>💵</span>
@@ -1117,27 +1113,22 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          padding: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px',
         }}>
-          {/* Bottom sheet style on mobile, centered on desktop */}
+          {/* Centered dialog */}
           <div style={{
             background: '#fff',
-            borderRadius: '24px 24px 0 0',
-            width: '100%', maxWidth: 520,
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
-            maxHeight: '92vh',
+            borderRadius: 24,
+            width: '100%', maxWidth: 500,
+            boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+            maxHeight: '90vh',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
           }}>
-            {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#e5e7eb' }} />
-            </div>
-
             {/* Header */}
             <div style={{
-              padding: '8px 20px 16px',
+              padding: '20px 20px 16px',
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
               borderBottom: '1px solid #f3f4f6',
             }}>

@@ -399,15 +399,18 @@ body {
 
 /* Desktop Layout */
 @media (min-width: 1024px) {
-  .dashboard-main {
-    grid-template-columns: 300px 1fr;
-    gap: 40px;
-  }
-  
   .dashboard-sidebar {
-    position: sticky;
-    top: 20px;
-    height: fit-content;
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 280px;
+    height: calc(100vh - 80px);
+    transform: translateX(0); /* always visible on desktop */
+  }
+
+  .dashboard-main {
+    margin-left: 280px;
+    padding: 32px 36px;
   }
   
   .tabs {
@@ -422,6 +425,14 @@ body {
     text-align: left;
     padding: 15px 20px;
     border-radius: 12px;
+  }
+
+  .hamburger-menu {
+    display: none !important;
+  }
+
+  .mobile-navigation {
+    display: none !important;
   }
 }
 
