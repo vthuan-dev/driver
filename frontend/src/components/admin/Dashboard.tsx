@@ -61,6 +61,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [incomeLoading, setIncomeLoading] = useState(false);
   const [incomeMsg, setIncomeMsg] = useState('');
 
+  // ── Income user-search state ──
+  const [incomeSearchOpen, setIncomeSearchOpen] = useState(false);
+  const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
+  const [incomeSearchResults, setIncomeSearchResults] = useState<User[]>([]);
+
   const loadUsers = async () => {
     try {
       const response = await usersAPI.getAllUsers();
@@ -180,6 +185,9 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   // Open income modal for a specific user
   const openIncomeModal = (user: User) => {
     setIncomeModalUser(user);
+    setIncomeSearchOpen(false);
+    setIncomeSearchQuery('');
+    setIncomeSearchResults([]);
     setIncomeForm({ fakeIncomeAmount: '', fakeIncomeTips: '' });
     // Pre-populate today as first history row
     const now = new Date();
@@ -187,6 +195,31 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     setIncomeHistory([{ date: `${dd}/${mm}`, amount: '' }]);
     setIncomeMsg('');
+  };
+
+  // Open the user-search step
+  const openIncomeSearch = () => {
+    setIncomeSearchOpen(true);
+    setIncomeSearchQuery('');
+    setIncomeSearchResults(users.filter(u => u.status === 'approved').slice(0, 8));
+  };
+
+  // Search handler – runs against already-loaded users list
+  const handleIncomeSearch = (q: string) => {
+    setIncomeSearchQuery(q);
+    const approved = users.filter(u => u.status === 'approved');
+    if (!q.trim()) {
+      setIncomeSearchResults(approved.slice(0, 8));
+      return;
+    }
+    const numeric = q.replace(/\D/g, '');
+    const lower = q.toLowerCase();
+    const results = approved.filter(u => {
+      const nameMatch = u.name.toLowerCase().includes(lower);
+      const phoneMatch = numeric ? u.phone.replace(/\D/g, '').includes(numeric) : false;
+      return nameMatch || phoneMatch;
+    }).slice(0, 10);
+    setIncomeSearchResults(results);
   };
 
   const fmtInput = (raw: string) => raw.replace(/\D/g, '');
@@ -368,6 +401,14 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>🔑</span>
                 <span>Đổi mật khẩu</span>
               </button>
+              <button
+                className="tab"
+                style={{ background: 'linear-gradient(135deg,#1a2340,#243252)', color: '#fff', marginTop: 8 }}
+                onClick={openIncomeSearch}
+              >
+                <span>💵</span>
+                <span>Cài thu nhập ảo</span>
+              </button>
             </div>
           </div>
         </div>
@@ -450,6 +491,14 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               >
                 <span>🔑</span>
                 <span>Đổi MK</span>
+              </button>
+              <button
+                className="mobile-tab"
+                style={{ background: 'linear-gradient(135deg,#1a2340,#243252)', color: '#fff' }}
+                onClick={openIncomeSearch}
+              >
+                <span>💵</span>
+                <span>Thu nhập</span>
               </button>
             </div>
           </div>
@@ -954,6 +1003,115 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
         </div>
       </div>
 
+      {/* ── Income User Search Modal ───────────────────────────── */}
+      {incomeSearchOpen && !incomeModalUser && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '24px 24px 0 0',
+            width: '100%', maxWidth: 520,
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+            maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            {/* Drag handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: '#e5e7eb' }} />
+            </div>
+
+            {/* Header */}
+            <div style={{ padding: '8px 20px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#1a2340,#243252)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>💵</span>
+                  Cài thu nhập ảo
+                </div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Tìm tài xế để cài thu nhập</div>
+              </div>
+              <button onClick={() => { setIncomeSearchOpen(false); setIncomeSearchQuery(''); }} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: '#f3f4f6', color: '#6b7280', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+
+            {/* Search input */}
+            <div style={{ padding: '16px 20px 8px' }}>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16, pointerEvents: 'none' }}>🔍</span>
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Tìm theo tên hoặc số điện thoại..."
+                  value={incomeSearchQuery}
+                  onChange={e => handleIncomeSearch(e.target.value)}
+                  style={{
+                    width: '100%', padding: '13px 14px 13px 42px',
+                    borderRadius: 14, border: '2px solid #e5e7eb',
+                    fontSize: 15, outline: 'none', boxSizing: 'border-box',
+                    fontFamily: 'inherit', fontWeight: 500,
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#6366f1'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                />
+                {incomeSearchQuery && (
+                  <button onClick={() => handleIncomeSearch('')} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: 18, color: '#9ca3af', cursor: 'pointer', lineHeight: 1, padding: 4 }}>×</button>
+                )}
+              </div>
+            </div>
+
+            {/* Results */}
+            <div style={{ overflowY: 'auto', flex: 1, padding: '4px 12px 20px' }}>
+              {incomeSearchResults.length === 0 && incomeSearchQuery.trim() ? (
+                <div style={{ textAlign: 'center', padding: '32px 20px', color: '#9ca3af' }}>
+                  <div style={{ fontSize: 36, marginBottom: 8 }}>🔍</div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Không tìm thấy tài xế</div>
+                  <div style={{ fontSize: 12, marginTop: 4 }}>Thử tìm bằng tên hoặc SĐT khác</div>
+                </div>
+              ) : (
+                incomeSearchResults.map(u => (
+                  <button
+                    key={u._id}
+                    onClick={() => openIncomeModal(u)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 16px', borderRadius: 14, border: 'none',
+                      background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                      transition: 'background 0.15s', marginBottom: 4,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {/* Avatar */}
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                      background: 'linear-gradient(135deg,#00b14f,#009140)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, fontWeight: 800, color: '#fff',
+                    }}>
+                      {u.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{u.name}</div>
+                      <div style={{ fontSize: 13, color: '#6b7280' }}>{u.phone}</div>
+                    </div>
+                    {/* Arrow */}
+                    <div style={{ fontSize: 20, color: '#d1d5db' }}>›</div>
+                  </button>
+                ))
+              )}
+
+              {!incomeSearchQuery && incomeSearchResults.length > 0 && (
+                <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', paddingTop: 8 }}>
+                  Hiển thị {incomeSearchResults.length} tài xế gần đây · Gõ để tìm thêm
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Income Modal ───────────────────────────────────────── */}
       {incomeModalUser && (
         <div style={{
@@ -1001,7 +1159,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 background: '#f3f4f6', color: '#6b7280', fontSize: 20,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0, marginTop: 4,
-              }}>×</button>
+              }}>‹</button>
             </div>
 
             {/* Scrollable body */}
@@ -1192,14 +1350,14 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 {incomeLoading ? '⏳ Đang lưu...' : '💾 Lưu thu nhập'}
               </button>
               <button
-                onClick={() => setIncomeModalUser(null)}
+                onClick={() => { setIncomeModalUser(null); setIncomeSearchOpen(true); handleIncomeSearch(''); }}
                 style={{
                   flex: 1, padding: '14px 0', borderRadius: 14, border: '2px solid #e5e7eb',
                   background: '#fff', color: '#6b7280', fontSize: 15, fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
-                Hủy
+                ‹ Chọn lại
               </button>
             </div>
           </div>
