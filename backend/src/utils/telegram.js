@@ -293,8 +293,16 @@ async function handleUpdate(update) {
       }
     }
   } else if (update.message && update.message.text) {
-    const text = update.message.text.trim();
+    let text = update.message.text.trim();
     const chatId = update.message.chat.id;
+
+    // Strip bot username suffix in group chats (e.g., /pending@duyetlaixebot -> /pending)
+    if (text.includes('@')) {
+      const parts = text.split('@');
+      if (parts[1] && parts[1].toLowerCase() === 'duyetlaixebot') {
+        text = parts[0];
+      }
+    }
 
     // Check if this message is a reply to manual number input prompt
     if (update.message.reply_to_message && 
