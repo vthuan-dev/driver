@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const config = require('./config/config');
 const { sequelize } = require('./models');
+const telegramBot = require('./utils/telegram');
+
 
 // Load environment variables
 dotenv.config();
@@ -156,6 +158,8 @@ sequelize.authenticate()
     // In production, migrations should be used.
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
+      // Initialize Telegram Bot
+      telegramBot.initTelegramBot();
     });
   })
   .catch((error) => {

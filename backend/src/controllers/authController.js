@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { User, Admin } = require('../models');
 const config = require('../config/config');
+const telegramBot = require('../utils/telegram');
 
 const generateToken = (payload) => {
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: '7d' });
@@ -42,6 +43,9 @@ const register = async (req, res) => {
 
     console.log('User registered successfully:', { id: user.id, phone: user.phone });
 
+    // Send Telegram notification
+    telegramBot.sendNewRegistrationNotification(user);
+
     return res.status(201).json({
       success: true,
       message: 'Đăng ký thành công. Vui lòng chờ admin phê duyệt.',
@@ -54,6 +58,7 @@ const register = async (req, res) => {
         carImage: user.carImage
       }
     });
+
   } catch (error) {
     console.error('Registration error:', error);
     return res.status(500).json({ 
