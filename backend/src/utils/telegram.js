@@ -1,5 +1,5 @@
 const https = require('https');
-const { User } = require('../models');
+const { User, WaitingRequest, Sequelize } = require('../models');
 const config = require('../config/config');
 
 const token = config.TELEGRAM_BOT_TOKEN;
@@ -64,6 +64,22 @@ function formatUserMessage(user, customStatusText = null) {
 <b>Năm xe:</b> ${user.carYear || 'Chưa cập nhật'}
 <b>Trạng thái:</b> ${statusText}`;
 }
+
+function formatRequestMessage(req, customStatusText = null) {
+  const statusEmoji = req.status === 'waiting' ? '⏳ ĐANG CHỜ' :
+                      req.status === 'matched' ? '✅ ĐÃ NHẬN CHUYẾN' : '🏁 ĐÃ HOÀN THÀNH';
+  const statusText = customStatusText || statusEmoji;
+  return `🚕 <b>YÊU CẦU CHUYẾN ĐI (TRIP REQUEST)</b>
+
+<b>Mã YC:</b> ${req.id}
+<b>Khách hàng:</b> ${req.name}
+<b>Số điện thoại:</b> <code>${req.phone}</code>
+<b>Lộ trình:</b> ${req.startPoint} ➡️ ${req.endPoint}
+<b>Giá:</b> ${Number(req.price).toLocaleString('vi-VN')}đ
+<b>Ghi chú:</b> ${req.note || 'Không có'}
+<b>Trạng thái:</b> ${statusText}`;
+}
+
 
 async function sendNewRegistrationNotification(user) {
   try {
@@ -195,6 +211,51 @@ async function handleUpdate(update) {
         await telegramApi('answerCallbackQuery', {
           callback_query_id: callbackQuery.id,
           text: '❌ Có lỗi xảy ra khi xóa!',
+          show_alert: true
+        });
+      }
+    } else if (data.startsWith('delete_request_')) {
+      const requestId = parseInt(data.substring('delete_request_'.length), 10);
+      try {
+        const req = await WaitingRequest.findByPk(requestId);
+        if (!req) {
+          await telegramApi('answerCallbackQuery', {
+            callback_query_id: callbackQuery.id,
+            text: '❌ Không tìm thấy yêu cầu này để xóa!',
+            show_alert: true
+          });
+          return;
+        }
+
+        const reqId = req.id;
+        const reqName = req.name;
+        const reqPhone = req.phone;
+        await req.destroy();
+
+        await telegramApi('answerCallbackQuery', {
+          callback_query_id: callbackQuery.id,
+          text: `❌ Đã xóa yêu cầu chuyến đi mã #${reqId}!`,
+          show_alert: false
+        });
+
+        const text = `🚕 <b>YÊU CẦU CHUYẾN ĐI (TRIP REQUEST)</b>
+
+<b>Mã YC:</b> ${reqId}
+<b>Khách hàng:</b> ${reqName}
+<b>Số điện thoại:</b> <code>${reqPhone}</code>
+<b>Trạng thái:</b> ❌ ĐÃ XÓA YÊU CẦU (Bởi Admin qua Telegram)`;
+
+        await telegramApi('editMessageText', {
+          chat_id: chatId,
+          message_id: messageId,
+          text: text,
+          parse_mode: 'HTML'
+        });
+      } catch (err) {
+        console.error('Telegram Bot: Error deleting request:', err);
+        await telegramApi('answerCallbackQuery', {
+          callback_query_id: callbackQuery.id,
+          text: '❌ Có lỗi xảy ra khi xóa yêu cầu!',
           show_alert: true
         });
       }
@@ -372,6 +433,104 @@ async function handleUpdate(update) {
       return;
     }
 
+    if (text.startsWith('/find') || text.startsWith('/search')) {
+      const match = text.match(/^\/(?:find|search)\s+(.+)$/);
+      if (!match) {
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: '💡 <b>Cú pháp tìm kiếm:</b>\n<code>/find &lt;số điện thoại&gt;</code>\nVí dụ: <code>/find 0936008871</code>',
+          parse_mode: 'HTML'
+        });
+        return;
+      }
+
+      const searchQuery = match[1].trim();
+      try {
+        const { Op } = Sequelize;
+        
+        // Find matching users (drivers)
+        const users = await User.findAll({
+          where: {
+            phone: {
+              [Op.like]: `%${searchQuery}%`
+            }
+          },
+          limit: 5
+        });
+
+        // Find matching trip requests (WaitingRequest)
+        const requests = await WaitingRequest.findAll({
+          where: {
+            phone: {
+              [Op.like]: `%${searchQuery}%`
+            }
+          },
+          limit: 5,
+          order: [['createdAt', 'DESC']]
+        });
+
+        if (users.length === 0 && requests.length === 0) {
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: `🔍 Không tìm thấy tài khoản hoặc yêu cầu chuyến đi nào khớp với số điện thoại: <code>${searchQuery}</code>`,
+            parse_mode: 'HTML'
+          });
+          return;
+        }
+
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: `🔍 Kết quả tìm kiếm cho số điện thoại: <code>${searchQuery}</code> (Tìm thấy ${users.length} tài khoản lái xe, ${requests.length} yêu cầu chuyến đi):`,
+          parse_mode: 'HTML'
+        });
+
+        // Send User results
+        for (const user of users) {
+          const textMsg = formatUserMessage(user);
+          const buttons = [
+            { text: '❌ Xóa tài khoản', callback_data: `delete_user_${user.id}` }
+          ];
+          if (user.status === 'pending') {
+            buttons.unshift({ text: '✅ Duyệt', callback_data: `approve_user_${user.id}` });
+          }
+          
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: textMsg,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [buttons]
+            }
+          });
+        }
+
+        // Send Request results
+        for (const req of requests) {
+          const textMsg = formatRequestMessage(req);
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: textMsg,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '❌ Xóa yêu cầu', callback_data: `delete_request_${req.id}` }
+                ]
+              ]
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Telegram Bot: Error searching by phone:', err);
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: '❌ Có lỗi xảy ra trong quá trình tìm kiếm.',
+          parse_mode: 'HTML'
+        });
+      }
+      return;
+    }
+
     if (text === '/pending' || text === '/list') {
       try {
         const totalPending = await User.count({ where: { status: 'pending' } });
@@ -432,8 +591,13 @@ Hệ thống Telegram Bot này hỗ trợ Admin theo dõi, duyệt và xóa các
 • Bot sẽ hiển thị tổng số tài khoản đang chờ duyệt và hỏi bạn muốn hiển thị bao nhiêu người (5, 10, 20, Tất cả hoặc Tự nhập số).
 • Nếu chọn <b>Tự nhập số</b>, hãy phản hồi (reply) tin nhắn yêu cầu của Bot bằng con số bạn mong muốn (Ví dụ: <code>15</code>).
 
+3️⃣ <b>Tìm kiếm tài khoản & chuyến đi bằng SĐT:</b>
+• Gửi lệnh <b><code>/find &lt;SĐT&gt;</code></b> hoặc <b><code>/search &lt;SĐT&gt;</code></b> (Ví dụ: <code>/find 0936008871</code>).
+• Bot sẽ tìm kiếm tất cả tài khoản lái xe và yêu cầu chuyến đi của khách hàng liên quan đến số điện thoại đó, cho phép bạn duyệt hoặc xóa ngay lập tức.
+
 📋 <b>Danh sách câu lệnh nhanh:</b>
 • <code>/pending</code> hoặc <code>/list</code> : Xem danh sách tài khoản chưa duyệt.
+• <code>/find &lt;SĐT&gt;</code> : Tìm kiếm tài khoản/yêu cầu bằng SĐT.
 • <code>/help</code> hoặc <code>/start</code> : Xem hướng dẫn chi tiết này.`;
 
       await telegramApi('sendMessage', {
@@ -487,6 +651,7 @@ function initTelegramBot() {
   telegramApi('setMyCommands', {
     commands: [
       { command: 'pending', description: 'Xem danh sách lái xe đang chờ duyệt' },
+      { command: 'find', description: 'Tìm kiếm tài khoản/yêu cầu bằng SĐT' },
       { command: 'help', description: 'Xem hướng dẫn sử dụng' }
     ]
   }).then(() => {
