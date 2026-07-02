@@ -405,15 +405,31 @@ async function handleUpdate(update) {
         });
       }
     } else if (text === '/start' || text === '/help') {
+      const helpText = `🤖 <b>HƯỚNG DẪN SỬ DỤNG BOT QUẢN LÝ LÁI XE</b>
+
+Hệ thống Telegram Bot này hỗ trợ Admin theo dõi, duyệt và xóa các tài khoản lái xe mới đăng ký một cách nhanh chóng và trực quan.
+
+📌 <b>Các tính năng chính:</b>
+
+1️⃣ <b>Thông báo đăng ký mới tự động:</b>
+• Mỗi khi có một lái xe mới đăng ký trên ứng dụng, hệ thống sẽ gửi một tin nhắn thông báo tự động chứa đầy đủ thông tin (Họ tên, SĐT, Loại xe, Năm sản xuất, Mật khẩu...).
+• Bên dưới tin nhắn sẽ có hai nút bấm:
+  - <code>[✅ Duyệt]</code>: Nhấn để kích hoạt ngay tài khoản đó.
+  - <code>[❌ Xóa tài khoản]</code>: Nhấn để xóa vĩnh viễn tài khoản khỏi hệ thống.
+• Sau khi nhấn, tin nhắn sẽ tự cập nhật trạng thái mới nhất và ẩn các nút bấm đi để đảm bảo tính an toàn.
+
+2️⃣ <b>Xem danh sách chờ duyệt chủ động:</b>
+• Gửi lệnh <b><code>/pending</code></b> hoặc <b><code>/list</code></b>.
+• Bot sẽ hiển thị tổng số tài khoản đang chờ duyệt và hỏi bạn muốn hiển thị bao nhiêu người (5, 10, 20, Tất cả hoặc Tự nhập số).
+• Nếu chọn <b>Tự nhập số</b>, hãy phản hồi (reply) tin nhắn yêu cầu của Bot bằng con số bạn mong muốn (Ví dụ: <code>15</code>).
+
+📋 <b>Danh sách câu lệnh nhanh:</b>
+• <code>/pending</code> hoặc <code>/list</code> : Xem danh sách tài khoản chưa duyệt.
+• <code>/help</code> hoặc <code>/start</code> : Xem hướng dẫn chi tiết này.`;
+
       await telegramApi('sendMessage', {
         chat_id: chatId,
-        text: `🤖 <b>Hệ thống Quản lý Lái xe qua Telegram</b>
-
-Các lệnh hỗ trợ:
-• <code>/pending</code> hoặc <code>/list</code> : Xem danh sách thành viên đang chờ duyệt.
-• <code>/help</code> : Hiển thị hướng dẫn này.
-
-Khi có tài khoản mới đăng ký, Bot sẽ gửi tin nhắn trực tiếp kèm nút Duyệt/Xóa nhanh.`,
+        text: helpText,
         parse_mode: 'HTML'
       });
     }
