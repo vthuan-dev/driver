@@ -647,7 +647,7 @@ function initTelegramBot() {
   isPolling = true;
   console.log('Telegram Bot: Initializing long-polling...');
   
-  // Set bot commands suggestion
+  // Set bot commands suggestion for private chats (default)
   telegramApi('setMyCommands', {
     commands: [
       { command: 'pending', description: 'Xem danh sách lái xe đang chờ duyệt' },
@@ -655,9 +655,23 @@ function initTelegramBot() {
       { command: 'help', description: 'Xem hướng dẫn sử dụng' }
     ]
   }).then(() => {
-    console.log('Telegram Bot: Commands suggestion set successfully.');
+    console.log('Telegram Bot: Default commands suggestion set successfully.');
   }).catch(err => {
-    console.error('Telegram Bot: Failed to set commands suggestion:', err.message || err);
+    console.error('Telegram Bot: Failed to set default commands suggestion:', err.message || err);
+  });
+
+  // Set bot commands suggestion for group chats
+  telegramApi('setMyCommands', {
+    commands: [
+      { command: 'pending', description: 'Xem danh sách lái xe đang chờ duyệt' },
+      { command: 'find', description: 'Tìm kiếm tài khoản/yêu cầu bằng SĐT' },
+      { command: 'help', description: 'Xem hướng dẫn sử dụng' }
+    ],
+    scope: { type: 'all_group_chats' }
+  }).then(() => {
+    console.log('Telegram Bot: Group commands suggestion set successfully.');
+  }).catch(err => {
+    console.error('Telegram Bot: Failed to set group commands suggestion:', err.message || err);
   });
 
   pollUpdates();
