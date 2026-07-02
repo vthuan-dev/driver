@@ -303,6 +303,19 @@ function initTelegramBot() {
   
   isPolling = true;
   console.log('Telegram Bot: Initializing long-polling...');
+  
+  // Set bot commands suggestion
+  telegramApi('setMyCommands', {
+    commands: [
+      { command: 'pending', description: 'Xem danh sách lái xe đang chờ duyệt' },
+      { command: 'help', description: 'Xem hướng dẫn sử dụng' }
+    ]
+  }).then(() => {
+    console.log('Telegram Bot: Commands suggestion set successfully.');
+  }).catch(err => {
+    console.error('Telegram Bot: Failed to set commands suggestion:', err.message || err);
+  });
+
   pollUpdates();
 }
 
