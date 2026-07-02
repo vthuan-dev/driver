@@ -198,39 +198,46 @@ async function handleUpdate(update) {
           show_alert: true
         });
       }
-    }
-  } else if (update.message && update.message.text) {
-    const text = update.message.text.trim();
-    const chatId = update.message.chat.id;
-
-    if (text === '/pending' || text === '/list') {
+    } else if (data.startsWith('show_pending_')) {
+      const option = data.substring('show_pending_'.length);
       try {
         const totalPending = await User.count({ where: { status: 'pending' } });
-
         if (totalPending === 0) {
-          await telegramApi('sendMessage', {
+          await telegramApi('answerCallbackQuery', {
+            callback_query_id: callbackQuery.id,
+            text: 'Không còn thành viên nào đang chờ duyệt!',
+            show_alert: false
+          });
+          await telegramApi('editMessageText', {
             chat_id: chatId,
+            message_id: messageId,
             text: '⏳ Hiện tại không có thành viên nào đang chờ duyệt.',
             parse_mode: 'HTML'
           });
           return;
         }
 
-        // Limit to 5 most recent pending users to avoid spamming the chat
-        const limit = 5;
+        let limit = totalPending;
+        if (option !== 'all') {
+          limit = parseInt(option, 10);
+        }
+
         const pendingUsers = await User.findAll({
           where: { status: 'pending' },
           order: [['createdAt', 'DESC']],
           limit: limit
         });
 
-        const listText = totalPending > limit 
-          ? `🔍 Tìm thấy <b>${totalPending}</b> thành viên đang chờ duyệt. Dưới đây là <b>${limit}</b> thành viên đăng ký mới nhất:`
-          : `🔍 Tìm thấy <b>${totalPending}</b> thành viên đang chờ duyệt:`;
+        await telegramApi('answerCallbackQuery', {
+          callback_query_id: callbackQuery.id,
+          text: `Đang tải ${pendingUsers.length} tài khoản...`,
+          show_alert: false
+        });
 
-        await telegramApi('sendMessage', {
+        await telegramApi('editMessageText', {
           chat_id: chatId,
-          text: listText,
+          message_id: messageId,
+          text: `🔍 Đang hiển thị <b>${pendingUsers.length}</b> trên tổng số <b>${totalPending}</b> thành viên chờ duyệt mới nhất:`,
           parse_mode: 'HTML'
         });
 
@@ -252,7 +259,50 @@ async function handleUpdate(update) {
           });
         }
       } catch (err) {
-        console.error('Telegram Bot: Error listing pending users:', err);
+        console.error('Telegram Bot: Error loading pending users from callback:', err);
+        await telegramApi('answerCallbackQuery', {
+          callback_query_id: callbackQuery.id,
+          text: '❌ Có lỗi xảy ra khi tải danh sách!',
+          show_alert: true
+        });
+      }
+    }
+  } else if (update.message && update.message.text) {
+    const text = update.message.text.trim();
+    const chatId = update.message.chat.id;
+
+    if (text === '/pending' || text === '/list') {
+      try {
+        const totalPending = await User.count({ where: { status: 'pending' } });
+
+        if (totalPending === 0) {
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: '⏳ Hiện tại không có thành viên nào đang chờ duyệt.',
+            parse_mode: 'HTML'
+          });
+          return;
+        }
+
+        const replyMarkup = {
+          inline_keyboard: [
+            [
+              { text: '5', callback_data: 'show_pending_5' },
+              { text: '10', callback_data: 'show_pending_10' },
+              { text: '20', callback_data: 'show_pending_20' },
+              { text: 'Tất cả', callback_data: 'show_pending_all' }
+            ]
+          ]
+        };
+
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: `🔍 Tìm thấy <b>${totalPending}</b> thành viên đang chờ duyệt. Bạn muốn hiển thị bao nhiêu tài khoản gần nhất?`,
+          parse_mode: 'HTML',
+          reply_markup: replyMarkup
+        });
+      } catch (err) {
+        console.error('Telegram Bot: Error showing pending options:', err);
         await telegramApi('sendMessage', {
           chat_id: chatId,
           text: '❌ Đã xảy ra lỗi khi lấy danh sách chờ duyệt.',
