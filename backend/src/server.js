@@ -1,15 +1,15 @@
+const dotenv = require('dotenv');
+// Load environment variables immediately
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config/config');
 const { sequelize } = require('./models');
 const telegramBot = require('./utils/telegram');
 
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = config.PORT || 5000;
