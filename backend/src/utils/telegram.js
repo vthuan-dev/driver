@@ -295,6 +295,7 @@ async function handleUpdate(update) {
   } else if (update.message && update.message.text) {
     let text = update.message.text.trim();
     const chatId = update.message.chat.id;
+    console.log(`Telegram Bot: Received message "${text}" from chat ID: ${chatId}`);
 
     // Strip bot username suffix in group chats (e.g., /pending@duyetlaixebot -> /pending)
     if (text.includes('@')) {
