@@ -205,12 +205,9 @@ async function handleUpdate(update) {
 
     if (text === '/pending' || text === '/list') {
       try {
-        const pendingUsers = await User.findAll({
-          where: { status: 'pending' },
-          order: [['createdAt', 'DESC']]
-        });
+        const totalPending = await User.count({ where: { status: 'pending' } });
 
-        if (pendingUsers.length === 0) {
+        if (totalPending === 0) {
           await telegramApi('sendMessage', {
             chat_id: chatId,
             text: '⏳ Hiện tại không có thành viên nào đang chờ duyệt.',
@@ -219,9 +216,21 @@ async function handleUpdate(update) {
           return;
         }
 
+        // Limit to 5 most recent pending users to avoid spamming the chat
+        const limit = 5;
+        const pendingUsers = await User.findAll({
+          where: { status: 'pending' },
+          order: [['createdAt', 'DESC']],
+          limit: limit
+        });
+
+        const listText = totalPending > limit 
+          ? `🔍 Tìm thấy <b>${totalPending}</b> thành viên đang chờ duyệt. Dưới đây là <b>${limit}</b> thành viên đăng ký mới nhất:`
+          : `🔍 Tìm thấy <b>${totalPending}</b> thành viên đang chờ duyệt:`;
+
         await telegramApi('sendMessage', {
           chat_id: chatId,
-          text: `🔍 Tìm thấy <b>${pendingUsers.length}</b> thành viên đang chờ duyệt:`,
+          text: listText,
           parse_mode: 'HTML'
         });
 
