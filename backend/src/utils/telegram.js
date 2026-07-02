@@ -217,6 +217,31 @@ async function handleUpdate(update) {
           return;
         }
 
+        if (option === 'custom') {
+          await telegramApi('answerCallbackQuery', {
+            callback_query_id: callbackQuery.id,
+            text: 'Hãy nhập số lượng...',
+            show_alert: false
+          });
+
+          await telegramApi('editMessageText', {
+            chat_id: chatId,
+            message_id: messageId,
+            text: '⌨️ Bạn đã chọn tự nhập số lượng.',
+            parse_mode: 'HTML'
+          });
+
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: '⌨️ Vui lòng phản hồi (reply) tin nhắn này và nhập số lượng tài khoản bạn muốn xem (Ví dụ: 15):',
+            reply_markup: {
+              force_reply: true,
+              selective: true
+            }
+          });
+          return;
+        }
+
         let limit = totalPending;
         if (option !== 'all') {
           limit = parseInt(option, 10);
@@ -271,6 +296,73 @@ async function handleUpdate(update) {
     const text = update.message.text.trim();
     const chatId = update.message.chat.id;
 
+    // Check if this message is a reply to manual number input prompt
+    if (update.message.reply_to_message && 
+        update.message.reply_to_message.text && 
+        update.message.reply_to_message.text.includes('Vui lòng phản hồi (reply) tin nhắn này và nhập số lượng')) {
+      
+      try {
+        const limit = parseInt(text, 10);
+        const totalPending = await User.count({ where: { status: 'pending' } });
+
+        if (isNaN(limit) || limit <= 0) {
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: '❌ Số lượng nhập không hợp lệ. Vui lòng phản hồi lại bằng một số nguyên dương.',
+            parse_mode: 'HTML'
+          });
+          return;
+        }
+
+        if (totalPending === 0) {
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: '⏳ Hiện tại không có thành viên nào đang chờ duyệt.',
+            parse_mode: 'HTML'
+          });
+          return;
+        }
+
+        const pendingUsers = await User.findAll({
+          where: { status: 'pending' },
+          order: [['createdAt', 'DESC']],
+          limit: limit
+        });
+
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: `🔍 Đang hiển thị <b>${pendingUsers.length}</b> trên tổng số <b>${totalPending}</b> thành viên chờ duyệt mới nhất:`,
+          parse_mode: 'HTML'
+        });
+
+        for (const user of pendingUsers) {
+          const textMsg = formatUserMessage(user);
+          const replyMarkup = {
+            inline_keyboard: [
+              [
+                { text: '✅ Duyệt', callback_data: `approve_user_${user.id}` },
+                { text: '❌ Xóa tài khoản', callback_data: `delete_user_${user.id}` }
+              ]
+            ]
+          };
+          await telegramApi('sendMessage', {
+            chat_id: chatId,
+            text: textMsg,
+            parse_mode: 'HTML',
+            reply_markup: replyMarkup
+          });
+        }
+      } catch (err) {
+        console.error('Telegram Bot: Error loading custom pending count:', err);
+        await telegramApi('sendMessage', {
+          chat_id: chatId,
+          text: '❌ Đã xảy ra lỗi khi lấy danh sách chờ duyệt.',
+          parse_mode: 'HTML'
+        });
+      }
+      return;
+    }
+
     if (text === '/pending' || text === '/list') {
       try {
         const totalPending = await User.count({ where: { status: 'pending' } });
@@ -289,8 +381,11 @@ async function handleUpdate(update) {
             [
               { text: '5', callback_data: 'show_pending_5' },
               { text: '10', callback_data: 'show_pending_10' },
-              { text: '20', callback_data: 'show_pending_20' },
-              { text: 'Tất cả', callback_data: 'show_pending_all' }
+              { text: '20', callback_data: 'show_pending_20' }
+            ],
+            [
+              { text: 'Tất cả', callback_data: 'show_pending_all' },
+              { text: '⌨️ Tự nhập số', callback_data: 'show_pending_custom' }
             ]
           ]
         };
