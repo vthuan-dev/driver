@@ -117,7 +117,7 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
   if (fakeNotifications.length === 0 && !showErrorPopup) return null;
 
   return (
-    <div className="fake-notifications-section" style={{ margin: '15px 20px', borderRadius: '12px' }}>
+    <div className="fake-notifications-section" style={{ margin: '15px 10px', borderRadius: '12px', padding: '16px' }}>
       <div className="section-header">
         <h3 style={{ fontSize: '1rem' }}>🔔 Bạn có cuốc xe có thể nhận</h3>
         {loadingNotifications ? (
