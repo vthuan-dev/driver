@@ -126,6 +126,8 @@
   background: #f3f4f6;
   border-radius: 10px;
   padding: 6px 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ride-time-icon {
@@ -134,6 +136,7 @@
 
 .ride-time-text {
   color: #374151;
+  white-space: nowrap;
 }
 
 /* Summary row: cartype + route on the left, price on the right */
