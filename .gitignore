@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Embedded repos / assets khong nen commit vao repo nay
+customer/
+driver-us/
+image.png
+logo.png
+banner-ctm.png
+startapp.png
