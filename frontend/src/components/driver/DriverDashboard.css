@@ -170,23 +170,30 @@
   font-weight: 700;
 }
 
-.ride-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.ride-pin {
+  font-size: 14px;
+  line-height: 1;
   flex-shrink: 0;
 }
 
-.ride-dot-start {
-  background: #00b14f;
+.ride-pin-start {
+  filter: hue-rotate(85deg) saturate(1.6);
 }
 
-.ride-dot-end {
-  background: #e53935;
+.ride-pin-end {
+  filter: none;
 }
 
 .ride-summary-point {
   color: #1f2937;
+}
+
+.ride-point-start {
+  color: #00b14f;
+}
+
+.ride-point-end {
+  color: #e53935;
 }
 
 .ride-summary-arrow {
@@ -275,15 +282,23 @@
   padding-bottom: 0;
 }
 
+.ride-point-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .ride-badge {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 20px;
+  flex-shrink: 0;
 }
 
 .ride-badge-start {
@@ -297,17 +312,17 @@
 }
 
 .ride-point-name {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: #1f2937;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .ride-point-area {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   color: #9ca3af;
-  line-height: 1.35;
+  line-height: 1.3;
   margin-top: 2px;
 }
 
