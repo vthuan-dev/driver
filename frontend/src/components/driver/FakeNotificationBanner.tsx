@@ -144,8 +144,13 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                   <span className="ride-time-wrap">
                     <span className="ride-time-icon">🕐</span>
                     <span className="ride-time-text">
-                      {notification.displayTime}
-                      {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
+                      {(() => {
+                        const d = notification.displayDate ? new Date(notification.displayDate) : new Date();
+                        const weekday = d.toLocaleDateString('vi-VN', { weekday: 'long' });
+                        const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+                        const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        return `${notification.displayTime} · ${cap}, ${dateStr}`;
+                      })()}
                     </span>
                   </span>
                   <span className="ride-price-block">
