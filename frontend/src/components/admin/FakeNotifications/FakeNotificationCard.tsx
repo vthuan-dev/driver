@@ -29,6 +29,13 @@ const FakeNotificationCard = ({ template, onEdit, onDelete, onToggle }: Props) =
           <span className="arrow">→</span>
           <span className="end-point">{template.endPoint}</span>
         </div>
+
+        {(template.startArea || template.endArea) && (
+          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', lineHeight: 1.5 }}>
+            {template.startArea && <div>📍 Đón: {template.startArea}</div>}
+            {template.endArea && <div>📍 Đến: {template.endArea}</div>}
+          </div>
+        )}
         
         <div className="details">
           <span className="car-type">🚗 {template.carType} chỗ</span>

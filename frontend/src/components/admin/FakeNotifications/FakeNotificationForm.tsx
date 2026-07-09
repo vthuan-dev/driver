@@ -6,6 +6,8 @@ type FormData = {
   region: 'north' | 'central' | 'south';
   startPoint: string;
   endPoint: string;
+  startArea: string;
+  endArea: string;
   displayTime: string;
   displayDate: string;
   carType: '4' | '7' | '16';
@@ -47,6 +49,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
     region: 'north',
     startPoint: '',
     endPoint: '',
+    startArea: '',
+    endArea: '',
     displayTime: '08:00',
     displayDate: '',
     carType: '7',
@@ -64,6 +68,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
         region: template.region,
         startPoint: template.startPoint,
         endPoint: template.endPoint,
+        startArea: template.startArea || '',
+        endArea: template.endArea || '',
         displayTime: template.displayTime,
         displayDate: template.displayDate || '',
         carType: template.carType,
@@ -185,6 +191,28 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
               ))}
             </select>
             {errors.endPoint && <span className="error-text">{errors.endPoint}</span>}
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Khu vực điểm đón (tùy chọn)</label>
+            <input
+              type="text"
+              value={formData.startArea}
+              onChange={(e) => handleChange('startArea', e.target.value)}
+              placeholder="VD: Thành phố Việt Trì, Phú Thọ"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Khu vực điểm đến (tùy chọn)</label>
+            <input
+              type="text"
+              value={formData.endArea}
+              onChange={(e) => handleChange('endArea', e.target.value)}
+              placeholder="VD: Sa Pa, Lào Cai"
+            />
           </div>
         </div>
 

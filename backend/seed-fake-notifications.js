@@ -9,16 +9,16 @@ const { sequelize, FakeNotification, AppSetting, Admin } = require('./src/models
 
 // 10 tuyến miền Bắc, giá thực tế
 const templates = [
-  { startPoint: 'Hà Nội',    endPoint: 'Bắc Ninh',   displayTime: '08:30', carType: '4', price: 360000,  note: 'Đón tại Cầu Giấy, khách 2 người ít đồ' },
-  { startPoint: 'Hà Nội',    endPoint: 'Hải Phòng',  displayTime: '09:15', carType: '7', price: 850000,  note: 'Đi công tác, cần đúng giờ, xe đời mới' },
-  { startPoint: 'Hà Nội',    endPoint: 'Hạ Long',    displayTime: '07:45', carType: '7', price: 1100000, note: 'Gia đình đi du lịch, có trẻ nhỏ' },
-  { startPoint: 'Hà Nội',    endPoint: 'Ninh Bình',  displayTime: '10:00', carType: '4', price: 700000,  note: 'Khách đi lễ chùa Bái Đính' },
-  { startPoint: 'Hà Nội',    endPoint: 'Thái Nguyên',displayTime: '13:30', carType: '4', price: 650000,  note: 'Đón tại Long Biên' },
-  { startPoint: 'Hà Nội',    endPoint: 'Nam Định',   displayTime: '14:20', carType: '7', price: 720000,  note: 'Khách về quê, nhiều hành lý' },
-  { startPoint: 'Hà Nội',    endPoint: 'Phú Thọ',    displayTime: '15:00', carType: '4', price: 680000,  note: 'Đi Đền Hùng, khách 3 người' },
-  { startPoint: 'Hà Nội',    endPoint: 'Lào Cai',    displayTime: '06:30', carType: '7', price: 2200000, note: 'Đi Sa Pa nghỉ dưỡng, chạy cao tốc Nội Bài - Lào Cai' },
-  { startPoint: 'Hà Nội',    endPoint: 'Thanh Hóa',  displayTime: '16:10', carType: '16',price: 1500000, note: 'Đoàn 12 người đi sự kiện' },
-  { startPoint: 'Hà Nội',    endPoint: 'Quảng Ninh', displayTime: '11:40', carType: '7', price: 1150000, note: 'Khách đi công tác Cẩm Phả' },
+  { startPoint: 'Hà Nội',    endPoint: 'Bắc Ninh',   startArea: 'Cầu Giấy, Hà Nội',      endArea: 'Thành phố Bắc Ninh, Bắc Ninh',   displayTime: '08:30', carType: '4', price: 360000,  note: 'Đón tại Cầu Giấy, khách 2 người ít đồ' },
+  { startPoint: 'Hà Nội',    endPoint: 'Hải Phòng',  startArea: 'Long Biên, Hà Nội',      endArea: 'Lê Chân, Hải Phòng',             displayTime: '09:15', carType: '7', price: 850000,  note: 'Đi công tác, cần đúng giờ, xe đời mới' },
+  { startPoint: 'Hà Nội',    endPoint: 'Hạ Long',    startArea: 'Hoàn Kiếm, Hà Nội',      endArea: 'Bãi Cháy, Hạ Long, Quảng Ninh',  displayTime: '07:45', carType: '7', price: 1100000, note: 'Gia đình đi du lịch, có trẻ nhỏ' },
+  { startPoint: 'Hà Nội',    endPoint: 'Ninh Bình',  startArea: 'Hà Đông, Hà Nội',        endArea: 'Chùa Bái Đính, Gia Viễn, Ninh Bình', displayTime: '10:00', carType: '4', price: 700000,  note: 'Khách đi lễ chùa Bái Đính' },
+  { startPoint: 'Hà Nội',    endPoint: 'Thái Nguyên',startArea: 'Long Biên, Hà Nội',      endArea: 'Thành phố Thái Nguyên, Thái Nguyên', displayTime: '13:30', carType: '4', price: 650000,  note: 'Đón tại Long Biên' },
+  { startPoint: 'Hà Nội',    endPoint: 'Nam Định',   startArea: 'Thanh Xuân, Hà Nội',     endArea: 'Thành phố Nam Định, Nam Định',   displayTime: '14:20', carType: '7', price: 720000,  note: 'Khách về quê, nhiều hành lý' },
+  { startPoint: 'Hà Nội',    endPoint: 'Phú Thọ',    startArea: 'Cầu Giấy, Hà Nội',       endArea: 'Đền Hùng, Việt Trì, Phú Thọ',    displayTime: '15:00', carType: '4', price: 680000,  note: 'Đi Đền Hùng, khách 3 người' },
+  { startPoint: 'Hà Nội',    endPoint: 'Lào Cai',    startArea: 'Nội Bài, Hà Nội',        endArea: 'Sa Pa, Lào Cai',                 displayTime: '06:30', carType: '7', price: 2200000, note: 'Đi Sa Pa nghỉ dưỡng, chạy cao tốc Nội Bài - Lào Cai' },
+  { startPoint: 'Hà Nội',    endPoint: 'Thanh Hóa',  startArea: 'Hoàng Mai, Hà Nội',      endArea: 'Thành phố Thanh Hóa, Thanh Hóa', displayTime: '16:10', carType: '16',price: 1500000, note: 'Đoàn 12 người đi sự kiện' },
+  { startPoint: 'Hà Nội',    endPoint: 'Quảng Ninh', startArea: 'Long Biên, Hà Nội',      endArea: 'Cẩm Phả, Quảng Ninh',            displayTime: '11:40', carType: '7', price: 1150000, note: 'Khách đi công tác Cẩm Phả' },
 ];
 
 async function seed() {

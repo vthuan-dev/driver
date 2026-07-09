@@ -167,6 +167,9 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                     <div className="ride-timeline-content">
                       <span className="ride-badge ride-badge-start">📍 Điểm đón</span>
                       <div className="ride-point-name">{notification.startPoint}</div>
+                      {notification.startArea && (
+                        <div className="ride-point-area">Khu vực: {notification.startArea}</div>
+                      )}
                     </div>
                   </div>
                   <div className="ride-timeline-connector" />
@@ -175,6 +178,9 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                     <div className="ride-timeline-content">
                       <span className="ride-badge ride-badge-end">📍 Điểm đến</span>
                       <div className="ride-point-name">{notification.endPoint}</div>
+                      {notification.endArea && (
+                        <div className="ride-point-area">Khu vực: {notification.endArea}</div>
+                      )}
                     </div>
                   </div>
                 </div>

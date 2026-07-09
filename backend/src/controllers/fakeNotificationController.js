@@ -5,7 +5,7 @@ const { FakeNotification, Admin } = require('../models');
 // @access  Private/Admin
 exports.createTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, displayDate, carType, price, isActive, note } = req.body;
+    const { region, startPoint, endPoint, startArea, endArea, displayTime, displayDate, carType, price, isActive, note } = req.body;
 
     // Get admin id - ensure it's an integer (not MongoDB ObjectId string)
     const adminId = parseInt(req.user.id) || parseInt(req.user._id);
@@ -21,6 +21,8 @@ exports.createTemplate = async (req, res) => {
       region,
       startPoint,
       endPoint,
+      startArea: startArea || null,
+      endArea: endArea || null,
       displayTime,
       displayDate: displayDate || null,
       carType,
@@ -132,7 +134,7 @@ exports.getTemplateById = async (req, res) => {
 // @access  Private/Admin
 exports.updateTemplate = async (req, res) => {
   try {
-    const { region, startPoint, endPoint, displayTime, displayDate, carType, price, isActive, note } = req.body;
+    const { region, startPoint, endPoint, startArea, endArea, displayTime, displayDate, carType, price, isActive, note } = req.body;
 
     const template = await FakeNotification.findByPk(req.params.id);
 
@@ -148,6 +150,8 @@ exports.updateTemplate = async (req, res) => {
     if (region !== undefined) updateData.region = region;
     if (startPoint !== undefined) updateData.startPoint = startPoint;
     if (endPoint !== undefined) updateData.endPoint = endPoint;
+    if (startArea !== undefined) updateData.startArea = startArea || null;
+    if (endArea !== undefined) updateData.endArea = endArea || null;
     if (displayTime !== undefined) updateData.displayTime = displayTime;
     if (displayDate !== undefined) updateData.displayDate = displayDate || null;
     if (carType !== undefined) updateData.carType = carType;
