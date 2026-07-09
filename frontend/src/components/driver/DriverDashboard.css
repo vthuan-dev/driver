@@ -66,6 +66,23 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fake-notifications-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fake-notifications-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 8px;
+}
+
+.fake-notifications-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .fake-notification-card {
@@ -97,50 +114,209 @@
   border-color: #e53935;
 }
 
-.notification-time {
+/* Ride card header (time pill) */
+.ride-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 8px 12px;
   font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+  font-weight: 700;
+  color: #374151;
 }
 
-.time-icon {
-  font-size: 18px;
+.ride-time-icon {
+  font-size: 16px;
 }
 
-.time-text {
-  color: #4b5563;
+.ride-time-text {
+  color: #374151;
 }
 
-.notification-content {
+/* Summary row: cartype + route on the left, price on the right */
+.ride-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ride-summary-main {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
 }
 
-.notification-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f2937;
-  line-height: 1.4;
-}
-
-.notification-route {
+.ride-cartype {
   font-size: 15px;
-  font-weight: 600;
-  color: #4b5563;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1.3;
+}
+
+.ride-summary-route {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.notification-price {
+.ride-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ride-dot-start {
+  background: #00b14f;
+}
+
+.ride-dot-end {
+  background: #e53935;
+}
+
+.ride-summary-point {
+  color: #1f2937;
+}
+
+.ride-summary-arrow {
+  color: #9ca3af;
+  font-weight: 700;
+}
+
+.ride-price-block {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ride-price {
   font-size: 20px;
-  font-weight: 800;
-  color: #4caf50;
+  font-weight: 900;
+  color: #e53935;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.ride-price-label {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Timeline: pickup -> dropoff */
+.ride-timeline {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 14px 14px 14px 16px;
+  position: relative;
+}
+
+.ride-timeline-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.ride-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.ride-marker-start {
+  background: #00b14f;
+  color: #00b14f;
+}
+
+.ride-marker-end {
+  background: #e53935;
+  color: #e53935;
+}
+
+.ride-timeline-connector {
+  position: absolute;
+  left: 23px;
+  top: 26px;
+  bottom: 26px;
+  width: 2px;
+  border-left: 2px dashed #d1d5db;
+  z-index: 0;
+}
+
+.ride-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 14px;
+}
+
+.ride-timeline-row:last-child .ride-timeline-content {
+  padding-bottom: 0;
+}
+
+.ride-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.ride-badge-start {
+  background: #e6f7ee;
+  color: #00b14f;
+}
+
+.ride-badge-end {
+  background: #fdecea;
+  color: #e53935;
+}
+
+.ride-point-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.35;
+}
+
+/* Note / additional requirements box */
+.ride-note-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #eef4ff;
+  border: 1px solid #dbe7ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #1e40af;
+  line-height: 1.5;
+}
+
+.ride-note-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.ride-note-text strong {
+  color: #1d4ed8;
 }
 
 .accept-ride-btn {

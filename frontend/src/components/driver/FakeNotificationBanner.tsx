@@ -134,40 +134,60 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                style={{ padding: '12px', marginBottom: '10px' }}
+                style={{ marginBottom: '12px' }}
               >
-                <div className="notification-time">
-                  <span className="time-icon">🕐</span>
-                  <span className="time-text">
+                <div className="ride-card-header">
+                  <span className="ride-time-icon">🕐</span>
+                  <span className="ride-time-text">
                     {notification.displayTime}
                     {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
                   </span>
                 </div>
-                <div className="notification-content">
-                  <div className="notification-title" style={{ fontSize: '15px' }}>
-                    🚗 Có tài xế bắn cuốc {notification.carType} chỗ
-                  </div>
-                  <div className="notification-route" style={{ color: '#00b14f', fontWeight: 'bold' }}>
-                    {notification.startPoint} → {notification.endPoint}
-                  </div>
-                  <div className="notification-price" style={{ color: '#e74c3c', fontSize: '16px' }}>
-                    {notification.price.toLocaleString('vi-VN')}đ
-                  </div>
-                  {notification.note && (
-                    <div className="notification-note" style={{
-                      marginTop: '8px',
-                      padding: '6px 10px',
-                      background: '#fffbea',
-                      borderLeft: '3px solid #f39c12',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      color: '#7d6608',
-                      lineHeight: '1.4'
-                    }}>
-                      📝 {notification.note}
+
+                <div className="ride-summary-row">
+                  <div className="ride-summary-main">
+                    <div className="ride-cartype">🚗 Có tài xế bắn cuốc {notification.carType} chỗ</div>
+                    <div className="ride-summary-route">
+                      <span className="ride-dot ride-dot-start" />
+                      <span className="ride-summary-point">{notification.startPoint}</span>
+                      <span className="ride-summary-arrow">→</span>
+                      <span className="ride-dot ride-dot-end" />
+                      <span className="ride-summary-point">{notification.endPoint}</span>
                     </div>
-                  )}
+                  </div>
+                  <div className="ride-price-block">
+                    <div className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</div>
+                    <div className="ride-price-label">Giá chuyến</div>
+                  </div>
                 </div>
+
+                <div className="ride-timeline">
+                  <div className="ride-timeline-row">
+                    <span className="ride-marker ride-marker-start" />
+                    <div className="ride-timeline-content">
+                      <span className="ride-badge ride-badge-start">📍 Điểm đón</span>
+                      <div className="ride-point-name">{notification.startPoint}</div>
+                    </div>
+                  </div>
+                  <div className="ride-timeline-connector" />
+                  <div className="ride-timeline-row">
+                    <span className="ride-marker ride-marker-end" />
+                    <div className="ride-timeline-content">
+                      <span className="ride-badge ride-badge-end">📍 Điểm đến</span>
+                      <div className="ride-point-name">{notification.endPoint}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {notification.note && (
+                  <div className="ride-note-box">
+                    <span className="ride-note-icon">📋</span>
+                    <span className="ride-note-text">
+                      <strong>Yêu cầu phụ:</strong> {notification.note}
+                    </span>
+                  </div>
+                )}
+
                 <button
                   className="accept-ride-btn"
                   onClick={() => {
@@ -178,9 +198,8 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                     handleAcceptFakeNotification(notification._id);
                   }}
                   disabled={acceptingNotificationId === notification._id}
-                  style={{ marginTop: '10px', padding: '10px' }}
                 >
-                  {acceptingNotificationId === notification._id ? 'Đang xử lý...' : 'Nhận chuyến ngay'}
+                  {acceptingNotificationId === notification._id ? 'Đang xử lý...' : 'Nhận chuyến ngay  ›'}
                 </button>
               </motion.div>
             ))}
