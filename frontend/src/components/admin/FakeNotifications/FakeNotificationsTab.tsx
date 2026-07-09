@@ -16,6 +16,8 @@ export type FakeNotification = {
   endPoint: string;
   startArea?: string | null;
   endArea?: string | null;
+  startDetail?: string | null;
+  endDetail?: string | null;
   displayTime: string;
   displayDate?: string | null;
   carType: CarType;

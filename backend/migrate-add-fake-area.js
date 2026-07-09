@@ -12,6 +12,8 @@ async function migrate() {
   const columns = [
     { name: 'startArea', type: DataTypes.STRING },
     { name: 'endArea', type: DataTypes.STRING },
+    { name: 'startDetail', type: DataTypes.STRING },
+    { name: 'endDetail', type: DataTypes.STRING },
   ];
 
   for (const col of columns) {

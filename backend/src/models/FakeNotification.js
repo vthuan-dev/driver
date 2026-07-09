@@ -29,6 +29,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: null
     },
+    startDetail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
+    endDetail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
     displayTime: {
       type: DataTypes.STRING,
       allowNull: false,

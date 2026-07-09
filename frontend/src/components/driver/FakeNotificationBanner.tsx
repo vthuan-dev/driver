@@ -120,7 +120,11 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
     <div className="fake-notifications-section" style={{ margin: '15px 20px', borderRadius: '12px' }}>
       <div className="section-header">
         <h3 style={{ fontSize: '1rem' }}>🔔 Bạn có cuốc xe có thể nhận</h3>
-        {loadingNotifications && <span className="loading-spinner">⟳</span>}
+        {loadingNotifications ? (
+          <span className="loading-spinner">⟳</span>
+        ) : (
+          <span className="ride-latest-badge">Mới nhất</span>
+        )}
       </div>
       
       <AnimatePresence>
@@ -137,10 +141,16 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                 style={{ marginBottom: '12px' }}
               >
                 <div className="ride-card-header">
-                  <span className="ride-time-icon">🕐</span>
-                  <span className="ride-time-text">
-                    {notification.displayTime}
-                    {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
+                  <span className="ride-time-wrap">
+                    <span className="ride-time-icon">🕐</span>
+                    <span className="ride-time-text">
+                      {notification.displayTime}
+                      {notification.displayDate ? ` ngày ${new Date(notification.displayDate).toLocaleDateString('vi-VN')}` : ''}
+                    </span>
+                  </span>
+                  <span className="ride-price-block">
+                    <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
+                    <span className="ride-price-label">Giá chuyến</span>
                   </span>
                 </div>
 
@@ -155,10 +165,6 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                       <span className="ride-summary-point">{notification.endPoint}</span>
                     </div>
                   </div>
-                  <div className="ride-price-block">
-                    <div className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</div>
-                    <div className="ride-price-label">Giá chuyến</div>
-                  </div>
                 </div>
 
                 <div className="ride-timeline">
@@ -166,7 +172,7 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                     <span className="ride-marker ride-marker-start" />
                     <div className="ride-timeline-content">
                       <span className="ride-badge ride-badge-start">📍 Điểm đón</span>
-                      <div className="ride-point-name">{notification.startPoint}</div>
+                      <div className="ride-point-name">{notification.startDetail || notification.startPoint}</div>
                       {notification.startArea && (
                         <div className="ride-point-area">Khu vực: {notification.startArea}</div>
                       )}
@@ -177,7 +183,7 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                     <span className="ride-marker ride-marker-end" />
                     <div className="ride-timeline-content">
                       <span className="ride-badge ride-badge-end">📍 Điểm đến</span>
-                      <div className="ride-point-name">{notification.endPoint}</div>
+                      <div className="ride-point-name">{notification.endDetail || notification.endPoint}</div>
                       {notification.endArea && (
                         <div className="ride-point-area">Khu vực: {notification.endArea}</div>
                       )}

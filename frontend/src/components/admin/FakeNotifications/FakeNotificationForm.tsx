@@ -8,6 +8,8 @@ type FormData = {
   endPoint: string;
   startArea: string;
   endArea: string;
+  startDetail: string;
+  endDetail: string;
   displayTime: string;
   displayDate: string;
   carType: '4' | '7' | '16';
@@ -51,6 +53,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
     endPoint: '',
     startArea: '',
     endArea: '',
+    startDetail: '',
+    endDetail: '',
     displayTime: '08:00',
     displayDate: '',
     carType: '7',
@@ -70,6 +74,8 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
         endPoint: template.endPoint,
         startArea: template.startArea || '',
         endArea: template.endArea || '',
+        startDetail: template.startDetail || '',
+        endDetail: template.endDetail || '',
         displayTime: template.displayTime,
         displayDate: template.displayDate || '',
         carType: template.carType,
@@ -191,6 +197,28 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
               ))}
             </select>
             {errors.endPoint && <span className="error-text">{errors.endPoint}</span>}
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Tên điểm đón chi tiết (tùy chọn)</label>
+            <input
+              type="text"
+              value={formData.startDetail}
+              onChange={(e) => handleChange('startDetail', e.target.value)}
+              placeholder="VD: Thành phố Việt Trì (Phú Thọ)"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Tên điểm đến chi tiết (tùy chọn)</label>
+            <input
+              type="text"
+              value={formData.endDetail}
+              onChange={(e) => handleChange('endDetail', e.target.value)}
+              placeholder="VD: Thị trấn du lịch Sa Pa (Lào Cai)"
+            />
           </div>
         </div>
 

@@ -1,0 +1,8 @@
+backend/
+customer/
+mobile/
+driver_apk_app/
+*.apk
+*.png
+*.jpg
+node_modules/

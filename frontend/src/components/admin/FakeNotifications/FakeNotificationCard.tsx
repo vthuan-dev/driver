@@ -30,10 +30,14 @@ const FakeNotificationCard = ({ template, onEdit, onDelete, onToggle }: Props) =
           <span className="end-point">{template.endPoint}</span>
         </div>
 
-        {(template.startArea || template.endArea) && (
+        {(template.startDetail || template.endDetail || template.startArea || template.endArea) && (
           <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', lineHeight: 1.5 }}>
-            {template.startArea && <div>📍 Đón: {template.startArea}</div>}
-            {template.endArea && <div>📍 Đến: {template.endArea}</div>}
+            {(template.startDetail || template.startArea) && (
+              <div>📍 Đón: {template.startDetail || template.startPoint}{template.startArea ? ` — ${template.startArea}` : ''}</div>
+            )}
+            {(template.endDetail || template.endArea) && (
+              <div>📍 Đến: {template.endDetail || template.endPoint}{template.endArea ? ` — ${template.endArea}` : ''}</div>
+            )}
           </div>
         )}
         
