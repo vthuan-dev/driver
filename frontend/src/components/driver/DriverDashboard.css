@@ -226,8 +226,8 @@
 
 /* Timeline: pickup -> dropoff */
 .ride-timeline {
-  background: #fafafa;
-  border: 1px solid #f0f0f0;
+  background: #fffdf2;
+  border: 1px solid #f5efd6;
   border-radius: 12px;
   padding: 14px 14px 14px 16px;
   position: relative;

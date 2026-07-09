@@ -153,10 +153,6 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                       })()}
                     </span>
                   </span>
-                  <span className="ride-price-block">
-                    <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
-                    <span className="ride-price-label">Giá chuyến</span>
-                  </span>
                 </div>
 
                 <div className="ride-summary-row">
@@ -170,6 +166,10 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                       <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
                     </div>
                   </div>
+                  <span className="ride-price-block">
+                    <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
+                    <span className="ride-price-label">Giá chuyến</span>
+                  </span>
                 </div>
 
                 <div className="ride-timeline">
