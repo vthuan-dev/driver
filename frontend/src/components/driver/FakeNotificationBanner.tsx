@@ -155,21 +155,21 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
                   </span>
                 </div>
 
-                <div className="ride-summary-row">
-                  <div className="ride-summary-main">
+                <div className="ride-summary-container">
+                  <div className="ride-summary-row">
                     <div className="ride-cartype">🚗 Có tài xế bắn cuốc {notification.carType} chỗ</div>
-                    <div className="ride-summary-route">
-                      <span className="ride-pin ride-pin-start">📍</span>
-                      <span className="ride-summary-point ride-point-start">{notification.startPoint}</span>
-                      <span className="ride-summary-arrow">→</span>
-                      <span className="ride-pin ride-pin-end">📍</span>
-                      <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
-                    </div>
+                    <span className="ride-price-block">
+                      <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
+                      <span className="ride-price-label">Giá chuyến</span>
+                    </span>
                   </div>
-                  <span className="ride-price-block">
-                    <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
-                    <span className="ride-price-label">Giá chuyến</span>
-                  </span>
+                  <div className="ride-summary-route">
+                    <span className="ride-pin ride-pin-start">📍</span>
+                    <span className="ride-summary-point ride-point-start">{notification.startPoint}</span>
+                    <span className="ride-summary-arrow">→</span>
+                    <span className="ride-pin ride-pin-end">📍</span>
+                    <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
+                  </div>
                 </div>
 
                 <div className="ride-timeline">

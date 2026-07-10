@@ -1540,6 +1540,22 @@ function MainApp() {
         </div>
       )}
 
+      {!showDriverDashboard && (
+        <div style={{ margin: '15px 10px 0 10px' }}>
+          <div className="region-tabs" style={{ margin: 0 }}>
+            {(['north', 'central', 'south'] as Region[]).map((region) => (
+              <button
+                key={region}
+                className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
+                onClick={() => setActiveRequestRegion(region)}
+              >
+                {regionLabels[region]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Hiển thị thông báo cuốc xe ảo cho tất cả người dùng ở trang chủ */}
       {!showDriverDashboard && (
         <FakeNotificationBanner

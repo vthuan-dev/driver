@@ -147,6 +147,12 @@
   gap: 12px;
 }
 
+.ride-summary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .ride-summary-main {
   display: flex;
   flex-direction: column;
