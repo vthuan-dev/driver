@@ -3,6 +3,8 @@ customer/
 mobile/
 driver_apk_app/
 *.apk
-*.png
-*.jpg
+/image.png
+/logo.png
+/banner-ctm.png
+/startapp.png
 node_modules/
