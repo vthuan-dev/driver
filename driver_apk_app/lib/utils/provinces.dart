@@ -67,6 +67,7 @@ const Map<Region, List<String>> provincesByRegion = {
     'Quảng Nam',
     'Quảng Ngãi',
     'Bình Định',
+    'Quy Nhơn',
     'Phú Yên',
     'Khánh Hòa',
     'Ninh Thuận',
