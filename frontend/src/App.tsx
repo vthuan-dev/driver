@@ -902,14 +902,25 @@ function MainApp() {
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [form, setForm] = useState({
-    name: '',
-    phone: '',
+    name: user?.name || '',
+    phone: user?.phone || '',
     startPoint: '',
     endPoint: '',
     price: '',
     note: '',
     region: 'north' as Region,
   })
+
+  // Đồng bộ user.name và user.phone vào form khi user thay đổi (đăng nhập/tải lại)
+  useEffect(() => {
+    if (user?.phone) {
+      setForm(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        phone: user.phone
+      }))
+    }
+  }, [user])
 
   const formatPhone = (phone: string) => (user ? phone : maskPhoneStrict(phone))
 
@@ -1059,10 +1070,23 @@ function MainApp() {
   }, [])
 
 
-  const openModal = () => setShowModal(true)
+  const openModal = () => {
+    if (user?.phone) {
+      setForm((p) => ({
+        ...p,
+        name: user.name || p.name,
+        phone: user.phone
+      }))
+    }
+    setShowModal(true)
+  }
   const closeModal = () => setShowModal(false)
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
+    // Không cho phép sửa số điện thoại nếu đã đăng nhập tài khoản
+    if (name === 'phone' && user?.phone) {
+      return
+    }
     setForm((p) => {
       const updated = { ...p, [name]: value }
 
@@ -1109,7 +1133,18 @@ function MainApp() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      setPendingAction({ type: 'wait' })
+      const reg = localStorage.getItem('driver_registered')
+      setAuthModal(reg ? 'login' : 'register')
+      return
+    }
+
+    const currentPhone = (user.phone || form.phone || '').trim()
+    if (!currentPhone) {
+      alert('Không tìm thấy số điện thoại đăng ký tài khoản của bạn')
+      return
+    }
 
     const parsedPrice = parseInt(form.price) || 0
     if (parsedPrice <= 0) {
@@ -1120,8 +1155,8 @@ function MainApp() {
     setLoading(true)
     try {
       await requestsAPI.createRequest({
-        name: form.name,
-        phone: form.phone,
+        name: form.name || user.name,
+        phone: currentPhone,
         startPoint: form.startPoint,
         endPoint: form.endPoint,
         price: parsedPrice,
@@ -1154,10 +1189,19 @@ function MainApp() {
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 2200)
       setShowModal(false)
-      setForm({ name: '', phone: '', startPoint: '', endPoint: '', price: '', note: '', region: 'north' })
-    } catch (error) {
+      setForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        startPoint: '',
+        endPoint: '',
+        price: '',
+        note: '',
+        region: 'north'
+      })
+    } catch (error: any) {
       console.error('Error creating request:', error)
-      alert('Có lỗi xảy ra khi tạo yêu cầu')
+      const msg = error?.response?.data?.message || 'Có lỗi xảy ra khi tạo yêu cầu'
+      alert(msg)
     } finally {
       setLoading(false)
     }
@@ -1836,8 +1880,23 @@ function MainApp() {
                   <input name="name" value={form.name} onChange={onChange} placeholder="VD: Nguyễn Văn A" required />
                 </label>
                 <label className="field">
-                  <span>Số điện thoại</span>
-                  <input name="phone" value={form.phone} onChange={onChange} placeholder="VD: 09xxxxxxx" inputMode="tel" pattern="[0-9]{9,11}" required />
+                  <span>Số điện thoại (SĐT tài khoản đăng ký)</span>
+                  <input
+                    name="phone"
+                    value={user?.phone || form.phone}
+                    readOnly
+                    style={{
+                      backgroundColor: '#f3f4f6',
+                      cursor: 'not-allowed',
+                      color: '#1f2937',
+                      fontWeight: '600'
+                    }}
+                    title="Số điện thoại cố định theo tài khoản đã đăng ký"
+                    required
+                  />
+                  <small style={{ color: '#059669', fontSize: '12px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontWeight: 'bold' }}>✓</span> Số điện thoại chính thức đã đăng ký
+                  </small>
                 </label>
                 <label className="field">
                   <span>Miền đăng ký</span>

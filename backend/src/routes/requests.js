@@ -4,8 +4,8 @@ const requestController = require('../controllers/requestController');
 const { DriverPost } = require('../models');
 const { authMiddleware, optionalAuthMiddleware } = require('../middleware/auth');
 
-// Create waiting request (public + optional auth to capture userId)
-router.post('/', optionalAuthMiddleware, requestController.createRequest);
+// Create waiting request (authenticated required)
+router.post('/', authMiddleware, requestController.createRequest);
 
 // Create waiting request (authenticated)
 router.post('/auth', authMiddleware, requestController.createRequest);

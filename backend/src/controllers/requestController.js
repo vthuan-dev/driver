@@ -3,15 +3,54 @@ const { WaitingRequest, User } = require('../models');
 const createRequest = async (req, res) => {
   try {
     const { name, phone, startPoint, endPoint, price, note, region, driverPostId } = req.body;
-    const userId = req.user ? req.user.id : null;
-    
-    console.log('Creating request with data:', { name, phone, startPoint, endPoint, price, note, region, userId });
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập bằng tài khoản đã đăng ký để tạo yêu cầu'
+      });
+    }
+
+    const userId = req.user.id;
+    const dbUser = await User.findByPk(userId);
+    if (!dbUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tài khoản không tồn tại'
+      });
+    }
+
+    if (dbUser.isBanned) {
+      return res.status(403).json({
+        success: false,
+        message: 'Tài khoản của bạn đã bị khóa'
+      });
+    }
+
+    // Role check: admin can specify any phone (e.g., seeding/testing), normal users MUST use their registered phone
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    const registeredPhone = (dbUser.phone || '').trim();
+
+    if (!isAdmin) {
+      // Validate phone strictly against registered phone
+      if (phone && phone.trim() !== registeredPhone) {
+        return res.status(400).json({
+          success: false,
+          message: `Số điện thoại đăng ký chờ cuốc phải đúng với số điện thoại tài khoản đã đăng ký (${registeredPhone})`
+        });
+      }
+    }
+
+    const finalPhone = isAdmin ? (phone ? phone.trim() : registeredPhone) : registeredPhone;
+    const finalName = (name && name.trim()) ? name.trim() : dbUser.name;
+
+    console.log('Creating request with data:', { name: finalName, phone: finalPhone, startPoint, endPoint, price, note, region, userId });
     
     const request = await WaitingRequest.create({
       userId,
       driverPostId: driverPostId ? parseInt(driverPostId) : null,
-      name,
-      phone,
+      name: finalName,
+      phone: finalPhone,
       startPoint,
       endPoint,
       price: parseInt(price),
