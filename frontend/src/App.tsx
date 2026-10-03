@@ -1499,34 +1499,51 @@ function MainApp() {
             >
               <div className="profile-card-left">
                 <div className="profile-avatar-circle">
-                  {user ? toInitials(user.name || user.phone || 'ĐC') : 'ĐC'}
+                  {user ? toInitials(user.name || user.phone || 'TX') : '👤'}
                 </div>
                 <div className="profile-info-wrap">
-                  <span className="profile-greeting">Xin chào,</span>
-                  <div className="profile-name">{user ? user.name : 'Đỗ ngọc chung'}</div>
+                  <span className="profile-greeting">{user ? 'Xin chào,' : 'Tài xế đối tác'}</span>
+                  <div className="profile-name">{user ? user.name : 'Đăng nhập tài xế'}</div>
                   <div className="profile-phone-row">
-                    <span className="profile-phone-icon">📞</span>
-                    <span className="profile-phone-text">
-                      {user ? maskPhoneStrict(user.phone) : '052 xxxx 892'}
-                    </span>
-                    <span className="profile-verified-badge-icon">✔</span>
+                    {user ? (
+                      <>
+                        <span className="profile-phone-icon">📞</span>
+                        <span className="profile-phone-text">
+                          {maskPhoneStrict(user.phone)}
+                        </span>
+                        <span className="profile-verified-badge-icon">✔</span>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#00b14f', fontWeight: 600 }}>
+                        Chạm để đăng nhập / đăng ký ›
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="profile-card-right">
-                <div className="verified-pill-badge">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#d97706">
-                    <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
-                  </svg>
-                  <span>Tài xế đã xác thực</span>
-                </div>
+                {user ? (
+                  <div className="verified-pill-badge">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#d97706">
+                      <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+                    </svg>
+                    <span>Tài xế đã xác thực</span>
+                  </div>
+                ) : (
+                  <div className="verified-pill-badge" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+                    </svg>
+                    <span>Đăng nhập ngay</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Quick Stats Row (3 Compact Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
           <div className="quick-stats-row">
-            <div className="qs-card qs-card--income" onClick={() => setActiveNavTab('income')} style={{ cursor: 'pointer' }}>
+            <div className="qs-card qs-card--income" onClick={() => user ? setActiveNavTab('income') : setAuthModal('login')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
                 <span className="qs-icon">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="#00b14f">
@@ -1540,9 +1557,9 @@ function MainApp() {
               <div className="qs-value-wrap">
                 <span className="qs-value">
                   {showBalance
-                    ? (user && user.status === 'approved' && driverIncomeData !== null
-                        ? `${(driverIncomeData.totalIncome || 0).toLocaleString('vi-VN')}đ`
-                        : '36.500.000đ')
+                    ? (user
+                        ? `${(driverIncomeData?.totalIncome || 0).toLocaleString('vi-VN')}đ`
+                        : '0đ')
                     : '••••••••'}
                 </span>
                 <span
@@ -1567,26 +1584,26 @@ function MainApp() {
                     <circle cx="16.5" cy="14" r="1.2" fill="#ffffff" />
                   </svg>
                 </span>
-                <span className="qs-label">Cuốc xe đã nhận</span>
+                <span className="qs-label">{user ? 'Cuốc xe đã nhận' : 'Cuốc đang chờ'}</span>
               </div>
               <div className="qs-value-wrap">
                 <span className="qs-value">
-                  {user && user.status === 'approved' && driverStatsData !== null
-                    ? `${driverStatsData.monthlyTrips ?? driverStatsData.totalTrips ?? 0} cuốc`
-                    : '128 cuốc'}
+                  {user
+                    ? `${driverStatsData?.monthlyTrips ?? driverStatsData?.totalTrips ?? 0} cuốc`
+                    : `${requests.length > 0 ? requests.length : '4.250+'} cuốc`}
                 </span>
                 <span className="qs-extra" style={{ color: '#2563eb' }}>📊</span>
               </div>
             </div>
 
-            <div className="qs-card qs-card--rating" onClick={() => setActiveNavTab('profile')} style={{ cursor: 'pointer' }}>
+            <div className="qs-card qs-card--rating" onClick={() => user ? setActiveNavTab('profile') : setAuthModal('login')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
                 <span className="qs-icon">⭐</span>
                 <span className="qs-label">Đánh giá</span>
               </div>
               <div className="qs-value-wrap">
                 <span className="qs-value">
-                  {user && (user as any).rating ? `${(user as any).rating}/5` : '4.9/5'}
+                  {user && (user as any).rating ? `${(user as any).rating}/5` : '5.0/5'}
                 </span>
                 <span className="qs-extra" style={{ color: '#d97706', fontWeight: 'bold' }}>→</span>
               </div>
