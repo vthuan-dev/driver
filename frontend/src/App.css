@@ -1238,7 +1238,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin: 12px 14px 0;
+  margin: 36px 14px 0;
 }
 
 .qs-card {
