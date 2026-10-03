@@ -1497,7 +1497,13 @@ function MainApp() {
           <div className="quick-stats-row">
             <div className="qs-card qs-card--income" onClick={() => setActiveNavTab('income')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
-                <span className="qs-icon">👛</span>
+                <span className="qs-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#00b14f">
+                    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                    <circle cx="16.5" cy="13.5" r="1.5" fill="#ffffff" />
+                  </svg>
+                </span>
                 <span className="qs-label">Thu nhập tháng</span>
               </div>
               <div className="qs-value-wrap">
@@ -1519,12 +1525,18 @@ function MainApp() {
 
             <div className="qs-card qs-card--rides" onClick={() => setActiveNavTab('rides')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
-                <span className="qs-icon">🚗</span>
+                <span className="qs-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#2563eb">
+                    <path d="M5 11l1.4-4.2A2 2 0 0 1 8.3 5.4h7.4a2 2 0 0 1 1.9 1.4L19 11M4 11h16v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z" />
+                    <circle cx="7.5" cy="14" r="1.2" fill="#ffffff" />
+                    <circle cx="16.5" cy="14" r="1.2" fill="#ffffff" />
+                  </svg>
+                </span>
                 <span className="qs-label">Cuốc xe đã nhận</span>
               </div>
               <div className="qs-value-wrap">
                 <span className="qs-value">128 cuốc</span>
-                <span className="qs-extra">📊</span>
+                <span className="qs-extra" style={{ color: '#2563eb' }}>📊</span>
               </div>
             </div>
 
@@ -1535,7 +1547,7 @@ function MainApp() {
               </div>
               <div className="qs-value-wrap">
                 <span className="qs-value">4.9/5</span>
-                <span className="qs-extra">→</span>
+                <span className="qs-extra" style={{ color: '#d97706', fontWeight: 'bold' }}>→</span>
               </div>
             </div>
           </div>
