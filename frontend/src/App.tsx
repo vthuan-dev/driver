@@ -2090,7 +2090,13 @@ function MainApp() {
           className={`bottom-nav-item ${activeNavTab === 'home' ? 'active' : ''}`}
           onClick={() => setActiveNavTab('home')}
         >
-          <span className="nav-icon">🏠</span>
+          <div className="nav-icon-box">
+            <span className="nav-icon">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill={activeNavTab === 'home' ? '#00b14f' : 'currentColor'}>
+                <path d="M10.55 2.8c.85-.68 2.05-.68 2.9 0l7.2 5.76c.85.68 1.35 1.72 1.35 2.81V19c0 1.66-1.34 3-3 3h-2.5c-.83 0-1.5-.67-1.5-1.5v-4.5c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v4.5c0 .83-.67 1.5-1.5 1.5H5c-1.66 0-3-1.34-3-3v-7.63c0-1.09.5-2.13 1.35-2.81l7.2-5.76z" />
+              </svg>
+            </span>
+          </div>
           <span className="nav-label">Trang chủ</span>
         </button>
 
@@ -2099,19 +2105,26 @@ function MainApp() {
           className={`bottom-nav-item ${activeNavTab === 'rides' ? 'active' : ''}`}
           onClick={() => setActiveNavTab('rides')}
         >
-          <span className="nav-icon">🚗</span>
+          <div className="nav-icon-box">
+            <span className="nav-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 11l1.4-4.2A2 2 0 0 1 8.3 5.4h7.4a2 2 0 0 1 1.9 1.4L19 11M4 11h16v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z" />
+                <circle cx="7.5" cy="14" r="1.2" fill="currentColor" />
+                <circle cx="16.5" cy="14" r="1.2" fill="currentColor" />
+                <path d="M6 17v2m12-2v2" />
+              </svg>
+            </span>
+          </div>
           <span className="nav-label">Cuốc xe</span>
         </button>
 
-        <div className="bottom-nav-center">
-          <button
-            type="button"
-            className="nav-center-btn"
-            onClick={openModal}
-            title="Đăng chuyến xe mới"
-          >
-            <span className="nav-center-icon">+</span>
-          </button>
+        <div className="bottom-nav-center" onClick={openModal} title="Đăng chuyến xe mới">
+          <div className="nav-center-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </div>
           <span className="nav-label">Đăng chuyến</span>
         </div>
 
@@ -2122,8 +2135,17 @@ function MainApp() {
             setActiveNavTab('messages');
           }}
         >
-          <span className="nav-icon">💬</span>
-          <span className="nav-badge-pill">3</span>
+          <div className="nav-icon-box">
+            <span className="nav-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                <circle cx="9" cy="12" r="0.9" fill="currentColor" />
+                <circle cx="12" cy="12" r="0.9" fill="currentColor" />
+                <circle cx="15" cy="12" r="0.9" fill="currentColor" />
+              </svg>
+            </span>
+            <span className="nav-badge-pill">3</span>
+          </div>
           <span className="nav-label">Tin nhắn</span>
         </button>
 
@@ -2138,7 +2160,14 @@ function MainApp() {
             }
           }}
         >
-          <span className="nav-icon">👤</span>
+          <div className="nav-icon-box">
+            <span className="nav-icon">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </span>
+          </div>
           <span className="nav-label">Cá nhân</span>
         </button>
       </nav>
