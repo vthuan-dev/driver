@@ -1133,18 +1133,15 @@
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(
-    75deg,
+    105deg,
     #ffffff 0%,
-    #ffffff 36%,
-    rgba(255, 255, 255, 0.72) 48%,
-    rgba(255, 255, 255, 0.30) 64%,
-    rgba(255, 255, 255, 0.10) 80%,
-    rgba(255, 255, 255, 0.02) 100%
+    #ffffff 48%,
+    rgba(255, 255, 255, 0.88) 58%,
+    rgba(255, 255, 255, 0.35) 70%,
+    rgba(255, 255, 255, 0) 84%
   );
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  border: none;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.06));
   z-index: 10;
   cursor: pointer;
 }
