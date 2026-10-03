@@ -1047,6 +1047,49 @@ function MainApp() {
   }, [])
 
 
+  const handlePostTripClick = () => {
+    if (!user) {
+      setAuthModal('login');
+      return;
+    }
+    openModal();
+  };
+
+  const handleNavTabClick = (tab: 'home' | 'rides' | 'income' | 'profile') => {
+    // 1. Tab Trang chủ & Cuốc xe -> Cho xem tự do
+    if (tab === 'home' || tab === 'rides') {
+      setActiveNavTab(tab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // 2. Tab Thu nhập & Cá nhân -> Bắt buộc phải đăng nhập trước
+    if (!user) {
+      setAuthModal('login');
+      return;
+    }
+
+    // 3. Nếu vào tab Thu nhập nhưng tài khoản chưa được admin duyệt
+    if (tab === 'income') {
+      if (user.status !== 'approved') {
+        setErrorPopupTitle('Tài khoản chưa phê duyệt');
+        setErrorMessage('Hồ sơ tài xế của bạn đang chờ Admin kiểm duyệt để kích hoạt ví thu nhập.');
+        setShowErrorPopup(true);
+        return;
+      }
+      setActiveNavTab('income');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // 4. Tab Cá nhân -> Khi đã login
+    if (tab === 'profile') {
+      setActiveNavTab('profile');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+  };
+
   const openModal = () => {
     if (user?.phone) {
       setForm((p) => ({
@@ -1659,7 +1702,7 @@ function MainApp() {
 
             <div
               className="action-card action-card--purple"
-              onClick={openModal}
+              onClick={handlePostTripClick}
             >
               <div className="action-card__icon-wrap">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -2212,7 +2255,7 @@ function MainApp() {
         <button
           type="button"
           className={`bottom-nav-item ${activeNavTab === 'home' ? 'active' : ''}`}
-          onClick={() => setActiveNavTab('home')}
+          onClick={() => handleNavTabClick('home')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
@@ -2227,7 +2270,7 @@ function MainApp() {
         <button
           type="button"
           className={`bottom-nav-item ${activeNavTab === 'rides' ? 'active' : ''}`}
-          onClick={() => setActiveNavTab('rides')}
+          onClick={() => handleNavTabClick('rides')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
@@ -2242,7 +2285,7 @@ function MainApp() {
           <span className="nav-label">Cuốc xe</span>
         </button>
 
-        <div className="bottom-nav-center" onClick={openModal} title="Đăng chuyến xe mới">
+        <div className="bottom-nav-center" onClick={handlePostTripClick} title="Đăng chuyến xe mới">
           <div className="nav-center-btn">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -2255,7 +2298,7 @@ function MainApp() {
         <button
           type="button"
           className={`bottom-nav-item ${activeNavTab === 'income' ? 'active' : ''}`}
-          onClick={() => setActiveNavTab('income')}
+          onClick={() => handleNavTabClick('income')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
@@ -2272,7 +2315,7 @@ function MainApp() {
         <button
           type="button"
           className={`bottom-nav-item ${activeNavTab === 'profile' ? 'active' : ''}`}
-          onClick={() => setActiveNavTab('profile')}
+          onClick={() => handleNavTabClick('profile')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
