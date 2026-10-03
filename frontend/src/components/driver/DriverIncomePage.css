@@ -60,7 +60,7 @@
 /* ── Body ───────────────────────────────────────────── */
 .income-body {
   flex: 1;
-  padding: 20px 16px 40px;
+  padding: 20px 16px 90px;
   overflow-y: auto;
   /* Center content on large screens, full-width on mobile */
   max-width: 540px;

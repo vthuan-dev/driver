@@ -896,7 +896,7 @@ function MainApp() {
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
-  const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'messages' | 'profile'>('home');
+  const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
   const [showBalance, setShowBalance] = useState(true);
   const [ridesSearchQuery, setRidesSearchQuery] = useState('');
   const [ridesSubFilter, setRidesSubFilter] = useState<'all' | '4' | '7' | '16' | 'urgent'>('all');
@@ -1495,7 +1495,7 @@ function MainApp() {
 
           {/* Quick Stats Row (3 Compact Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
           <div className="quick-stats-row">
-            <div className="qs-card qs-card--income">
+            <div className="qs-card qs-card--income" onClick={() => setActiveNavTab('income')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
                 <span className="qs-icon">👛</span>
                 <span className="qs-label">Thu nhập tháng</span>
@@ -1506,7 +1506,10 @@ function MainApp() {
                 </span>
                 <span
                   className="qs-extra"
-                  onClick={() => setShowBalance(!showBalance)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBalance(!showBalance);
+                  }}
                   title={showBalance ? 'Ẩn số tiền' : 'Hiện số tiền'}
                 >
                   {showBalance ? '👁️' : '🙈'}
@@ -1514,7 +1517,7 @@ function MainApp() {
               </div>
             </div>
 
-            <div className="qs-card qs-card--rides">
+            <div className="qs-card qs-card--rides" onClick={() => setActiveNavTab('rides')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
                 <span className="qs-icon">🚗</span>
                 <span className="qs-label">Cuốc xe đã nhận</span>
@@ -1984,9 +1987,36 @@ function MainApp() {
         </div>
       )}
 
-      {/* ── Messages View ── */}
+      {/* ── Income View (Thu nhập tài xế) ── */}
+      {activeNavTab === 'income' && (
+        <div className="income-view-container" style={{ paddingBottom: '90px' }}>
+          {user ? (
+            <DriverIncomePage onBack={() => setActiveNavTab('home')} />
+          ) : (
+            <div className="rides-view-container" style={{ padding: '28px 16px 100px' }}>
+              <div style={{ background: '#fff', borderRadius: 20, padding: '36px 20px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                <div style={{ fontSize: 48, marginBottom: 14 }}>💵</div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Báo cáo thu nhập tài xế</h3>
+                <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6, marginBottom: 24, maxWidth: 360, margin: '0 auto 24px' }}>
+                  Đăng nhập tài khoản tài xế để theo dõi doanh thu hàng ngày, chi tiết cuốc xe hoàn thành và tiền mặt/chuyển khoản.
+                </p>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  onClick={() => setAuthModal('login')}
+                  style={{ maxWidth: 280, margin: '0 auto' }}
+                >
+                  🔑 Đăng nhập tài xế
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Messages View (Fallback) ── */}
       {activeNavTab === 'messages' && (
-        <div className="rides-view-container" style={{ padding: '16px 12px' }}>
+        <div className="rides-view-container" style={{ padding: '16px 12px 100px' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
               💬 Hộp thư tin nhắn ({unreadCount > 0 ? `${unreadCount} tin mới` : '0'})
@@ -2014,7 +2044,7 @@ function MainApp() {
 
       {/* ── Profile View ── */}
       {activeNavTab === 'profile' && (
-        <div className="rides-view-container" style={{ padding: '16px 12px' }}>
+        <div className="rides-view-container" style={{ padding: '16px 12px 100px' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
               <div className="profile-card-avatar" style={{ width: 56, height: 56, fontSize: 20 }}>
@@ -2025,21 +2055,45 @@ function MainApp() {
                 <div style={{ fontSize: 13, color: '#64748b' }}>{user?.phone ? maskPhoneStrict(user.phone) : 'Chưa đăng nhập'}</div>
                 <div style={{ marginTop: 4 }}>
                   <span className="verified-driver-badge">
-                    <span>🛡️ {user?.status === 'approved' ? 'Tài xế đã duyệt' : 'Chờ duyệt'}</span>
+                    <span>🛡️ {user?.status === 'approved' ? 'Tài xế đã duyệt' : (user ? 'Chờ duyệt' : 'Chưa đăng nhập')}</span>
                   </span>
                 </div>
               </div>
             </div>
 
             {user?.status === 'approved' && (
-              <button
-                type="button"
-                className="modern-call-driver-btn"
-                style={{ marginBottom: 10, background: '#0f172a' }}
-                onClick={() => setShowDriverDashboard(true)}
-              >
-                📊 Xem Dashboard quản lý chi tiết
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  style={{ marginBottom: 10, background: '#0f172a' }}
+                  onClick={() => setShowDriverDashboard(true)}
+                >
+                  📊 Xem Dashboard quản lý chi tiết
+                </button>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  style={{ marginBottom: 10, background: '#00b14f' }}
+                  onClick={() => setActiveNavTab('income')}
+                >
+                  💵 Báo cáo thu nhập tài xế
+                </button>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  style={{ marginBottom: 10, background: '#2563eb' }}
+                  onClick={() => {
+                    if (downloadStatus.downloadCount > 0) {
+                      setShowDownloadPage(true);
+                    } else {
+                      setShowPricingModal(true);
+                    }
+                  }}
+                >
+                  📱 Tải ứng dụng APK di động
+                </button>
+              </>
             )}
 
             {user && (
@@ -2083,7 +2137,7 @@ function MainApp() {
         </div>
       )}
 
-      {/* ── Fixed 5-Item Bottom Navigation Bar matching Image 1 & 2 ── */}
+      {/* ── Fixed 5-Item Bottom Navigation Bar (Home, Cuốc xe, Đăng chuyến, Thu nhập, Cá nhân) ── */}
       <nav className="bottom-nav-bar">
         <button
           type="button"
@@ -2130,35 +2184,25 @@ function MainApp() {
 
         <button
           type="button"
-          className={`bottom-nav-item ${activeNavTab === 'messages' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveNavTab('messages');
-          }}
+          className={`bottom-nav-item ${activeNavTab === 'income' ? 'active' : ''}`}
+          onClick={() => setActiveNavTab('income')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                <circle cx="9" cy="12" r="0.9" fill="currentColor" />
-                <circle cx="12" cy="12" r="0.9" fill="currentColor" />
-                <circle cx="15" cy="12" r="0.9" fill="currentColor" />
+                <rect x="2" y="6" width="20" height="12" rx="2" />
+                <circle cx="12" cy="12" r="2.5" />
+                <path d="M6 12h.01M18 12h.01" />
               </svg>
             </span>
-            <span className="nav-badge-pill">3</span>
           </div>
-          <span className="nav-label">Tin nhắn</span>
+          <span className="nav-label">Thu nhập</span>
         </button>
 
         <button
           type="button"
           className={`bottom-nav-item ${activeNavTab === 'profile' ? 'active' : ''}`}
-          onClick={() => {
-            if (user?.status === 'approved') {
-              setShowDriverDashboard(true);
-            } else {
-              setActiveNavTab('profile');
-            }
-          }}
+          onClick={() => setActiveNavTab('profile')}
         >
           <div className="nav-icon-box">
             <span className="nav-icon">
