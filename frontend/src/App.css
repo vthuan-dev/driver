@@ -1233,83 +1233,55 @@
   white-space: nowrap;
 }
 
-/* Guest Card variant with 2 Action Boxes */
-.hero-profile-card--guest {
-  flex-direction: column;
-  align-items: stretch;
-  padding: 12px 14px;
-  background: linear-gradient(
-    105deg,
-    #ffffff 0%,
-    #ffffff 58%,
-    rgba(255, 255, 255, 0.95) 74%,
-    rgba(255, 255, 255, 0.6) 88%,
-    rgba(255, 255, 255, 0.2) 100%
-  );
-}
-
-.guest-card-header {
+/* Sub-action pill boxes inside profile card (2 targeted boxes: Đăng ký & Đăng nhập) */
+.profile-card-right--auth {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 9px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.guest-header-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.hero-auth-boxes-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.hero-auth-box-btn {
-  flex: 1;
-  height: 38px;
-  border-radius: 12px;
-  display: flex;
+.hero-sub-action-box {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  font-size: 13.5px;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.18s ease;
-  letter-spacing: 0.2px;
+  line-height: 1.2;
 }
 
-.hero-auth-box-btn:active {
-  transform: scale(0.97);
+.hero-sub-action-box:active {
+  transform: scale(0.96);
 }
 
-/* Đăng ký (Register) - Primary Green */
-.hero-auth-box-btn--register {
-  background: linear-gradient(135deg, #00b14f 0%, #009643 100%);
+/* Ô 1: Đăng ký */
+.hero-sub-action-box--register {
+  background: #00b14f;
   color: #ffffff;
-  border: none;
-  box-shadow: 0 3px 10px rgba(0, 177, 79, 0.25);
+  border: 1px solid #00b14f;
+  box-shadow: 0 2px 7px rgba(0, 177, 79, 0.28);
 }
 
-.hero-auth-box-btn--register:hover {
-  background: linear-gradient(135deg, #00c257 0%, #00a84b 100%);
+.hero-sub-action-box--register:hover {
+  background: #009643;
 }
 
-/* Đăng nhập (Login) - Clean outline / Slate contrast */
-.hero-auth-box-btn--login {
-  background: #ffffff;
-  color: #1e293b;
-  border: 1.5px solid #cbd5e1;
+/* Ô 2: Đăng nhập */
+.hero-sub-action-box--login {
+  background: rgba(255, 255, 255, 0.95);
+  color: #047857;
+  border: 1.5px solid #00b14f;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.hero-auth-box-btn--login:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+.hero-sub-action-box--login:hover {
+  background: #f0fdf4;
 }
 
 /* Quick Stats Row (3 Compact Pill Cards) */
@@ -1317,7 +1289,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin: 18px 14px 0;
+  margin: 36px 14px 0;
 }
 
 .qs-card {
