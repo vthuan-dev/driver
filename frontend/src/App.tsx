@@ -1486,7 +1486,9 @@ function MainApp() {
               </div>
               <div className="profile-card-right">
                 <div className="verified-pill-badge">
-                  <span>🛡️</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#d97706">
+                    <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
+                  </svg>
                   <span>Tài xế đã xác thực</span>
                 </div>
               </div>
