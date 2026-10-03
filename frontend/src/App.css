@@ -1537,6 +1537,12 @@
   gap: 4px;
 }
 
+.featured-rides-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .featured-ride-card {
   background: #ffffff;
   border-radius: 20px;

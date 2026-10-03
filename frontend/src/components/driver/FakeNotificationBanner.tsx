@@ -52,10 +52,196 @@ const defaultFeaturedSouth = {
   note: 'Đưa đón tận nơi'
 };
 
-const defaultMapByRegion: Record<string, any> = {
-  north: defaultFeaturedNorth,
-  central: defaultFeaturedCentral,
-  south: defaultFeaturedSouth
+const defaultRidesByRegion: Record<string, any[]> = {
+  north: [
+    defaultFeaturedNorth,
+    {
+      _id: 'featured-north-2',
+      carType: '4',
+      price: 1250000,
+      startPoint: 'Hà Nội',
+      endPoint: 'Hải Phòng',
+      startDetail: 'Sân bay Nội Bài, Hà Nội',
+      endDetail: 'Cảng Đình Vũ, Hải Phòng',
+      displayTime: '06:15',
+      displayDate: '2026-10-05',
+      note: 'Đi công tác, đón đúng giờ'
+    },
+    {
+      _id: 'featured-north-3',
+      carType: '7',
+      price: 3100000,
+      startPoint: 'Hà Nội',
+      endPoint: 'Lào Cai',
+      startDetail: 'Bến xe Mỹ Đình, Hà Nội',
+      endDetail: 'Thị xã Sa Pa, Lào Cai',
+      displayTime: '05:30',
+      displayDate: '2026-10-05',
+      note: 'Gia đình đi nghỉ dưỡng Sa Pa'
+    },
+    {
+      _id: 'featured-north-4',
+      carType: '16',
+      price: 2800000,
+      startPoint: 'Bắc Ninh',
+      endPoint: 'Quảng Ninh',
+      startDetail: 'KCN Yên Phong, Bắc Ninh',
+      endDetail: 'Bãi Cháy, TP. Hạ Long',
+      displayTime: '07:00',
+      displayDate: '2026-10-05',
+      note: 'Đoàn công ty tham quan'
+    },
+    {
+      _id: 'featured-north-5',
+      carType: '4',
+      price: 850000,
+      startPoint: 'Nam Định',
+      endPoint: 'Hà Nội',
+      startDetail: 'TP. Nam Định',
+      endDetail: 'Bệnh viện Bạch Mai, Hà Nội',
+      displayTime: '08:00',
+      displayDate: '2026-10-05',
+      note: 'Khách đi khám bệnh'
+    },
+    {
+      _id: 'featured-north-6',
+      carType: '7',
+      price: 2600000,
+      startPoint: 'Thái Nguyên',
+      endPoint: 'Hà Giang',
+      startDetail: 'TP. Thái Nguyên',
+      endDetail: 'Cột mốc số 0, TP. Hà Giang',
+      displayTime: '04:45',
+      displayDate: '2026-10-05',
+      note: 'Đi phượt miền núi, xe khỏe'
+    }
+  ],
+  central: [
+    defaultFeaturedCentral,
+    {
+      _id: 'featured-central-2',
+      carType: '4',
+      price: 1200000,
+      startPoint: 'Thừa Thiên - Huế',
+      endPoint: 'Đà Nẵng',
+      startDetail: 'Đại Nội Huế',
+      endDetail: 'Bà Nà Hills, Đà Nẵng',
+      displayTime: '08:00',
+      displayDate: '2026-10-05',
+      note: 'Khách du lịch 2 chiều'
+    },
+    {
+      _id: 'featured-central-3',
+      carType: '7',
+      price: 1850000,
+      startPoint: 'Thanh Hóa',
+      endPoint: 'Nghệ An',
+      startDetail: 'TP. Thanh Hóa',
+      endDetail: 'Quảng trường Hồ Chí Minh, TP. Vinh',
+      displayTime: '06:30',
+      displayDate: '2026-10-05',
+      note: 'Đi công tác gấp'
+    },
+    {
+      _id: 'featured-central-4',
+      carType: '7',
+      price: 2200000,
+      startPoint: 'Khánh Hòa',
+      endPoint: 'Lâm Đồng',
+      startDetail: 'TP. Nha Trang',
+      endDetail: 'Hồ Xuân Hương, TP. Đà Lạt',
+      displayTime: '07:00',
+      displayDate: '2026-10-05',
+      note: 'Tour tham quan Đà Lạt'
+    },
+    {
+      _id: 'featured-central-5',
+      carType: '4',
+      price: 1600000,
+      startPoint: 'Quảng Bình',
+      endPoint: 'Thừa Thiên - Huế',
+      startDetail: 'TP. Đồng Hới',
+      endDetail: 'TP. Huế',
+      displayTime: '09:00',
+      displayDate: '2026-10-05',
+      note: 'Xe êm, điều hòa tốt'
+    },
+    {
+      _id: 'featured-central-6',
+      carType: '16',
+      price: 2100000,
+      startPoint: 'Quảng Nam',
+      endPoint: 'Quảng Ngãi',
+      startDetail: 'Phố cổ Hội An',
+      endDetail: 'TP. Quảng Ngãi',
+      displayTime: '13:30',
+      displayDate: '2026-10-05',
+      note: 'Đoàn gia đình đi lễ'
+    }
+  ],
+  south: [
+    defaultFeaturedSouth,
+    {
+      _id: 'featured-south-2',
+      carType: '7',
+      price: 2500000,
+      startPoint: 'TP. Hồ Chí Minh',
+      endPoint: 'Cần Thơ',
+      startDetail: 'Sân bay Tân Sơn Nhất',
+      endDetail: 'Bến Ninh Kiều, TP. Cần Thơ',
+      displayTime: '08:30',
+      displayDate: '2026-10-05',
+      note: 'Đưa đón khách về miền Tây'
+    },
+    {
+      _id: 'featured-south-3',
+      carType: '7',
+      price: 2900000,
+      startPoint: 'Bình Dương',
+      endPoint: 'Bình Thuận',
+      startDetail: 'TP. Thủ Dầu Một',
+      endDetail: 'Mũi Né, TP. Phan Thiết',
+      displayTime: '05:00',
+      displayDate: '2026-10-05',
+      note: 'Đi nghỉ dưỡng resort Mũi Né'
+    },
+    {
+      _id: 'featured-south-4',
+      carType: '4',
+      price: 1350000,
+      startPoint: 'TP. Hồ Chí Minh',
+      endPoint: 'Tây Ninh',
+      startDetail: 'Bến xe Miền Tây',
+      endDetail: 'Khu du lịch Núi Bà Đen',
+      displayTime: '06:45',
+      displayDate: '2026-10-05',
+      note: 'Đi viếng chùa Bà Đen'
+    },
+    {
+      _id: 'featured-south-5',
+      carType: '16',
+      price: 4500000,
+      startPoint: 'Đồng Nai',
+      endPoint: 'Lâm Đồng',
+      startDetail: 'TP. Biên Hòa',
+      endDetail: 'TP. Đà Lạt',
+      displayTime: '04:00',
+      displayDate: '2026-10-05',
+      note: 'Đoàn du lịch 3 ngày 2 đêm'
+    },
+    {
+      _id: 'featured-south-6',
+      carType: '7',
+      price: 2700000,
+      startPoint: 'An Giang',
+      endPoint: 'TP. Hồ Chí Minh',
+      startDetail: 'TP. Long Xuyên, An Giang',
+      endDetail: 'Quận 5, TP. Hồ Chí Minh',
+      displayTime: '07:15',
+      displayDate: '2026-10-05',
+      note: 'Khách gia đình có trẻ nhỏ'
+    }
+  ]
 };
 
 const getPlaceImage = (point: string, detail?: string | null): string | null => {
@@ -163,7 +349,10 @@ const FakeNotificationBanner = ({
     }
   };
 
-  const displayList = fakeNotifications.length > 0 ? fakeNotifications : [defaultMapByRegion[region] || defaultFeaturedNorth];
+  const baseRides = defaultRidesByRegion[region] || defaultRidesByRegion.north;
+  const displayList = fakeNotifications.length > 0
+    ? [...fakeNotifications, ...baseRides.filter(b => !fakeNotifications.some(f => f.startPoint === b.startPoint && f.endPoint === b.endPoint))]
+    : baseRides;
 
   return (
     <div className="featured-rides-section">
