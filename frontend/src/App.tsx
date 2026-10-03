@@ -2,6 +2,7 @@ import { useState, useEffect, Component, useRef } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+// Vercel deployment trigger: update hero profile card frosted glass
 import './App.css'
 import api, { authAPI, driversAPI, requestsAPI, driverAPI, bankConfigAPI } from './services/api'
 import AdminLogin from './components/admin/Login'
