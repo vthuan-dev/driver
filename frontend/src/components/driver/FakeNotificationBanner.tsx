@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { driverFakeNotificationsAPI } from '../../services/api';
-import './DriverDashboard.css'; // Reuse styles
 
 type Props = {
   user?: {
@@ -10,11 +9,71 @@ type Props = {
   } | null;
   region?: 'north' | 'central' | 'south';
   onRequireAuth?: () => void;
+  onRegisterClick?: () => void;
+  onViewAllClick?: () => void;
 };
 
-const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props) => {
+const defaultFeaturedNorth = {
+  _id: 'default-featured-north',
+  carType: '7',
+  price: 4200000,
+  startPoint: 'Bắc Giang',
+  endPoint: 'Cao Bằng',
+  startDetail: 'TP. Bắc Giang',
+  endDetail: 'Thác Bản Giốc (Trùng Khánh, Cao Bằng)',
+  displayTime: '04:00',
+  displayDate: '2026-10-05',
+  note: 'Đi vùng cao'
+};
+
+const defaultFeaturedCentral = {
+  _id: 'default-featured-central',
+  carType: '7',
+  price: 2800000,
+  startPoint: 'Đà Nẵng',
+  endPoint: 'Quy Nhơn',
+  startDetail: 'Sân bay Đà Nẵng',
+  endDetail: 'Kỳ Co - Eo Gió (Quy Nhơn)',
+  displayTime: '07:30',
+  displayDate: '2026-10-05',
+  note: 'Đi công tác & du lịch'
+};
+
+const defaultFeaturedSouth = {
+  _id: 'default-featured-south',
+  carType: '7',
+  price: 1800000,
+  startPoint: 'TP. Hồ Chí Minh',
+  endPoint: 'Vũng Tàu',
+  startDetail: 'Quận 1, TP. HCM',
+  endDetail: 'Bãi Sau, TP. Vũng Tàu',
+  displayTime: '06:00',
+  displayDate: '2026-10-05',
+  note: 'Đưa đón tận nơi'
+};
+
+const defaultMapByRegion: Record<string, any> = {
+  north: defaultFeaturedNorth,
+  central: defaultFeaturedCentral,
+  south: defaultFeaturedSouth
+};
+
+const getPlaceImage = (point: string, detail?: string | null): string | null => {
+  const text = `${point || ''} ${detail || ''}`.toLowerCase();
+  if (text.includes('bắc giang')) return '/images/landmark_bac_giang.jpg';
+  if (text.includes('cao bằng') || text.includes('bản giốc')) return '/images/landmark_ban_gioc.jpg';
+  return null;
+};
+
+const FakeNotificationBanner = ({
+  user,
+  region = 'north',
+  onRequireAuth,
+  onRegisterClick,
+  onViewAllClick
+}: Props) => {
   const [fakeNotifications, setFakeNotifications] = useState<any[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [, setLoadingNotifications] = useState(false);
   const [acceptingNotificationId, setAcceptingNotificationId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -22,58 +81,49 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchFakeNotifications = async (currentRegion: string) => {
-
     try {
       setLoadingNotifications(true);
       const response = await driverFakeNotificationsAPI.getFakeNotifications(currentRegion);
-      
       const newNotifications = response.data.data || [];
-      // Only update state if we actually got new notifications to avoid flickering empty state
+
       if (newNotifications.length > 0) {
         setFakeNotifications(newNotifications);
-        
-        // Bắn thông báo đẩy ra ngoài hệ điều hành (Desktop / Mobile Push Notification)
+
         if ('Notification' in window && Notification.permission === 'granted') {
           const notif = newNotifications[0];
           const systemNotification = new Notification(`🔔 Có cuốc xe ${notif.carType} chỗ mới!`, {
-            body: `${notif.startPoint} ➔ ${notif.endPoint}\nGiá: ${notif.price.toLocaleString('vi-VN')}đ`,
-            icon: '/vite.svg', // Icon mặc định của web
-            requireInteraction: true // Giữ thông báo trên màn hình cho đến khi user tắt hoặc click
+            body: `${notif.startPoint} ➔ ${notif.endPoint}\nGiá: ${Number(notif.price).toLocaleString('vi-VN')}đ`,
+            icon: '/vite.svg',
+            requireInteraction: true
           });
 
-          // Nếu user click vào thông báo đẩy, focus lại trình duyệt
           systemNotification.onclick = () => {
             window.focus();
             systemNotification.close();
           };
         }
-        
-        // Auto hide after 30 seconds
+
         if (autoHideRef.current) clearTimeout(autoHideRef.current);
         autoHideRef.current = setTimeout(() => {
           setFakeNotifications([]);
         }, 3 * 60 * 1000);
-        
       } else {
-        // If empty, we can choose to clear it or keep the old one until next tick
-        // Let's clear it if they wanted to reset
         setFakeNotifications([]);
       }
-      
+
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      
+
       let min = 15;
       let max = 30;
       if (response.data.settings) {
         min = response.data.settings.minInterval || 15;
         max = response.data.settings.maxInterval || 30;
       }
-      
+
       const randomMinutes = Math.floor(Math.random() * (max - min + 1)) + min;
       timeoutRef.current = setTimeout(() => {
         fetchFakeNotifications(currentRegion);
       }, randomMinutes * 60 * 1000);
-
     } catch (error: any) {
       console.error('Error fetching fake notifications:', error);
     } finally {
@@ -96,15 +146,14 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
 
   const handleAcceptFakeNotification = async (notificationId: string) => {
     if (autoHideRef.current) clearTimeout(autoHideRef.current);
-    
+
     try {
       setAcceptingNotificationId(notificationId);
       await driverFakeNotificationsAPI.acceptFakeNotification(notificationId);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Đã có tài xế nhận quốc, vui lòng đợi cuốc tiếp theo';
+      const message = error.response?.data?.message || 'Đã có tài xế nhận cuốc, vui lòng đợi cuốc tiếp theo';
       setErrorMessage(message);
       setShowErrorPopup(true);
-      // Remove the notification after failure
       setTimeout(() => {
         setFakeNotifications(prev => prev.filter(n => n._id !== notificationId));
         setShowErrorPopup(false);
@@ -114,124 +163,204 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
     }
   };
 
-  if (fakeNotifications.length === 0 && !showErrorPopup) return null;
+  const displayList = fakeNotifications.length > 0 ? fakeNotifications : [defaultMapByRegion[region] || defaultFeaturedNorth];
 
   return (
-    <div className="fake-notifications-section" style={{ margin: '15px 10px', borderRadius: '12px', padding: '16px' }}>
-      <div className="section-header">
-        <h3 style={{ fontSize: '1rem' }}>🔔 Bạn có cuốc xe có thể nhận</h3>
-        {loadingNotifications ? (
-          <span className="loading-spinner">⟳</span>
-        ) : (
-          <span className="ride-latest-badge">Mới nhất</span>
-        )}
+    <div className="featured-rides-section">
+      {/* Section Header */}
+      <div className="featured-rides-header">
+        <div className="featured-rides-title">
+          <span className="featured-bell-icon">🔔</span>
+          <h3>Cuốc xe mới nhất</h3>
+        </div>
+        <button
+          type="button"
+          className="featured-view-all-btn"
+          onClick={() => {
+            if (onViewAllClick) onViewAllClick();
+          }}
+        >
+          <span>Xem tất cả</span>
+          <span style={{ fontSize: '13px', fontWeight: 'bold' }}>›</span>
+        </button>
       </div>
-      
+
       <AnimatePresence>
-        {fakeNotifications.length > 0 && (
-          <div className="fake-notifications-list">
-            {fakeNotifications.map((notification, index) => (
+        <div className="featured-rides-list">
+          {displayList.map((notification, index) => {
+            const dateObj = notification.displayDate ? new Date(notification.displayDate) : new Date();
+            const weekday = dateObj.toLocaleDateString('vi-VN', { weekday: 'long' });
+            const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+            const dateStr = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeString = `${notification.displayTime || '04:00'} · ${weekdayCap}, ${dateStr}`;
+
+            return (
               <motion.div
-                key={notification._id}
-                className="fake-notification-card"
-                initial={{ opacity: 0, y: -20 }}
+                key={notification._id || index}
+                className="featured-ride-card"
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                style={{ marginBottom: '12px' }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.3, delay: index * 0.08 }}
               >
-                <div className="ride-card-header">
-                  <span className="ride-time-wrap">
-                    <span className="ride-time-icon">🕐</span>
-                    <span className="ride-time-text">
-                      {(() => {
-                        const d = notification.displayDate ? new Date(notification.displayDate) : new Date();
-                        const weekday = d.toLocaleDateString('vi-VN', { weekday: 'long' });
-                        const cap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-                        const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        return `${notification.displayTime} · ${cap}, ${dateStr}`;
-                      })()}
-                    </span>
-                  </span>
-                </div>
-
-                <div className="ride-summary-container">
-                  <div className="ride-summary-row">
-                    <div className="ride-cartype">🚗 Có tài xế bắn cuốc {notification.carType} chỗ</div>
-                    <span className="ride-price-block">
-                      <span className="ride-price">{notification.price.toLocaleString('vi-VN')}đ</span>
-                      <span className="ride-price-label">Giá chuyến</span>
-                    </span>
+                {/* Header: Time + Hot badge */}
+                <div className="featured-card-top">
+                  <div className="featured-time-pill">
+                    <span className="featured-time-icon">🕐</span>
+                    <span className="featured-time-text">{timeString}</span>
                   </div>
-                  <div className="ride-summary-route">
-                    <span className="ride-pin ride-pin-start">📍</span>
-                    <span className="ride-summary-point ride-point-start">{notification.startPoint}</span>
-                    <span className="ride-summary-arrow">→</span>
-                    <span className="ride-pin ride-pin-end">📍</span>
-                    <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
+                  <div className="featured-hot-pill">
+                    <span className="featured-hot-icon">⚡</span>
+                    <span className="featured-hot-text">Cuốc hot</span>
                   </div>
                 </div>
 
-                <div className="ride-timeline">
-                  <div className="ride-timeline-row">
-                    <span className="ride-marker ride-marker-start" />
-                    <div className="ride-timeline-content">
-                      <div className="ride-point-head">
-                        <span className="ride-badge ride-badge-start">📍 Điểm đón</span>
-                        <div className="ride-point-name">{notification.startDetail || notification.startPoint}</div>
-                      </div>
-                      {notification.startArea && (
-                        <div className="ride-point-area">Khu vực: {notification.startArea}</div>
-                      )}
-                    </div>
+                {/* Car type & Price */}
+                <div className="featured-card-middle">
+                  <div className="featured-card-cartype">
+                    <span className="featured-car-emoji">🚗</span>
+                    <span className="featured-car-name">Có tài xế bắn cuốc {notification.carType} chỗ</span>
                   </div>
-                  <div className="ride-timeline-connector" />
-                  <div className="ride-timeline-row">
-                    <span className="ride-marker ride-marker-end" />
-                    <div className="ride-timeline-content">
-                      <div className="ride-point-head">
-                        <span className="ride-badge ride-badge-end">📍 Điểm đến</span>
-                        <div className="ride-point-name">{notification.endDetail || notification.endPoint}</div>
-                      </div>
-                      {notification.endArea && (
-                        <div className="ride-point-area">Khu vực: {notification.endArea}</div>
-                      )}
-                    </div>
+                  <div className="featured-card-price-wrap">
+                    <div className="featured-card-price">{Number(notification.price).toLocaleString('vi-VN')}đ</div>
+                    <div className="featured-card-price-sub">Giá chuyến</div>
                   </div>
                 </div>
 
-                {notification.note && (
-                  <div className="ride-note-box">
-                    <span className="ride-note-icon">📋</span>
-                    <span className="ride-note-text">
-                      <strong>Yêu cầu phụ:</strong> {notification.note}
-                    </span>
-                  </div>
-                )}
+                {/* Route Points */}
+                <div className="featured-card-route">
+                  <span className="route-pin-icon route-pin-icon--green">📍</span>
+                  <span className="route-loc-name route-loc-name--start">{notification.startPoint}</span>
+                  <span className="route-arrow-icon">→</span>
+                  <span className="route-pin-icon route-pin-icon--red">📍</span>
+                  <span className="route-loc-name route-loc-name--end">{notification.endPoint}</span>
+                </div>
 
-                <button
-                  className="accept-ride-btn"
+                {/* Dynamic Google Maps Route View */}
+                <div
+                  className="featured-map-view"
+                  title="Nhấn để mở chỉ đường trên Google Maps"
                   onClick={() => {
-                    if (!user || user.status !== 'approved') {
+                    const start = notification.startDetail || notification.startPoint;
+                    const end = notification.endDetail || notification.endPoint;
+                    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(end)}`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  <div
+                    className="featured-map-bg"
+                    style={{
+                      backgroundImage: `url('/images/google_map_terrain.jpg')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+
+                  {/* SVG Route Line */}
+                  <svg className="featured-map-svg" viewBox="0 0 360 120" preserveAspectRatio="none">
+                    <path
+                      d="M 60 90 Q 110 90, 160 65 T 260 40 L 305 32"
+                      fill="none"
+                      stroke="#2563eb"
+                      strokeWidth="4.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+
+                  {/* Car icon placed on route */}
+                  <div className="featured-map-car-badge">
+                    <span>🚗</span>
+                  </div>
+
+                  {/* Start Point Marker Card */}
+                  <div className="featured-map-marker featured-map-marker--start">
+                    {getPlaceImage(notification.startPoint, notification.startDetail) ? (
+                      <img
+                        src={getPlaceImage(notification.startPoint, notification.startDetail)!}
+                        alt={notification.startDetail || notification.startPoint}
+                        className="marker-img"
+                        onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="marker-img-placeholder marker-img-placeholder--start">
+                        <span>📍</span>
+                      </div>
+                    )}
+                    <div className="marker-content">
+                      <span className="marker-badge marker-badge--start">Điểm đón</span>
+                      <div className="marker-address">{notification.startDetail || notification.startPoint}</div>
+                    </div>
+                  </div>
+
+                  {/* End Point Marker Card */}
+                  <div className="featured-map-marker featured-map-marker--end">
+                    {getPlaceImage(notification.endPoint, notification.endDetail) ? (
+                      <img
+                        src={getPlaceImage(notification.endPoint, notification.endDetail)!}
+                        alt={notification.endDetail || notification.endPoint}
+                        className="marker-img"
+                        onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="marker-img-placeholder marker-img-placeholder--end">
+                        <span>🏁</span>
+                      </div>
+                    )}
+                    <div className="marker-content">
+                      <span className="marker-badge marker-badge--end">Điểm đến</span>
+                      <div className="marker-address">{notification.endDetail || notification.endPoint}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Specs row */}
+                <div className="featured-card-specs">
+                  <div className="spec-tag">
+                    <span className="spec-icon">🚗</span>
+                    <span>{notification.carType} chỗ</span>
+                  </div>
+                  <div className="spec-tag">
+                    <span className="spec-icon">👥</span>
+                    <span>Khách du lịch</span>
+                  </div>
+                  <div className="spec-tag spec-tag--note">
+                    <span className="spec-icon">🧳</span>
+                    <span className="spec-text">Yêu cầu: {notification.note || 'Đi vùng cao'}</span>
+                  </div>
+                  <div className="spec-tag-menu">⋮</div>
+                </div>
+
+                {/* Big Action Button */}
+                <button
+                  type="button"
+                  className="featured-card-submit-btn"
+                  onClick={() => {
+                    if (!user) {
                       if (onRequireAuth) onRequireAuth();
                       return;
                     }
-                    handleAcceptFakeNotification(notification._id);
+                    if (onRegisterClick) {
+                      onRegisterClick();
+                    } else {
+                      handleAcceptFakeNotification(notification._id);
+                    }
                   }}
                   disabled={acceptingNotificationId === notification._id}
                 >
-                  {acceptingNotificationId === notification._id ? 'Đang xử lý...' : 'Nhận chuyến ngay  ›'}
+                  <span>ĐĂNG KÝ CHỞ CUỐC XE</span>
+                  <span className="featured-btn-arrow">›</span>
                 </button>
               </motion.div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </AnimatePresence>
 
       {/* Error Popup Modal */}
       <AnimatePresence>
         {showErrorPopup && (
-          <motion.div 
+          <motion.div
             className="error-popup-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -242,25 +371,27 @@ const FakeNotificationBanner = ({ user, region = 'north', onRequireAuth }: Props
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
           >
-            <motion.div 
+            <motion.div
               className="error-popup-content"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               style={{
-                background: 'white', padding: '20px', borderRadius: '12px',
-                textAlign: 'center', maxWidth: '300px', width: '90%'
+                background: 'white', padding: '20px', borderRadius: '16px',
+                textAlign: 'center', maxWidth: '320px', width: '90%',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
               }}
             >
               <div style={{ fontSize: '40px', marginBottom: '10px' }}>⚠️</div>
-              <h3 style={{ color: '#e74c3c', marginBottom: '10px' }}>Rất tiếc!</h3>
-              <p style={{ color: '#333', marginBottom: '20px', lineHeight: '1.5' }}>{errorMessage}</p>
-              <button 
+              <h3 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '18px' }}>Rất tiếc!</h3>
+              <p style={{ color: '#333', marginBottom: '20px', lineHeight: '1.5', fontSize: '14px' }}>{errorMessage}</p>
+              <button
+                type="button"
                 onClick={() => setShowErrorPopup(false)}
                 style={{
-                  background: '#e74c3c', color: 'white', border: 'none',
-                  padding: '10px 20px', borderRadius: '8px', width: '100%',
-                  fontWeight: 'bold'
+                  background: '#00b14f', color: 'white', border: 'none',
+                  padding: '12px 20px', borderRadius: '10px', width: '100%',
+                  fontWeight: 'bold', fontSize: '15px', cursor: 'pointer'
                 }}
               >
                 Đóng

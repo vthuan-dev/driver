@@ -47,10 +47,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-// Avatar images from folder; we will deterministically map driver+region to an image
-const avatarModules = import.meta.glob('../driver/*.{jpg,jpeg,png}', { eager: true }) as Record<string, any>
-const avatarImages: string[] = Object.values(avatarModules).map((m: any) => m.default || m)
-
 type Region = 'north' | 'central' | 'south'
 
 type DriverPost = {
@@ -870,8 +866,7 @@ function MainApp() {
     };
     fetchDownloadStatus();
   }, [user?.status]);
-  const [drivers, setDrivers] = useState<DriverPost[]>(posts)
-  const [activeRegion, setActiveRegion] = useState<Region>('north')
+  const [, setDrivers] = useState<DriverPost[]>(posts)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [authForm, setAuthForm] = useState({
@@ -901,6 +896,11 @@ function MainApp() {
   const [showPayment, setShowPayment] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
+  const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'messages' | 'profile'>('home');
+  const [showBalance, setShowBalance] = useState(true);
+  const [ridesSearchQuery, setRidesSearchQuery] = useState('');
+  const [ridesSubFilter, setRidesSubFilter] = useState<'all' | '4' | '7' | '16' | 'urgent'>('all');
+  const [copiedPhoneId, setCopiedPhoneId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -924,63 +924,11 @@ function MainApp() {
 
   const formatPhone = (phone: string) => (user ? phone : maskPhoneStrict(phone))
 
-  const normalizedDrivers = drivers.map((driver) => ({
-    ...driver,
-    region: (driver.region ?? 'north') as Region,
-  }))
-
-  const regionDrivers = normalizedDrivers.filter((driver) => driver.region === activeRegion)
-  const displayedDrivers = regionDrivers.length > 0 ? regionDrivers : fallbackDriversByRegion[activeRegion]
-
-  // Filter requests by region and province, then sort newest first
-  const regionRequests = requests
-    .filter((request) => {
-      const requestRegion = (request.region || 'north') as Region
-      if (requestRegion !== activeRequestRegion) return false
-
-      const selected = selectedProvince[activeRequestRegion]
-      // Show all if not selected OR empty string (from dropdown default)
-      if (!selected || selected.trim() === '') return true
-
-      // Filter theo tỉnh thành: kiểm tra startPoint hoặc endPoint
-      return request.startPoint === selected || request.endPoint === selected
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
   const toInitials = (name: string) => {
     const parts = (name || '').trim().split(/\s+/)
     const first = parts[0]?.[0] || ''
     const last = parts.length > 1 ? parts[parts.length - 1][0] : ''
     return (first + last).toUpperCase() || 'TX'
-  }
-
-  const pickAvatarIndex = (name: string, phone: string, region: Region) => {
-    if (avatarImages.length === 0) return -1
-    // Split global pool into 3 region-specific sub-pools to reduce cross-region duplicates
-    const regionOffset = region === 'north' ? 0 : region === 'central' ? 1 : 2
-    const regionPool = avatarImages.filter((_, i) => i % 3 === regionOffset)
-    const pool = regionPool.length > 0 ? regionPool : avatarImages
-
-    // Hash by name+phone for stable selection inside the pool
-    const base = `${name}-${phone}`
-    let hash = 0
-    for (let i = 0; i < base.length; i++) {
-      hash = (hash * 31 + base.charCodeAt(i)) >>> 0
-    }
-
-    const idxInPool = Math.abs(hash) % pool.length
-
-    // Map index-in-pool back to global index for rendering
-    if (pool === avatarImages) return idxInPool
-    // find nth matching index where i % 3 === regionOffset
-    let count = -1
-    for (let i = 0; i < avatarImages.length; i++) {
-      if (i % 3 === regionOffset) {
-        count++
-        if (count === idxInPool) return i
-      }
-    }
-    return idxInPool % avatarImages.length
   }
 
   // Load drivers from API
@@ -1268,30 +1216,39 @@ function MainApp() {
       {/* Show main app (hide when dashboard is open) */}
       {!showDriverDashboard && (
         <>
-      <div className="app-header">
-        <button className="app-header__menu" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-        <div className="app-header__logo">DRIVER <span>APP</span></div>
-        <button className="app-header__bell" aria-label="Thông báo" onClick={handleBellClick} style={{ position: 'relative' }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          {unreadCount > 0 && (
-            <span style={{
-              position: 'absolute', top: 4, right: 4,
-              background: '#ef4444', color: '#fff',
-              fontSize: 10, fontWeight: 800,
-              minWidth: 16, height: 16, borderRadius: 999,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '0 3px', pointerEvents: 'none',
-              border: '1.5px solid #fff'
-            }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
-          )}
-        </button>
-      </div>
+      {/* ── Modern App Header matching Image 1 & 2 ── */}
+      <header className="modern-header">
+        <div className="modern-header-left">
+          <button
+            className="app-header__menu"
+            aria-label="Menu"
+            onClick={() => setMenuOpen((v) => !v)}
+            style={{ marginRight: 6 }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div>
+            <div className="modern-header-sub">HỆ THỐNG ĐIỀU PHỐI XE</div>
+            <h1 className="modern-header-title">
+              {activeNavTab === 'rides' ? 'DANH SÁCH CUỐC XE' : 'CỤC BỘ TOÀN QUỐC'}
+            </h1>
+          </div>
+        </div>
+        <div className="modern-header-right">
+          <button className="modern-header-bell-btn" onClick={handleBellClick} aria-label="Thông báo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            {unreadCount > 0 && (
+              <span className="modern-header-bell-badge">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </header>
 
       {/* Notification dropdown — small popover near bell */}
       {showNotifPanel && (
@@ -1488,373 +1445,679 @@ function MainApp() {
           </>
         </AnimatePresence>
       )}
-      {/* Hero Banner */}
-      {!user && (
-        <div className="hero-banner">
-          <div className="hero-banner__content">
-            <h3 className="hero-banner__title">Tham gia nhóm tài xế</h3>
-            <p className="hero-banner__subtitle">Đăng ký để có thể liên hệ và đón cuốc</p>
-            <div className="hero-banner__buttons">
-              <button className="hero-banner__btn hero-banner__btn--primary" onClick={() => setAuthModal('register')}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                Đăng ký thành viên
-              </button>
-              <button className="hero-banner__btn hero-banner__btn--secondary" onClick={() => setAuthModal('login')}>
-                Đăng nhập
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Nút đăng xuất + thông tin khách khi đã đăng nhập */}
-      {user && (
-        <div className="main-actions">
-          <div 
-            className="user-summary-card user-summary-card--clickable"
-            onClick={() => {
-              if (user.status === 'approved') {
-                setShowDriverDashboard(true);
-              } else {
-                setErrorPopupTitle('Thông báo');
-                setErrorMessage('Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.');
-                setShowErrorPopup(true);
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="user-summary-card__avatar">
-              {toInitials(user.name || user.phone)}
-            </div>
-            <div className="user-summary-card__info">
-              <span className="user-summary-card__greeting">Xin chào,</span>
-              <strong className="user-summary-card__name">{user.name || 'Tài xế'}</strong>
-              <span className="user-summary-card__phone">{maskPhoneStrict(user.phone)}</span>
-              {user.status === 'approved' && (
-                <span className="user-summary-card__hint"> Nhấn để xem dashboard</span>
-              )}
-            </div>
-          </div>
-
-          {/* Nút tải ứng dụng ở trang chủ */}
-          {user.status === 'approved' && (
-            <button
-              id="joyride-download-btn"
-              className="main-action-btn"
-              style={{
-                borderColor: '#e2e8f0',
-                justifyContent: 'space-between',
-                marginBottom: '8px',
-                color: '#1e293b'
-              }}
+      {/* ── Main App Views (Home vs Rides vs Profile) ── */}
+      {activeNavTab === 'home' && (
+        <div className="home-view-container">
+          {/* Hero Section with Skyline + Driver Banner and Profile Card */}
+          <div className="modern-hero-section">
+            <div
+              className="hero-banner-image"
+              style={{ backgroundImage: `url('/images/driver-hero-banner.jpg')` }}
+            />
+            <div
+              className="hero-profile-card"
               onClick={() => {
-                const { downloadCount } = downloadStatus;
-
-                // Đã tải trước đó → vào trang download trực tiếp
-                if (downloadCount > 0) {
-                  setShowDownloadPage(true);
-                  return;
+                if (user) {
+                  if (user.status === 'approved') {
+                    setShowDriverDashboard(true);
+                  } else {
+                    setErrorPopupTitle('Thông báo');
+                    setErrorMessage('Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.');
+                    setShowErrorPopup(true);
+                  }
+                } else {
+                  setAuthModal('login');
                 }
-
-                // Chưa tải lần nào → phải chọn gói
-                setShowPricingModal(true);
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="main-action-btn__icon">📱</span>
-                <span className="main-action-btn__text" style={{ color: '#1e293b' }}>Tải ứng dụng di động</span>
-              </span>
-              <span style={{ background: '#22c55e', color: 'white', padding: '4px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>APK</span>
-            </button>
-          )}
-
-          <button
-            className="main-action-btn main-action-btn--logout"
-            onClick={() => {
-              localStorage.removeItem('driver_user');
-              localStorage.removeItem('token');
-              localStorage.removeItem('driver_registered');
-              setUser(null);
-              setShowDriverDashboard(false);
-            }}
-          >
-            <span className="main-action-btn__icon">🚪</span>
-            <span className="main-action-btn__text">Đăng xuất</span>
-          </button>
-        </div>
-      )}
-
-      {!showDriverDashboard && (
-        <div style={{ margin: '15px 10px 0 10px' }}>
-          <div className="region-tabs" style={{ margin: 0 }}>
-            {(['north', 'central', 'south'] as Region[]).map((region) => (
-              <button
-                key={region}
-                className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
-                onClick={() => setActiveRequestRegion(region)}
-              >
-                {regionLabels[region]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Hiển thị thông báo cuốc xe ảo cho tất cả người dùng ở trang chủ */}
-      {!showDriverDashboard && (
-        <FakeNotificationBanner
-          user={user}
-          region={activeRequestRegion}
-          onRequireAuth={() => {
-            setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
-            setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
-            setShowErrorPopup(true);
-          }}
-        />
-      )}
-
-      <div className="info-bar">
-        <div className="info-bar__item info-bar__item--phone">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00b14f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.72A2 2 0 012 .18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/>
-          </svg>
-          <span>Liên hệ <strong>039 xxxx 932</strong></span>
-        </div>
-        <div className="info-bar__divider" />
-        {/* Scrolling ticker */}
-        <div className="info-bar__ticker-wrap">
-          <div className="info-bar__ticker">
-            {[
-              '🚗 Cần xe đi sáng mai 7h từ Hà Nội → Quảng Ninh',
-              '👶 TP.HCM → Vũng Tàu, có trẻ em đi cùng',
-              '📞 039 xxxx 214 · Hà Nội → Lào Cai, đi gấp hôm nay',
-              '🌙 Cần xe đêm nay 21h từ Đà Nẵng → Huế',
-              '📞 097 xxxx 881 · Cần Thơ → Cà Mau, 4 người lớn',
-              '⚡ Đặt gấp! Hải Phòng → Hà Nội, xe 7 chỗ',
-              '📞 093 xxxx 456 · TP.HCM → Bình Dương, đi công tác',
-              '🧳 Hà Nội → Thanh Hóa, có hành lý nhiều',
-              requests.length > 0
-                ? `📍 ${requests[0].startPoint} → ${requests[0].endPoint} · ${requests[0].price.toLocaleString('vi-VN')}đ`
-                : '📍 Đang cập nhật cuốc xe mới nhất...',
-            ].map((msg, i) => (
-              <span key={i} className="info-bar__ticker-item">{msg}</span>
-            ))}
-            {/* Duplicate for seamless loop */}
-            {[
-              '🚗 Cần xe đi sáng mai 7h từ Hà Nội → Quảng Ninh',
-              '👶 TP.HCM → Vũng Tàu, có trẻ em đi cùng',
-              '📞 039 xxxx 214 · Hà Nội → Lào Cai, đi gấp hôm nay',
-              '🌙 Cần xe đêm nay 21h từ Đà Nẵng → Huế',
-              '📞 097 xxxx 881 · Cần Thơ → Cà Mau, 4 người lớn',
-              '⚡ Đặt gấp! Hải Phòng → Hà Nội, xe 7 chỗ',
-              '📞 093 xxxx 456 · TP.HCM → Bình Dương, đi công tác',
-              '🧳 Hà Nội → Thanh Hóa, có hành lý nhiều',
-              requests.length > 0
-                ? `📍 ${requests[0].startPoint} → ${requests[0].endPoint} · ${requests[0].price.toLocaleString('vi-VN')}đ`
-                : '📍 Đang cập nhật cuốc xe mới nhất...',
-            ].map((msg, i) => (
-              <span key={`dup-${i}`} className="info-bar__ticker-item">{msg}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <main className="content">
-        {/* Yêu cầu chở cuốc xe - Hiển thị luôn trên màn hình chính */}
-        <section className="requests-section" id="requests">
-          <h2 className="requests-heading">Cuốc xe phù hợp</h2>
-
-          <div className="region-tabs" style={{ marginBottom: 16 }}>
-            {(['north', 'central', 'south'] as Region[]).map((region) => (
-              <button
-                key={region}
-                className={`region-tab ${activeRequestRegion === region ? 'active' : ''}`}
-                onClick={() => setActiveRequestRegion(region)}
-              >
-                {regionLabels[region]}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label className="field" style={{ marginBottom: 0 }}>
-              <span>Chọn tỉnh/thành phố</span>
-              <motion.select
-                name="province"
-                value={selectedProvince[activeRequestRegion]}
-                onChange={(e) => {
-                  setSelectedProvince({
-                    ...selectedProvince,
-                    [activeRequestRegion]: e.target.value
-                  })
-                }}
-                required
-                whileFocus={{ boxShadow: '0 0 0 3px rgba(0,177,79,.18)' }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: '2px solid #e5e7eb',
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  backgroundColor: '#fff',
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%23333\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 12px center',
-                  paddingRight: '36px'
-                }}
-              >
-                <option value="">Tất cả tỉnh/thành ({regionLabels[activeRequestRegion]})</option>
-                {provincesByRegion[activeRequestRegion].map((province) => (
-                  <option key={province} value={province}>{province}</option>
-                ))}
-              </motion.select>
-            </label>
-          </div>
-
-          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#333' }}>
-            {regionLabels[activeRequestRegion]}
-            {selectedProvince[activeRequestRegion] && ` - ${selectedProvince[activeRequestRegion]}`}
-          </h3>
-
-          {regionRequests.length === 0 && (
-            <div className="empty-state">Chưa có cuốc xe nào trong {regionLabels[activeRequestRegion]}.</div>
-          )}
-          {regionRequests.map((r) => {
-            const isNew = (Date.now() - new Date(r.createdAt).getTime()) < 30 * 60 * 1000;
-            return (
-              <div className="request-card" key={r._id}>
-                <div className="request-card__top">
-                  <span className={`request-badge ${isNew ? 'request-badge--new' : 'request-badge--dim'}`}>
-                    ⚡ Mới
-                  </span>
-                  <span className="request-card__name">{r.name}</span>
-                  <span className={`request-badge ${!isNew ? 'request-badge--done' : 'request-badge--dim'}`}>
-                    🕐 Vừa xong
-                  </span>
+              <div className="profile-card-left">
+                <div className="profile-card-avatar">
+                  {toInitials(user?.name || user?.phone || 'TX')}
+                  <span className="profile-avatar-check">✓</span>
                 </div>
-                <div className="request-card__phone">Số điện thoại khách hàng: {formatPhone(r.phone)}</div>
-                <div className="request-card__route">
-                  <div className="request-card__route-row">
-                    <span className="route-dot route-dot--green" />
-                    <span>{r.startPoint}</span>
-                  </div>
-                  <div className="route-line" />
-                  <div className="request-card__route-row">
-                    <span className="route-dot route-dot--red" />
-                    <span>{r.endPoint}</span>
-                  </div>
+                <div className="profile-card-info">
+                  <h2 className="profile-driver-name">{user?.name || 'Trần Văn A'}</h2>
+                  <div className="profile-driver-phone">{maskPhoneStrict(user?.phone || '0987654321')}</div>
                 </div>
-                {r.note && <div className="request-card__note">Ghi chú: {r.note}</div>}
-                <div className="request-card__price">
-                  <span className="request-card__price-label">Giá: </span>
-                  <span className="request-card__price-value">{r.price?.toLocaleString('vi-VN')} VND</span>
+              </div>
+              <div className="profile-card-right">
+                <div className="verified-driver-badge">
+                  <span className="badge-shield-icon">🛡️</span>
+                  <span>Tài xế đã xác thực</span>
                 </div>
-                <button className="call-driver-btn" onClick={() => {
-                  if (!user) {
-                    setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
-                    setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
-                    setShowErrorPopup(true);
-                    return;
-                  }
-                  setCallSheet({ phone: r.phone });
-                }}>
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff">
-                    <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
-                  </svg>
-                  GỌI TÀI XẾ NGAY
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Row: Income, Rides Count, Rating */}
+          <div className="quick-stats-row">
+            <div className="quick-stat-card">
+              <div className="stat-card-header">
+                <span className="stat-title">Thu nhập hôm nay</span>
+                <button
+                  type="button"
+                  className="stat-eye-btn"
+                  onClick={() => setShowBalance(!showBalance)}
+                  title={showBalance ? 'Ẩn số tiền' : 'Hiện số tiền'}
+                >
+                  {showBalance ? '👁️' : '🙈'}
                 </button>
               </div>
-            );
-          })}
-        </section>
+              <div className="stat-card-value">
+                {showBalance ? '1.450.000đ' : '••••••••'}
+              </div>
+              <div className="stat-card-badge">
+                <span>+12%</span>
+              </div>
+            </div>
 
-        {/* Danh sách tài xế */}
-        <section className="drivers-section">
-          <h2 className="section-heading">Danh sách tài xế</h2>
+            <div className="quick-stat-card">
+              <div className="stat-card-header">
+                <span className="stat-title">Số cuốc nhận</span>
+              </div>
+              <div className="stat-card-value">
+                4 <span className="stat-unit">cuốc</span>
+              </div>
+            </div>
 
-          <div className="region-tabs">
-            {(['north', 'central', 'south'] as Region[]).map((region) => (
+            <div className="quick-stat-card">
+              <div className="stat-card-header">
+                <span className="stat-title">Đánh giá</span>
+              </div>
+              <div className="stat-card-value">
+                4.9 <span className="stat-star">⭐</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4-Action Grid: Tìm cuốc xe, Xe ghép, Bao xe, Đăng chuyến */}
+          <div className="action-grid-row">
+            <div
+              className="action-grid-card action-grid-card--blue"
+              onClick={() => setActiveNavTab('rides')}
+            >
+              <div className="action-card-icon-wrap">
+                <span className="action-card-icon">🔍</span>
+              </div>
+              <div className="action-card-text">
+                <div className="action-card-title">Tìm cuốc xe</div>
+                <div className="action-card-sub">Xem danh sách mới</div>
+              </div>
+            </div>
+
+            <div
+              className="action-grid-card action-grid-card--orange"
+              onClick={() => {
+                setActiveNavTab('rides');
+                setRidesSubFilter('4');
+              }}
+            >
+              <div className="action-card-icon-wrap">
+                <span className="action-card-icon">👥</span>
+              </div>
+              <div className="action-card-text">
+                <div className="action-card-title">Xe ghép</div>
+                <div className="action-card-sub">Tiết kiệm chi phí</div>
+              </div>
+            </div>
+
+            <div
+              className="action-grid-card action-grid-card--purple"
+              onClick={() => {
+                setActiveNavTab('rides');
+                setRidesSubFilter('7');
+              }}
+            >
+              <div className="action-card-icon-wrap">
+                <span className="action-card-icon">🏷️</span>
+              </div>
+              <div className="action-card-text">
+                <div className="action-card-title">Bao xe</div>
+                <div className="action-card-sub">Chuyến đi riêng tư</div>
+              </div>
+            </div>
+
+            <div
+              className="action-grid-card action-grid-card--green"
+              onClick={openModal}
+            >
+              <div className="action-card-icon-wrap">
+                <span className="action-card-icon">➕</span>
+              </div>
+              <div className="action-card-text">
+                <div className="action-card-title">Đăng chuyến</div>
+                <div className="action-card-sub">Tạo lộ trình mới</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Download App Banner */}
+          <div
+            className="modern-download-banner"
+            onClick={() => {
+              if (!user) {
+                setAuthModal('login');
+                return;
+              }
+              if (user.status !== 'approved') {
+                setErrorPopupTitle('Thông báo');
+                setErrorMessage('Tài khoản của bạn đang chờ phê duyệt.');
+                setShowErrorPopup(true);
+                return;
+              }
+              if (downloadStatus.downloadCount > 0) {
+                setShowDownloadPage(true);
+              } else {
+                setShowPricingModal(true);
+              }
+            }}
+          >
+            <div className="download-banner-left">
+              <div className="download-app-icon">📱</div>
+              <div className="download-banner-text">
+                <div className="download-banner-title">Tải ứng dụng di động</div>
+                <div className="download-banner-sub">Nhận cuốc nhanh hơn, thông báo tức thì</div>
+              </div>
+            </div>
+            <button type="button" className="download-apk-btn">
+              <span>APK</span>
+            </button>
+          </div>
+
+          {/* Region Tabs (Miền Bắc, Miền Trung, Miền Nam) */}
+          <div className="region-pills-row">
+            {(['north', 'central', 'south'] as Region[]).map((r) => (
               <button
-                key={region}
-                className={`region-tab ${activeRegion === region ? 'active' : ''}`}
-                onClick={() => setActiveRegion(region)}
+                key={r}
+                type="button"
+                className={`region-pill-btn ${activeRequestRegion === r ? 'active' : ''}`}
+                onClick={() => setActiveRequestRegion(r)}
               >
-                {regionLabels[region]}
+                {regionLabels[r]}
               </button>
             ))}
           </div>
-          <h3 className="region-heading">{regionLabels[activeRegion]}</h3>
 
-          {displayedDrivers.length === 0 && (
-            <div className="empty-state">Chưa có tài xế trong nhóm này.</div>
-          )}
+          {/* Featured Ride Section: Cuốc xe mới nhất with Google Maps route */}
+          <FakeNotificationBanner
+            user={user}
+            region={activeRequestRegion}
+            onRequireAuth={() => {
+              setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+              setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+              setShowErrorPopup(true);
+            }}
+            onRegisterClick={() => {
+              if (!user) {
+                setAuthModal('register');
+              } else {
+                openModal();
+              }
+            }}
+            onViewAllClick={() => setActiveNavTab('rides')}
+          />
+        </div>
+      )}
 
-          {(() => {
-            const usedAvatarIdx = new Set<number>(); return displayedDrivers.map((p) => {
-              return (
-                <article className="driver-card" key={p._id}>
-                  <div className="avatar" aria-label={p.name} title={p.name}>
-                    {(() => {
-                      let idx = pickAvatarIndex(p.name, p.phone, (p.region as Region) || 'north')
-                      if (idx >= 0 && usedAvatarIdx.has(idx)) {
-                        // try next candidates within same region pool (step by 3 keeps region bucket)
-                        let tries = 0
-                        while (tries < avatarImages.length) {
-                          idx = (idx + 3) % avatarImages.length
-                          if (!usedAvatarIdx.has(idx)) break
-                          tries++
-                        }
-                      }
-                      if (idx >= 0) usedAvatarIdx.add(idx)
-                      const chosen = p.avatar || (idx >= 0 ? avatarImages[idx] : null)
-                      // In case new images are added/removed, ensure index stays in range
-                      if (!chosen) return <span>{toInitials(p.name)}</span>
-                      return <img src={chosen} alt={p.name} />
-                    })()}
+      {/* ── Rides Screen matching Image 2 ── */}
+      {activeNavTab === 'rides' && (
+        <div className="rides-view-container">
+          {/* Region selector */}
+          <div className="region-pills-row" style={{ marginTop: 12 }}>
+            {(['north', 'central', 'south'] as Region[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={`region-pill-btn ${activeRequestRegion === r ? 'active' : ''}`}
+                onClick={() => setActiveRequestRegion(r)}
+              >
+                {regionLabels[r]}
+              </button>
+            ))}
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="rides-search-bar">
+            <div className="rides-search-input-wrap">
+              <span className="rides-search-icon">🔍</span>
+              <input
+                type="text"
+                className="rides-search-input"
+                placeholder="Tìm kiếm theo điểm đi, điểm đến..."
+                value={ridesSearchQuery}
+                onChange={(e) => setRidesSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="rides-filter-btn"
+              title="Bộ lọc nâng cao"
+              onClick={() => {
+                if (ridesSubFilter === 'all') setRidesSubFilter('4');
+                else if (ridesSubFilter === '4') setRidesSubFilter('7');
+                else if (ridesSubFilter === '7') setRidesSubFilter('16');
+                else setRidesSubFilter('all');
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </button>
+          </div>
+
+          {/* Subfilter Chips */}
+          <div className="subfilter-chips-row">
+            <button
+              type="button"
+              className={`subfilter-chip ${ridesSubFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setRidesSubFilter('all')}
+            >
+              <span>⊞ Tất cả</span>
+            </button>
+            <button
+              type="button"
+              className={`subfilter-chip ${ridesSubFilter === '4' ? 'active' : ''}`}
+              onClick={() => setRidesSubFilter('4')}
+            >
+              <span>🚗 4 chỗ</span>
+            </button>
+            <button
+              type="button"
+              className={`subfilter-chip ${ridesSubFilter === '7' ? 'active' : ''}`}
+              onClick={() => setRidesSubFilter('7')}
+            >
+              <span>🚐 7 chỗ</span>
+            </button>
+            <button
+              type="button"
+              className={`subfilter-chip ${ridesSubFilter === '16' ? 'active' : ''}`}
+              onClick={() => setRidesSubFilter('16')}
+            >
+              <span>🚐 16 chỗ</span>
+            </button>
+            <button
+              type="button"
+              className={`subfilter-chip ${ridesSubFilter === 'urgent' ? 'active' : ''}`}
+              onClick={() => setRidesSubFilter('urgent')}
+            >
+              <span>⚡ Cuốc gấp</span>
+            </button>
+          </div>
+
+          {/* Modern Ride Cards List matching Image 2 */}
+          <div className="modern-rides-list">
+            {(() => {
+              const sampleFallbackRides = [
+                {
+                  _id: 'sample-1',
+                  name: 'Nguyễn Văn An',
+                  phone: '0912456789',
+                  startPoint: 'Hà Nội (Bến xe Mỹ Đình)',
+                  endPoint: 'Hải Phòng (Đồ Sơn)',
+                  price: 850000,
+                  carType: '4',
+                  tripType: 'one-way',
+                  note: 'Khách đi công tác 2 người, cần xuất hóa đơn, xe sạch sẽ.',
+                  createdAt: new Date().toISOString(),
+                  region: 'north' as Region
+                },
+                {
+                  _id: 'sample-2',
+                  name: 'Trần Thị Mai',
+                  phone: '0988112233',
+                  startPoint: 'Hà Nội (Quận Hoàn Kiếm)',
+                  endPoint: 'Ninh Bình (Tràng An)',
+                  price: 700000,
+                  carType: '7',
+                  tripType: 'round',
+                  note: 'Gia đình 5 người đi tham quan, có trẻ nhỏ và vali.',
+                  createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+                  region: 'north' as Region
+                },
+                {
+                  _id: 'sample-3',
+                  name: 'Lê Hoàng Nam',
+                  phone: '0903334455',
+                  startPoint: 'Sân bay Nội Bài',
+                  endPoint: 'Thái Nguyên (TP. Sông Công)',
+                  price: 650000,
+                  carType: '4',
+                  tripType: 'one-way',
+                  note: 'Đón tại sảnh đến T1 lúc 14h, khách 1 người ít đồ.',
+                  createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+                  region: 'north' as Region
+                },
+                {
+                  _id: 'sample-4',
+                  name: 'Đặng Tuấn Anh',
+                  phone: '0977889900',
+                  startPoint: 'Hà Nội (Cầu Giấy)',
+                  endPoint: 'Quảng Ninh (Hạ Long)',
+                  price: 1100000,
+                  carType: '7',
+                  tripType: 'one-way',
+                  note: 'Đi đường cao tốc, cần tài xế chạy êm, không khói thuốc.',
+                  createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+                  region: 'north' as Region
+                },
+                {
+                  _id: 'sample-5',
+                  name: 'Trần Đình Khôi',
+                  phone: '0905123456',
+                  startPoint: 'Đà Nẵng (Sân bay)',
+                  endPoint: 'Hội An (Quảng Nam)',
+                  price: 320000,
+                  carType: '4',
+                  tripType: 'one-way',
+                  note: 'Khách du lịch 2 người, đón tận nơi tại sảnh ga đến.',
+                  createdAt: new Date().toISOString(),
+                  region: 'central' as Region
+                },
+                {
+                  _id: 'sample-6',
+                  name: 'Phạm Minh Tuấn',
+                  phone: '0938667788',
+                  startPoint: 'TP. Hồ Chí Minh (Quận 1)',
+                  endPoint: 'Vũng Tàu (Bãi Sau)',
+                  price: 950000,
+                  carType: '7',
+                  tripType: 'round',
+                  note: 'Đi nghỉ dưỡng gia đình cuối tuần, đón lúc 7h sáng.',
+                  createdAt: new Date().toISOString(),
+                  region: 'south' as Region
+                }
+              ];
+
+              const pool = requests.length > 0 ? requests : sampleFallbackRides;
+
+              const filtered = pool
+                .filter((req) => {
+                  const reqRegion = (req.region || 'north') as Region;
+                  if (reqRegion !== activeRequestRegion) return false;
+
+                  if (ridesSearchQuery.trim()) {
+                    const q = ridesSearchQuery.toLowerCase().trim();
+                    const matches =
+                      (req.startPoint && req.startPoint.toLowerCase().includes(q)) ||
+                      (req.endPoint && req.endPoint.toLowerCase().includes(q)) ||
+                      (req.name && req.name.toLowerCase().includes(q)) ||
+                      (req.note && req.note.toLowerCase().includes(q));
+                    if (!matches) return false;
+                  }
+
+                  if (ridesSubFilter === '4') {
+                    const cType = (req as any).carType;
+                    return cType === '4' || (!cType && !req.note?.includes('7 chỗ') && !req.note?.includes('16 chỗ'));
+                  }
+                  if (ridesSubFilter === '7') {
+                    const cType = (req as any).carType;
+                    return cType === '7' || req.note?.includes('7 chỗ');
+                  }
+                  if (ridesSubFilter === '16') {
+                    const cType = (req as any).carType;
+                    return cType === '16' || req.note?.includes('16 chỗ');
+                  }
+                  if (ridesSubFilter === 'urgent') {
+                    return req.note?.toLowerCase().includes('gấp') || req.note?.toLowerCase().includes('sớm');
+                  }
+
+                  return true;
+                })
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+              const displayList = filtered.length > 0 ? filtered : sampleFallbackRides.filter(s => s.region === activeRequestRegion);
+
+              return displayList.map((req) => (
+                <div key={req._id} className="modern-ride-card">
+                  {/* Card Top: Customer Name & Phone with copy button */}
+                  <div className="modern-ride-card-top">
+                    <div className="customer-info-wrap">
+                      <span className="customer-avatar-icon">👤</span>
+                      <span className="customer-name">{req.name || 'Khách hàng'}</span>
+                    </div>
+                    <div className="customer-phone-wrap">
+                      <span className="customer-phone-number">{formatPhone(req.phone)}</span>
+                      <button
+                        type="button"
+                        className="copy-phone-btn"
+                        title="Sao chép số điện thoại"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(req.phone);
+                          setCopiedPhoneId(req._id);
+                          setTimeout(() => setCopiedPhoneId(null), 2000);
+                        }}
+                      >
+                        {copiedPhoneId === req._id ? '✓' : '📋'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="driver-info">
-                    <div className="driver-phone">{formatPhone(p.phone)}</div>
-                    <div className="driver-route">{p.route}</div>
+
+                  {/* Route + Price 2 columns */}
+                  <div className="modern-ride-card-middle">
+                    {/* Left: Vertical Timeline */}
+                    <div className="route-timeline-column">
+                      <div className="timeline-node timeline-node--start">
+                        <span className="timeline-dot timeline-dot--green" />
+                        <span className="timeline-text">{req.startPoint}</span>
+                      </div>
+                      <div className="timeline-line" />
+                      <div className="timeline-node timeline-node--end">
+                        <span className="timeline-dot timeline-dot--red" />
+                        <span className="timeline-text">{req.endPoint}</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Price box */}
+                    <div className="price-mint-box">
+                      <div className="price-mint-amount">
+                        {Number(req.price).toLocaleString('vi-VN')}đ
+                      </div>
+                      <div className="price-mint-sub">
+                        Xe {(req as any).carType || '4'} chỗ • {(req as any).tripType === 'round' ? 'Khứ hồi' : 'Tiền mặt'}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Note container */}
+                  <div className="modern-ride-note-box">
+                    <span className="note-pin-icon">📝</span>
+                    <span className="note-content-text">
+                      {req.note || 'Khách đặt xe đi trong ngày, cần xe sạch sẽ, tài xế đúng giờ.'}
+                    </span>
+                  </div>
+
+                  {/* Action Button: GỌI TÀI XẾ NGAY */}
                   <button
-                    className="call-btn"
-                    aria-label="Gọi tài xế"
+                    type="button"
+                    className="modern-call-driver-btn"
                     onClick={() => {
                       if (!user) {
-                        setPendingAction({ type: 'call', phone: p.phone })
-                        const reg = localStorage.getItem('driver_registered')
-                        setAuthModal(reg ? 'login' : 'register')
-                        return
+                        setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+                        setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+                        setShowErrorPopup(true);
+                        return;
                       }
-                      setCallSheet({ phone: p.phone })
+                      setCallSheet({ phone: req.phone });
                     }}
                   >
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
-                      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.01l-2.21 2.22z" />
-                    </svg>
+                    <span>📞 GỌI TÀI XẾ NGAY</span>
                   </button>
-                </article>
-              )
-            })
-          })()}
-        </section>
-      </main>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      )}
 
-      <button className="floating-cta" onClick={() => {
-        if (!user) {
-          setPendingAction({ type: 'wait' })
-          const reg = localStorage.getItem('driver_registered')
-          setAuthModal(reg ? 'login' : 'register')
-          return
-        }
-        openModal()
-      }}>
-        ĐĂNG KÝ CHỞ CUỐC XE
-        <span className="chevron">›</span>
-      </button>
+      {/* ── Messages View ── */}
+      {activeNavTab === 'messages' && (
+        <div className="rides-view-container" style={{ padding: '16px 12px' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
+              💬 Hộp thư tin nhắn ({unreadCount > 0 ? `${unreadCount} tin mới` : '0'})
+            </h3>
+            {notifList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '30px 10px', color: '#94a3b8' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>📬</div>
+                <div>Chưa có tin nhắn hoặc yêu cầu trực tiếp nào</div>
+              </div>
+            ) : (
+              notifList.map((r: any) => (
+                <div key={r._id} style={{ padding: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#1e293b' }}>
+                    {r.startPoint} ➔ {r.endPoint}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                    Khách: {r.name} · {r.phone}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Profile View ── */}
+      {activeNavTab === 'profile' && (
+        <div className="rides-view-container" style={{ padding: '16px 12px' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+              <div className="profile-card-avatar" style={{ width: 56, height: 56, fontSize: 20 }}>
+                {toInitials(user?.name || user?.phone || 'TX')}
+              </div>
+              <div>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>{user?.name || 'Tài xế'}</h3>
+                <div style={{ fontSize: 13, color: '#64748b' }}>{user?.phone ? maskPhoneStrict(user.phone) : 'Chưa đăng nhập'}</div>
+                <div style={{ marginTop: 4 }}>
+                  <span className="verified-driver-badge">
+                    <span>🛡️ {user?.status === 'approved' ? 'Tài xế đã duyệt' : 'Chờ duyệt'}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {user?.status === 'approved' && (
+              <button
+                type="button"
+                className="modern-call-driver-btn"
+                style={{ marginBottom: 10, background: '#0f172a' }}
+                onClick={() => setShowDriverDashboard(true)}
+              >
+                📊 Xem Dashboard quản lý chi tiết
+              </button>
+            )}
+
+            {user && (
+              <button
+                type="button"
+                className="modern-call-driver-btn"
+                style={{ background: '#ef4444' }}
+                onClick={() => {
+                  localStorage.removeItem('driver_user');
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('driver_registered');
+                  setUser(null);
+                  setShowDriverDashboard(false);
+                  setActiveNavTab('home');
+                }}
+              >
+                🚪 Đăng xuất tài khoản
+              </button>
+            )}
+
+            {!user && (
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  onClick={() => setAuthModal('login')}
+                >
+                  Đăng nhập
+                </button>
+                <button
+                  type="button"
+                  className="modern-call-driver-btn"
+                  style={{ background: '#3b82f6' }}
+                  onClick={() => setAuthModal('register')}
+                >
+                  Đăng ký
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Fixed 5-Item Bottom Navigation Bar matching Image 1 & 2 ── */}
+      <nav className="bottom-nav-bar">
+        <button
+          type="button"
+          className={`bottom-nav-item ${activeNavTab === 'home' ? 'active' : ''}`}
+          onClick={() => setActiveNavTab('home')}
+        >
+          <span className="nav-icon">🏠</span>
+          <span className="nav-label">Trang chủ</span>
+        </button>
+
+        <button
+          type="button"
+          className={`bottom-nav-item ${activeNavTab === 'rides' ? 'active' : ''}`}
+          onClick={() => setActiveNavTab('rides')}
+        >
+          <span className="nav-icon">🚗</span>
+          <span className="nav-label">Cuốc xe</span>
+        </button>
+
+        <div className="bottom-nav-center">
+          <button
+            type="button"
+            className="nav-center-btn"
+            onClick={openModal}
+            title="Đăng chuyến xe mới"
+          >
+            <span className="nav-center-icon">+</span>
+          </button>
+          <span className="nav-label">Đăng chuyến</span>
+        </div>
+
+        <button
+          type="button"
+          className={`bottom-nav-item ${activeNavTab === 'messages' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveNavTab('messages');
+          }}
+        >
+          <div className="nav-icon-wrap">
+            <span className="nav-icon">💬</span>
+            <span className="nav-badge">3</span>
+          </div>
+          <span className="nav-label">Tin nhắn</span>
+        </button>
+
+        <button
+          type="button"
+          className={`bottom-nav-item ${activeNavTab === 'profile' ? 'active' : ''}`}
+          onClick={() => {
+            if (user?.status === 'approved') {
+              setShowDriverDashboard(true);
+            } else {
+              setActiveNavTab('profile');
+            }
+          }}
+        >
+          <span className="nav-icon">👤</span>
+          <span className="nav-label">Cá nhân</span>
+        </button>
+      </nav>
 
       <AnimatePresence>
         {showModal && (
