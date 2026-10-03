@@ -1524,10 +1524,10 @@ function MainApp() {
               <div className="modern-hero-bg-overlay" />
             </div>
 
-            <div
-              className="hero-profile-card"
-              onClick={() => {
-                if (user) {
+            {user ? (
+              <div
+                className="hero-profile-card"
+                onClick={() => {
                   if (user.status === 'approved') {
                     setShowDriverDashboard(true);
                   } else {
@@ -1535,53 +1535,77 @@ function MainApp() {
                     setErrorMessage('Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.');
                     setShowErrorPopup(true);
                   }
-                } else {
-                  setAuthModal('login');
-                }
-              }}
-            >
-              <div className="profile-card-left">
-                <div className="profile-avatar-circle">
-                  {user ? toInitials(user.name || user.phone || 'TX') : '👤'}
-                </div>
-                <div className="profile-info-wrap">
-                  <span className="profile-greeting">{user ? 'Xin chào,' : 'Tài xế đối tác'}</span>
-                  <div className="profile-name">{user ? user.name : 'Đăng nhập tài xế'}</div>
-                  <div className="profile-phone-row">
-                    {user ? (
-                      <>
-                        <span className="profile-phone-icon">📞</span>
-                        <span className="profile-phone-text">
-                          {maskPhoneStrict(user.phone)}
-                        </span>
-                        <span className="profile-verified-badge-icon">✔</span>
-                      </>
-                    ) : (
-                      <span style={{ fontSize: 12, color: '#00b14f', fontWeight: 600 }}>
-                        Chạm để đăng nhập / đăng ký ›
+                }}
+              >
+                <div className="profile-card-left">
+                  <div className="profile-avatar-circle">
+                    {toInitials(user.name || user.phone || 'TX')}
+                  </div>
+                  <div className="profile-info-wrap">
+                    <span className="profile-greeting">Xin chào,</span>
+                    <div className="profile-name">{user.name}</div>
+                    <div className="profile-phone-row">
+                      <span className="profile-phone-icon">📞</span>
+                      <span className="profile-phone-text">
+                        {maskPhoneStrict(user.phone)}
                       </span>
-                    )}
+                      <span className="profile-verified-badge-icon">✔</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="profile-card-right">
-                {user ? (
+                <div className="profile-card-right">
                   <div className="verified-pill-badge">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="#d97706">
                       <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" />
                     </svg>
                     <span>Tài xế đã xác thực</span>
                   </div>
-                ) : (
-                  <div className="verified-pill-badge" style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
-                    </svg>
-                    <span>Đăng nhập ngay</span>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="hero-profile-card hero-profile-card--guest">
+                <div className="guest-card-header">
+                  <div className="profile-avatar-circle" style={{ width: 38, height: 38, fontSize: 17, background: '#00b14f' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <div className="guest-header-text">
+                    <span className="profile-greeting">Tài xế đối tác</span>
+                    <div className="profile-name" style={{ fontSize: 14 }}>Tham gia lái xe cùng Driver App</div>
+                  </div>
+                </div>
+                <div className="hero-auth-boxes-row">
+                  <button
+                    type="button"
+                    className="hero-auth-box-btn hero-auth-box-btn--register"
+                    onClick={() => setAuthModal('register')}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="8.5" cy="7" r="4" />
+                      <line x1="20" y1="8" x2="20" y2="14" />
+                      <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                    <span>Đăng ký</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="hero-auth-box-btn hero-auth-box-btn--login"
+                    onClick={() => setAuthModal('login')}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>Đăng nhập</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Stats Row (3 Compact Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
