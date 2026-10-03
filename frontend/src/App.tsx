@@ -898,6 +898,35 @@ function MainApp() {
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
   const [showBalance, setShowBalance] = useState(true);
+  const [driverIncomeData, setDriverIncomeData] = useState<{ totalIncome: number } | null>(null);
+  const [driverStatsData, setDriverStatsData] = useState<{ monthlyTrips: number; totalTrips: number; balance: number } | null>(null);
+
+  // Fetch real income & trip stats when user is approved driver
+  useEffect(() => {
+    const fetchHomeDriverStats = async () => {
+      if (!user || user.status !== 'approved') {
+        setDriverIncomeData(null);
+        setDriverStatsData(null);
+        return;
+      }
+      try {
+        const [incomeRes, statsRes] = await Promise.allSettled([
+          driverAPI.getIncome(),
+          driverAPI.getStats(),
+        ]);
+        if (incomeRes.status === 'fulfilled' && incomeRes.value?.data?.success) {
+          setDriverIncomeData(incomeRes.value.data.data);
+        }
+        if (statsRes.status === 'fulfilled' && statsRes.value?.data) {
+          setDriverStatsData(statsRes.value.data);
+        }
+      } catch (err) {
+        console.error('Error fetching driver home stats:', err);
+      }
+    };
+    fetchHomeDriverStats();
+  }, [user]);
+
   const [ridesSearchQuery, setRidesSearchQuery] = useState('');
   const [ridesSubFilter, setRidesSubFilter] = useState<'all' | '4' | '7' | '16' | 'urgent'>('all');
   const [copiedPhoneId, setCopiedPhoneId] = useState<string | null>(null);
@@ -1510,7 +1539,11 @@ function MainApp() {
               </div>
               <div className="qs-value-wrap">
                 <span className="qs-value">
-                  {showBalance ? '36.500.000đ' : '••••••••'}
+                  {showBalance
+                    ? (user && user.status === 'approved' && driverIncomeData !== null
+                        ? `${(driverIncomeData.totalIncome || 0).toLocaleString('vi-VN')}đ`
+                        : '36.500.000đ')
+                    : '••••••••'}
                 </span>
                 <span
                   className="qs-extra"
@@ -1537,18 +1570,24 @@ function MainApp() {
                 <span className="qs-label">Cuốc xe đã nhận</span>
               </div>
               <div className="qs-value-wrap">
-                <span className="qs-value">128 cuốc</span>
+                <span className="qs-value">
+                  {user && user.status === 'approved' && driverStatsData !== null
+                    ? `${driverStatsData.monthlyTrips ?? driverStatsData.totalTrips ?? 0} cuốc`
+                    : '128 cuốc'}
+                </span>
                 <span className="qs-extra" style={{ color: '#2563eb' }}>📊</span>
               </div>
             </div>
 
-            <div className="qs-card qs-card--rating">
+            <div className="qs-card qs-card--rating" onClick={() => setActiveNavTab('profile')} style={{ cursor: 'pointer' }}>
               <div className="qs-header">
                 <span className="qs-icon">⭐</span>
                 <span className="qs-label">Đánh giá</span>
               </div>
               <div className="qs-value-wrap">
-                <span className="qs-value">4.9/5</span>
+                <span className="qs-value">
+                  {user && (user as any).rating ? `${(user as any).rating}/5` : '4.9/5'}
+                </span>
                 <span className="qs-extra" style={{ color: '#d97706', fontWeight: 'bold' }}>→</span>
               </div>
             </div>
