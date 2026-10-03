@@ -1637,47 +1637,53 @@
 .featured-map-view {
   position: relative;
   width: 100%;
-  height: 140px;
+  height: 170px;
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #d1fae5;
   cursor: pointer;
-  background-color: #e5ede7;
+  background-color: #f1f5f9;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 .featured-map-bg {
   position: absolute;
   inset: 0;
-  opacity: 0.65;
-  filter: contrast(1.05);
-}
-
-.featured-map-svg {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.4));
+  background: #e2e8f0 url('/images/google_map_terrain.jpg') center/cover;
 }
 
-.featured-map-car-badge {
+.featured-map-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.featured-map-expand-badge {
   position: absolute;
-  top: 48%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #0f172a;
-  color: white;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  top: 10px;
+  right: 10px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  padding: 4px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  z-index: 5;
+  gap: 4px;
+  z-index: 7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.featured-map-view:hover .featured-map-expand-badge {
+  background: #00b14f;
 }
 
 .featured-map-marker {

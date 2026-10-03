@@ -243,34 +243,22 @@ const FakeNotificationBanner = ({
                   onClick={() => {
                     const start = notification.startDetail || notification.startPoint;
                     const end = notification.endDetail || notification.endPoint;
-                    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(end)}`;
+                    const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start + ', Việt Nam')}&destination=${encodeURIComponent(end + ', Việt Nam')}`;
                     window.open(url, '_blank');
                   }}
                 >
-                  <div
-                    className="featured-map-bg"
-                    style={{
-                      backgroundImage: `url('/images/google_map_terrain.jpg')`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  />
-
-                  {/* SVG Route Line */}
-                  <svg className="featured-map-svg" viewBox="0 0 360 120" preserveAspectRatio="none">
-                    <path
-                      d="M 60 90 Q 110 90, 160 65 T 260 40 L 305 32"
-                      fill="none"
-                      stroke="#2563eb"
-                      strokeWidth="4.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  <div className="featured-map-bg">
+                    <iframe
+                      title={`Bản đồ ${notification.startPoint} đến ${notification.endPoint}`}
+                      src={`https://maps.google.com/maps?saddr=${encodeURIComponent((notification.startDetail || notification.startPoint) + ', Việt Nam')}&daddr=${encodeURIComponent((notification.endDetail || notification.endPoint) + ', Việt Nam')}&output=embed`}
+                      className="featured-map-iframe"
+                      loading="lazy"
                     />
-                  </svg>
+                  </div>
 
-                  {/* Car icon placed on route */}
-                  <div className="featured-map-car-badge">
-                    <span>🚗</span>
+                  <div className="featured-map-expand-badge">
+                    <span>🗺️ Google Maps</span>
+                    <span style={{ fontSize: '11px', fontWeight: 800 }}>↗</span>
                   </div>
 
                   {/* Start Point Marker Card */}
@@ -313,6 +301,7 @@ const FakeNotificationBanner = ({
                     </div>
                   </div>
                 </div>
+
 
                 {/* Specs row */}
                 <div className="featured-card-specs">
