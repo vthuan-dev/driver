@@ -1217,35 +1217,32 @@ function MainApp() {
       {!showDriverDashboard && (
         <>
       {/* ── Modern App Header matching Image 1 & 2 ── */}
-      <header className="modern-header">
-        <div className="modern-header-left">
+      <header className={`modern-header ${activeNavTab === 'home' ? 'modern-header--home' : 'modern-header--light'}`}>
+        <div className="modern-header__left">
           <button
-            className="app-header__menu"
+            className="modern-hamburger-btn"
             aria-label="Menu"
             onClick={() => setMenuOpen((v) => !v)}
-            style={{ marginRight: 6 }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
-          <div>
-            <div className="modern-header-sub">HỆ THỐNG ĐIỀU PHỐI XE</div>
-            <h1 className="modern-header-title">
-              {activeNavTab === 'rides' ? 'DANH SÁCH CUỐC XE' : 'CỤC BỘ TOÀN QUỐC'}
-            </h1>
+          <div className="modern-header__brand">
+            <div className="brand-title">
+              DRIVER <span>APP</span>
+            </div>
+            <div className="brand-subtitle">
+              KẾT NỐI TÀI XẾ - CUỐC XE MỖI NGÀY
+            </div>
           </div>
         </div>
-        <div className="modern-header-right">
-          <button className="modern-header-bell-btn" onClick={handleBellClick} aria-label="Thông báo">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="modern-header__right">
+          <button className="modern-bell-btn" onClick={handleBellClick} aria-label="Thông báo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
-            {unreadCount > 0 && (
-              <span className="modern-header-bell-badge">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
+            {unreadCount > 0 && <span className="bell-badge-dot" />}
           </button>
         </div>
       </header>
@@ -1450,10 +1447,11 @@ function MainApp() {
         <div className="home-view-container">
           {/* Hero Section with Skyline + Driver Banner and Profile Card */}
           <div className="modern-hero-section">
-            <div
-              className="hero-banner-image"
-              style={{ backgroundImage: `url('/images/driver-hero-banner.jpg')` }}
-            />
+            <div className="modern-hero-bg">
+              <img src="/images/driver-hero-banner.jpg" alt="Driver Hero Banner" />
+              <div className="modern-hero-bg-overlay" />
+            </div>
+
             <div
               className="hero-profile-card"
               onClick={() => {
@@ -1471,61 +1469,71 @@ function MainApp() {
               }}
             >
               <div className="profile-card-left">
-                <div className="profile-card-avatar">
-                  {toInitials(user?.name || user?.phone || 'TX')}
+                <div className="profile-avatar-circle">
+                  {user ? toInitials(user.name || user.phone || 'ĐC') : 'ĐC'}
                   <span className="profile-avatar-check">✓</span>
                 </div>
-                <div className="profile-card-info">
-                  <h2 className="profile-driver-name">{user?.name || 'Trần Văn A'}</h2>
-                  <div className="profile-driver-phone">{maskPhoneStrict(user?.phone || '0987654321')}</div>
+                <div className="profile-info-wrap">
+                  <span className="profile-greeting">Xin chào,</span>
+                  <div className="profile-name">{user ? user.name : 'Đỗ ngọc chung'}</div>
+                  <div className="profile-phone-row">
+                    <span className="profile-phone-icon">📞</span>
+                    <span className="profile-phone-text">
+                      {user ? maskPhoneStrict(user.phone) : '052 xxxx 892'}
+                    </span>
+                    <span className="verified-icon">✔</span>
+                  </div>
                 </div>
               </div>
               <div className="profile-card-right">
-                <div className="verified-driver-badge">
-                  <span className="badge-shield-icon">🛡️</span>
+                <div className="verified-pill-badge">
+                  <span>🛡️</span>
                   <span>Tài xế đã xác thực</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Stats Row: Income, Rides Count, Rating */}
+          {/* Quick Stats Row (3 Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
           <div className="quick-stats-row">
-            <div className="quick-stat-card">
-              <div className="stat-card-header">
-                <span className="stat-title">Thu nhập hôm nay</span>
-                <button
-                  type="button"
-                  className="stat-eye-btn"
+            <div className="quick-stat-card quick-stat-card--income">
+              <div className="stat-header">
+                <span className="stat-icon">👛</span>
+                <span className="stat-label">Thu nhập tháng</span>
+              </div>
+              <div className="stat-value-wrap">
+                <span className="stat-value">
+                  {showBalance ? '36.500.000đ' : '••••••••'}
+                </span>
+                <span
+                  className="stat-extra stat-eye-btn"
                   onClick={() => setShowBalance(!showBalance)}
                   title={showBalance ? 'Ẩn số tiền' : 'Hiện số tiền'}
                 >
                   {showBalance ? '👁️' : '🙈'}
-                </button>
-              </div>
-              <div className="stat-card-value">
-                {showBalance ? '1.450.000đ' : '••••••••'}
-              </div>
-              <div className="stat-card-badge">
-                <span>+12%</span>
+                </span>
               </div>
             </div>
 
-            <div className="quick-stat-card">
-              <div className="stat-card-header">
-                <span className="stat-title">Số cuốc nhận</span>
+            <div className="quick-stat-card quick-stat-card--rides">
+              <div className="stat-header">
+                <span className="stat-icon">🚗</span>
+                <span className="stat-label">Cuốc xe đã nhận</span>
               </div>
-              <div className="stat-card-value">
-                4 <span className="stat-unit">cuốc</span>
+              <div className="stat-value-wrap">
+                <span className="stat-value">128 cuốc</span>
+                <span className="stat-extra">📊</span>
               </div>
             </div>
 
-            <div className="quick-stat-card">
-              <div className="stat-card-header">
-                <span className="stat-title">Đánh giá</span>
+            <div className="quick-stat-card quick-stat-card--rating">
+              <div className="stat-header">
+                <span className="stat-icon">⭐</span>
+                <span className="stat-label">Đánh giá</span>
               </div>
-              <div className="stat-card-value">
-                4.9 <span className="stat-star">⭐</span>
+              <div className="stat-value-wrap">
+                <span className="stat-value">4.9/5</span>
+                <span className="stat-extra">→</span>
               </div>
             </div>
           </div>
@@ -1533,65 +1541,49 @@ function MainApp() {
           {/* 4-Action Grid: Tìm cuốc xe, Xe ghép, Bao xe, Đăng chuyến */}
           <div className="action-grid-row">
             <div
-              className="action-grid-card action-grid-card--blue"
+              className="action-card action-card--active-green"
               onClick={() => setActiveNavTab('rides')}
             >
-              <div className="action-card-icon-wrap">
-                <span className="action-card-icon">🔍</span>
-              </div>
-              <div className="action-card-text">
-                <div className="action-card-title">Tìm cuốc xe</div>
-                <div className="action-card-sub">Xem danh sách mới</div>
-              </div>
+              <div className="action-card__icon-wrap">🚗</div>
+              <div className="action-card__title">Tìm cuốc xe</div>
+              <div className="action-card__sub">Có cuốc mới</div>
             </div>
 
             <div
-              className="action-grid-card action-grid-card--orange"
+              className="action-card action-card--blue"
               onClick={() => {
                 setActiveNavTab('rides');
                 setRidesSubFilter('4');
               }}
             >
-              <div className="action-card-icon-wrap">
-                <span className="action-card-icon">👥</span>
-              </div>
-              <div className="action-card-text">
-                <div className="action-card-title">Xe ghép</div>
-                <div className="action-card-sub">Tiết kiệm chi phí</div>
-              </div>
+              <div className="action-card__icon-wrap">👥</div>
+              <div className="action-card__title">Xe ghép</div>
+              <div className="action-card__sub">Chuyến tiện đường</div>
             </div>
 
             <div
-              className="action-grid-card action-grid-card--purple"
+              className="action-card action-card--cyan"
               onClick={() => {
                 setActiveNavTab('rides');
                 setRidesSubFilter('7');
               }}
             >
-              <div className="action-card-icon-wrap">
-                <span className="action-card-icon">🏷️</span>
-              </div>
-              <div className="action-card-text">
-                <div className="action-card-title">Bao xe</div>
-                <div className="action-card-sub">Chuyến đi riêng tư</div>
-              </div>
+              <div className="action-card__icon-wrap">🧳</div>
+              <div className="action-card__title">Bao xe</div>
+              <div className="action-card__sub">Đi tỉnh, đi xa</div>
             </div>
 
             <div
-              className="action-grid-card action-grid-card--green"
+              className="action-card action-card--purple"
               onClick={openModal}
             >
-              <div className="action-card-icon-wrap">
-                <span className="action-card-icon">➕</span>
-              </div>
-              <div className="action-card-text">
-                <div className="action-card-title">Đăng chuyến</div>
-                <div className="action-card-sub">Tạo lộ trình mới</div>
-              </div>
+              <div className="action-card__icon-wrap">🗺️</div>
+              <div className="action-card__title">Đăng chuyến</div>
+              <div className="action-card__sub">Tạo cuốc xe</div>
             </div>
           </div>
 
-          {/* Download App Banner */}
+          {/* App Download Banner */}
           <div
             className="modern-download-banner"
             onClick={() => {
@@ -1612,15 +1604,18 @@ function MainApp() {
               }
             }}
           >
-            <div className="download-banner-left">
-              <div className="download-app-icon">📱</div>
-              <div className="download-banner-text">
-                <div className="download-banner-title">Tải ứng dụng di động</div>
-                <div className="download-banner-sub">Nhận cuốc nhanh hơn, thông báo tức thì</div>
+            <div className="download-banner__left">
+              <div className="download-phone-mockup">
+                <span className="phone-screen-logo">ĐC</span>
+              </div>
+              <div className="download-banner__text">
+                <div className="download-banner__title">Tải ứng dụng di động</div>
+                <div className="download-banner__sub">Nhận thông báo cuốc xe nhanh hơn</div>
               </div>
             </div>
-            <button type="button" className="download-apk-btn">
-              <span>APK</span>
+            <button type="button" className="download-banner__btn">
+              <span>📥 Tải ngay</span>
+              <span>›</span>
             </button>
           </div>
 
@@ -1630,7 +1625,7 @@ function MainApp() {
               <button
                 key={r}
                 type="button"
-                className={`region-pill-btn ${activeRequestRegion === r ? 'active' : ''}`}
+                className={`region-pill ${activeRequestRegion === r ? 'active' : ''}`}
                 onClick={() => setActiveRequestRegion(r)}
               >
                 {regionLabels[r]}
@@ -1661,14 +1656,14 @@ function MainApp() {
 
       {/* ── Rides Screen matching Image 2 ── */}
       {activeNavTab === 'rides' && (
-        <div className="rides-view-container">
+        <div className="rides-screen-container">
           {/* Region selector */}
-          <div className="region-pills-row" style={{ marginTop: 12 }}>
+          <div className="region-pills-row" style={{ margin: '4px 0 14px' }}>
             {(['north', 'central', 'south'] as Region[]).map((r) => (
               <button
                 key={r}
                 type="button"
-                className={`region-pill-btn ${activeRequestRegion === r ? 'active' : ''}`}
+                className={`region-pill ${activeRequestRegion === r ? 'active' : ''}`}
                 onClick={() => setActiveRequestRegion(r)}
               >
                 {regionLabels[r]}
@@ -1677,13 +1672,13 @@ function MainApp() {
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="rides-search-bar">
+          <div className="rides-search-box">
             <div className="rides-search-input-wrap">
               <span className="rides-search-icon">🔍</span>
               <input
                 type="text"
                 className="rides-search-input"
-                placeholder="Tìm kiếm theo điểm đi, điểm đến..."
+                placeholder="Tìm kiếm điểm đi, điểm đến, tên khách..."
                 value={ridesSearchQuery}
                 onChange={(e) => setRidesSearchQuery(e.target.value)}
               />
@@ -1758,40 +1753,40 @@ function MainApp() {
               const sampleFallbackRides = [
                 {
                   _id: 'sample-1',
-                  name: 'Nguyễn Văn An',
-                  phone: '0912456789',
-                  startPoint: 'Hà Nội (Bến xe Mỹ Đình)',
-                  endPoint: 'Hải Phòng (Đồ Sơn)',
-                  price: 850000,
+                  name: 'Hà Văn Huy',
+                  phone: '0913488386',
+                  startPoint: 'Hà Nội',
+                  endPoint: 'Hà Nam',
+                  price: 1100000,
                   carType: '4',
-                  tripType: 'one-way',
-                  note: 'Khách đi công tác 2 người, cần xuất hóa đơn, xe sạch sẽ.',
+                  tripType: 'round',
+                  note: 'Đi 2 chiều, Hà Nội - Hà Nam, Toyota altis',
                   createdAt: new Date().toISOString(),
                   region: 'north' as Region
                 },
                 {
                   _id: 'sample-2',
-                  name: 'Trần Thị Mai',
-                  phone: '0988112233',
-                  startPoint: 'Hà Nội (Quận Hoàn Kiếm)',
-                  endPoint: 'Ninh Bình (Tràng An)',
-                  price: 700000,
+                  name: 'Nguyễn Quốc dũng',
+                  phone: '0985015240',
+                  startPoint: 'Bắc Ninh',
+                  endPoint: 'Sơn La',
+                  price: 3000000,
                   carType: '7',
-                  tripType: 'round',
-                  note: 'Gia đình 5 người đi tham quan, có trẻ nhỏ và vali.',
+                  tripType: 'one-way',
+                  note: 'xe innova cross 2026 8 chỗ',
                   createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
                   region: 'north' as Region
                 },
                 {
                   _id: 'sample-3',
-                  name: 'Lê Hoàng Nam',
-                  phone: '0903334455',
-                  startPoint: 'Sân bay Nội Bài',
-                  endPoint: 'Thái Nguyên (TP. Sông Công)',
-                  price: 650000,
+                  name: 'Nguyễn Xuân được',
+                  phone: '0968566350',
+                  startPoint: 'Hà Nội',
+                  endPoint: 'Nam Định',
+                  price: 800000,
                   carType: '4',
                   tripType: 'one-way',
-                  note: 'Đón tại sảnh đến T1 lúc 14h, khách 1 người ít đồ.',
+                  note: 'Khách 1 người ít đồ, xe sạch sẽ',
                   createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
                   region: 'north' as Region
                 },
@@ -1877,60 +1872,70 @@ function MainApp() {
 
               return displayList.map((req) => (
                 <div key={req._id} className="modern-ride-card">
-                  {/* Card Top: Customer Name & Phone with copy button */}
-                  <div className="modern-ride-card-top">
-                    <div className="customer-info-wrap">
-                      <span className="customer-avatar-icon">👤</span>
-                      <span className="customer-name">{req.name || 'Khách hàng'}</span>
+                  {/* Top Row: MỚI badge, Customer Name, Time badge, Menu */}
+                  <div className="mrc-top-row">
+                    <div className="mrc-caller-wrap">
+                      <span className="mrc-badge-new">⚡ MỚI</span>
+                      <span className="mrc-caller-name">{req.name || 'Khách hàng'}</span>
                     </div>
-                    <div className="customer-phone-wrap">
-                      <span className="customer-phone-number">{formatPhone(req.phone)}</span>
-                      <button
-                        type="button"
-                        className="copy-phone-btn"
-                        title="Sao chép số điện thoại"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigator.clipboard.writeText(req.phone);
-                          setCopiedPhoneId(req._id);
-                          setTimeout(() => setCopiedPhoneId(null), 2000);
-                        }}
-                      >
-                        {copiedPhoneId === req._id ? '✓' : '📋'}
-                      </button>
+                    <div className="mrc-time-wrap">
+                      <span className="mrc-time-badge">🕐 Vừa xong</span>
+                      <span className="mrc-menu-btn">⋮</span>
                     </div>
                   </div>
 
-                  {/* Route + Price 2 columns */}
-                  <div className="modern-ride-card-middle">
-                    {/* Left: Vertical Timeline */}
-                    <div className="route-timeline-column">
-                      <div className="timeline-node timeline-node--start">
-                        <span className="timeline-dot timeline-dot--green" />
-                        <span className="timeline-text">{req.startPoint}</span>
+                  {/* Phone row with copy button */}
+                  <div className="mrc-phone-row">
+                    <span className="mrc-phone-icon">📞</span>
+                    <span className="mrc-phone-num">{req.phone}</span>
+                    <button
+                      type="button"
+                      className="mrc-copy-btn"
+                      title="Sao chép số điện thoại"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(req.phone);
+                        setCopiedPhoneId(req._id);
+                        setTimeout(() => setCopiedPhoneId(null), 2000);
+                      }}
+                    >
+                      {copiedPhoneId === req._id ? '✓' : '📄'}
+                    </button>
+                  </div>
+
+                  {/* Middle Grid: Left Route Points, Right Mint Price Card */}
+                  <div className="mrc-middle-grid">
+                    <div className="mrc-route-track">
+                      <div className="mrc-point-row">
+                        <span className="mrc-point-dot mrc-point-dot--green" />
+                        <div className="mrc-point-text-wrap">
+                          <span className="mrc-point-title">{req.startPoint}</span>
+                          <span className="mrc-point-sub">Điểm đi</span>
+                        </div>
                       </div>
-                      <div className="timeline-line" />
-                      <div className="timeline-node timeline-node--end">
-                        <span className="timeline-dot timeline-dot--red" />
-                        <span className="timeline-text">{req.endPoint}</span>
+                      <div className="mrc-route-divider" />
+                      <div className="mrc-point-row">
+                        <span className="mrc-point-dot mrc-point-dot--red" />
+                        <div className="mrc-point-text-wrap">
+                          <span className="mrc-point-title">{req.endPoint}</span>
+                          <span className="mrc-point-sub">Điểm đến</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Right: Price box */}
-                    <div className="price-mint-box">
-                      <div className="price-mint-amount">
+                    <div className="mrc-price-card">
+                      <div className="mrc-price-label">👛 Giá chuyến</div>
+                      <div className="mrc-price-amount">
                         {Number(req.price).toLocaleString('vi-VN')}đ
                       </div>
-                      <div className="price-mint-sub">
-                        Xe {(req as any).carType || '4'} chỗ • {(req as any).tripType === 'round' ? 'Khứ hồi' : 'Tiền mặt'}
-                      </div>
                     </div>
                   </div>
 
-                  {/* Note container */}
-                  <div className="modern-ride-note-box">
-                    <span className="note-pin-icon">📝</span>
-                    <span className="note-content-text">
+                  {/* Note Box */}
+                  <div className="mrc-note-box">
+                    <span className="mrc-note-icon">📄</span>
+                    <span className="mrc-note-text">
+                      <strong>Ghi chú: </strong>
                       {req.note || 'Khách đặt xe đi trong ngày, cần xe sạch sẽ, tài xế đúng giờ.'}
                     </span>
                   </div>
@@ -1938,7 +1943,7 @@ function MainApp() {
                   {/* Action Button: GỌI TÀI XẾ NGAY */}
                   <button
                     type="button"
-                    className="modern-call-driver-btn"
+                    className="mrc-call-btn"
                     onClick={() => {
                       if (!user) {
                         setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
@@ -1950,6 +1955,7 @@ function MainApp() {
                     }}
                   >
                     <span>📞 GỌI TÀI XẾ NGAY</span>
+                    <span style={{ fontSize: '16px', fontWeight: 900 }}>›</span>
                   </button>
                 </div>
               ));
@@ -2096,10 +2102,8 @@ function MainApp() {
             setActiveNavTab('messages');
           }}
         >
-          <div className="nav-icon-wrap">
-            <span className="nav-icon">💬</span>
-            <span className="nav-badge">3</span>
-          </div>
+          <span className="nav-icon">💬</span>
+          <span className="nav-badge-pill">3</span>
           <span className="nav-label">Tin nhắn</span>
         </button>
 
