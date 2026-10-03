@@ -1471,7 +1471,6 @@ function MainApp() {
               <div className="profile-card-left">
                 <div className="profile-avatar-circle">
                   {user ? toInitials(user.name || user.phone || 'ĐC') : 'ĐC'}
-                  <span className="profile-avatar-check">✓</span>
                 </div>
                 <div className="profile-info-wrap">
                   <span className="profile-greeting">Xin chào,</span>
@@ -1481,7 +1480,7 @@ function MainApp() {
                     <span className="profile-phone-text">
                       {user ? maskPhoneStrict(user.phone) : '052 xxxx 892'}
                     </span>
-                    <span className="verified-icon">✔</span>
+                    <span className="profile-verified-badge-icon">✔</span>
                   </div>
                 </div>
               </div>
@@ -1494,19 +1493,19 @@ function MainApp() {
             </div>
           </div>
 
-          {/* Quick Stats Row (3 Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
+          {/* Quick Stats Row (3 Compact Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
           <div className="quick-stats-row">
-            <div className="quick-stat-card quick-stat-card--income">
-              <div className="stat-header">
-                <span className="stat-icon">👛</span>
-                <span className="stat-label">Thu nhập tháng</span>
+            <div className="qs-card qs-card--income">
+              <div className="qs-header">
+                <span className="qs-icon">👛</span>
+                <span className="qs-label">Thu nhập tháng</span>
               </div>
-              <div className="stat-value-wrap">
-                <span className="stat-value">
+              <div className="qs-value-wrap">
+                <span className="qs-value">
                   {showBalance ? '36.500.000đ' : '••••••••'}
                 </span>
                 <span
-                  className="stat-extra stat-eye-btn"
+                  className="qs-extra"
                   onClick={() => setShowBalance(!showBalance)}
                   title={showBalance ? 'Ẩn số tiền' : 'Hiện số tiền'}
                 >
@@ -1515,25 +1514,25 @@ function MainApp() {
               </div>
             </div>
 
-            <div className="quick-stat-card quick-stat-card--rides">
-              <div className="stat-header">
-                <span className="stat-icon">🚗</span>
-                <span className="stat-label">Cuốc xe đã nhận</span>
+            <div className="qs-card qs-card--rides">
+              <div className="qs-header">
+                <span className="qs-icon">🚗</span>
+                <span className="qs-label">Cuốc xe đã nhận</span>
               </div>
-              <div className="stat-value-wrap">
-                <span className="stat-value">128 cuốc</span>
-                <span className="stat-extra">📊</span>
+              <div className="qs-value-wrap">
+                <span className="qs-value">128 cuốc</span>
+                <span className="qs-extra">📊</span>
               </div>
             </div>
 
-            <div className="quick-stat-card quick-stat-card--rating">
-              <div className="stat-header">
-                <span className="stat-icon">⭐</span>
-                <span className="stat-label">Đánh giá</span>
+            <div className="qs-card qs-card--rating">
+              <div className="qs-header">
+                <span className="qs-icon">⭐</span>
+                <span className="qs-label">Đánh giá</span>
               </div>
-              <div className="stat-value-wrap">
-                <span className="stat-value">4.9/5</span>
-                <span className="stat-extra">→</span>
+              <div className="qs-value-wrap">
+                <span className="qs-value">4.9/5</span>
+                <span className="qs-extra">→</span>
               </div>
             </div>
           </div>
@@ -1544,7 +1543,11 @@ function MainApp() {
               className="action-card action-card--active-green"
               onClick={() => setActiveNavTab('rides')}
             >
-              <div className="action-card__icon-wrap">🚗</div>
+              <div className="action-card__icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                </svg>
+              </div>
               <div className="action-card__title">Tìm cuốc xe</div>
               <div className="action-card__sub">Có cuốc mới</div>
             </div>
@@ -1556,7 +1559,11 @@ function MainApp() {
                 setRidesSubFilter('4');
               }}
             >
-              <div className="action-card__icon-wrap">👥</div>
+              <div className="action-card__icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                </svg>
+              </div>
               <div className="action-card__title">Xe ghép</div>
               <div className="action-card__sub">Chuyến tiện đường</div>
             </div>
@@ -1568,7 +1575,11 @@ function MainApp() {
                 setRidesSubFilter('7');
               }}
             >
-              <div className="action-card__icon-wrap">🧳</div>
+              <div className="action-card__icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6h-3V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H5c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-9-2h4v2h-4V4zm9 15H5V8h14v11z"/>
+                </svg>
+              </div>
               <div className="action-card__title">Bao xe</div>
               <div className="action-card__sub">Đi tỉnh, đi xa</div>
             </div>
@@ -1577,7 +1588,11 @@ function MainApp() {
               className="action-card action-card--purple"
               onClick={openModal}
             >
-              <div className="action-card__icon-wrap">🗺️</div>
+              <div className="action-card__icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                </svg>
+              </div>
               <div className="action-card__title">Đăng chuyến</div>
               <div className="action-card__sub">Tạo cuốc xe</div>
             </div>
@@ -1606,7 +1621,9 @@ function MainApp() {
           >
             <div className="download-banner__left">
               <div className="download-phone-mockup">
-                <span className="phone-screen-logo">ĐC</span>
+                <div className="phone-screen-inner">
+                  <span>ĐC</span>
+                </div>
               </div>
               <div className="download-banner__text">
                 <div className="download-banner__title">Tải ứng dụng di động</div>
@@ -1614,8 +1631,11 @@ function MainApp() {
               </div>
             </div>
             <button type="button" className="download-banner__btn">
-              <span>📥 Tải ngay</span>
-              <span>›</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Tải ngay</span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
             </button>
           </div>
 

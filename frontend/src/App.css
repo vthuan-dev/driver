@@ -1109,10 +1109,10 @@
 /* Floating Profile Card */
 .hero-profile-card {
   position: relative;
-  margin: -50px 14px 0;
+  margin: -44px 14px 0;
   background: #ffffff;
   border-radius: 20px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1124,14 +1124,14 @@
 .profile-card-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .profile-avatar-circle {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00b14f, #059669);
+  background: #00b14f;
   color: #ffffff;
   font-size: 20px;
   font-weight: 800;
@@ -1145,17 +1145,17 @@
 .profile-info-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .profile-greeting {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #64748b;
   font-weight: 500;
 }
 
 .profile-name {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.2;
@@ -1164,106 +1164,133 @@
 .profile-phone-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   margin-top: 2px;
 }
 
 .profile-phone-icon {
   font-size: 12px;
+  color: #00b14f;
 }
 
 .profile-phone-text {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   color: #334155;
 }
 
-.verified-icon {
-  color: #00b14f;
+.profile-verified-badge-icon {
+  width: 15px;
+  height: 15px;
+  background: #00b14f;
+  color: #ffffff;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+  margin-left: 2px;
 }
 
 .verified-pill-badge {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: #fef3c7;
-  color: #92400e;
-  padding: 6px 12px;
+  gap: 4px;
+  background: #fff8e1;
+  color: #b78103;
+  padding: 6px 10px;
   border-radius: 20px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   border: 1px solid #fde68a;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
-/* Quick Stats Row (3 Pill Cards) */
+/* Quick Stats Row (3 Compact Pill Cards) */
 .quick-stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin: 14px 14px 0;
+  margin: 12px 14px 0;
 }
 
-.quick-stat-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 10px 10px 12px;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+.qs-card {
+  border-radius: 14px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  min-height: 54px;
+  justify-content: center;
 }
 
-.quick-stat-card--income {
-  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
-  border-color: #dcfce7;
+.qs-card--income {
+  background: #eaf7ef;
+  border: 1px solid #d5f2e1;
 }
 
-.quick-stat-card--rides {
-  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
-  border-color: #dbeafe;
+.qs-card--rides {
+  background: #ebf3fe;
+  border: 1px solid #d7e6fc;
 }
 
-.quick-stat-card--rating {
-  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
-  border-color: #fef3c7;
+.qs-card--rating {
+  background: #fef8e7;
+  border: 1px solid #fbeac4;
 }
 
-.stat-header {
+.qs-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
-.stat-icon {
-  font-size: 16px;
+.qs-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
-.stat-label {
-  font-size: 11px;
-  color: #64748b;
+.qs-label {
+  font-size: 10px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.stat-value-wrap {
+.qs-card--income .qs-label {
+  color: #355f46;
+}
+
+.qs-card--rides .qs-label {
+  color: #2e476d;
+}
+
+.qs-card--rating .qs-label {
+  color: #614d24;
+}
+
+.qs-value-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.stat-value {
-  font-size: 13.5px;
-  font-weight: 800;
-  color: #0f172a;
+.qs-value {
+  font-size: 13.5px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
 }
 
-.stat-extra {
-  font-size: 13px;
+.qs-extra {
+  font-size: 12px;
+  color: #64748b;
   cursor: pointer;
-  opacity: 0.75;
+  display: flex;
+  align-items: center;
 }
 
 /* Action Grid (4 Cards Row) */
@@ -1271,12 +1298,12 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin: 14px 14px 0;
+  margin: 12px 14px 0;
 }
 
 .action-card {
   border-radius: 16px;
-  padding: 12px 6px 14px;
+  padding: 12px 6px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1309,8 +1336,8 @@
 }
 
 .action-card--blue {
-  background: #f0f7ff;
-  border: 1px solid #e0edff;
+  background: #edf5ff;
+  border: 1px solid #dce9fc;
 }
 
 .action-card--blue .action-card__icon-wrap {
@@ -1318,17 +1345,17 @@
 }
 
 .action-card--cyan {
-  background: #ecfeff;
-  border: 1px solid #cffafe;
+  background: #edf5ff;
+  border: 1px solid #dce9fc;
 }
 
 .action-card--cyan .action-card__icon-wrap {
-  color: #0891b2;
+  color: #2563eb;
 }
 
 .action-card--purple {
-  background: #faf5ff;
-  border: 1px solid #f3e8ff;
+  background: #f3ebff;
+  border: 1px solid #e7d8fc;
 }
 
 .action-card--purple .action-card__icon-wrap {
@@ -1336,11 +1363,12 @@
 }
 
 .action-card__icon-wrap {
-  font-size: 24px;
+  font-size: 22px;
   margin-bottom: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 28px;
 }
 
 .action-card__title {
@@ -1359,10 +1387,10 @@
 
 /* App Download Banner */
 .modern-download-banner {
-  margin: 14px 14px 0;
-  background: linear-gradient(135deg, #009844 0%, #00b14f 100%);
-  border-radius: 18px;
-  padding: 12px 14px;
+  margin: 12px 14px 0;
+  background: linear-gradient(90deg, #00b050 0%, #009140 100%);
+  border-radius: 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1373,35 +1401,39 @@
 .download-banner__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .download-phone-mockup {
-  width: 38px;
-  height: 48px;
-  background: #ffffff;
+  width: 28px;
+  height: 40px;
+  background: #0f172a;
   border: 2px solid #0f172a;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  padding: 2px;
 }
 
-.phone-screen-logo {
-  font-size: 11px;
+.phone-screen-inner {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
   font-weight: 900;
   color: #00b14f;
-  background: #e6f7ed;
-  padding: 2px 4px;
-  border-radius: 4px;
 }
 
 .download-banner__text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .download-banner__title {
@@ -1419,13 +1451,13 @@
 .download-banner__btn {
   background: #ffffff;
   color: #00873c;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 20px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   border: none;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   flex-shrink: 0;
@@ -2109,6 +2141,11 @@
 
 .mrc-call-btn:hover {
   background: #009643;
+}
+
+.home-view-container,
+.rides-screen-container {
+  padding-bottom: 110px;
 }
 
 /* ==========================================================================
