@@ -2135,7 +2135,7 @@ function MainApp() {
                     </span>
                   </div>
 
-                  {/* Action Button: GỌI TÀI XẾ NGAY */}
+                  {/* Action Button: NHẬN CUỐC XE NGAY */}
                   <button
                     type="button"
                     className="mrc-call-btn"
@@ -2149,7 +2149,7 @@ function MainApp() {
                       setCallSheet({ phone: req.phone });
                     }}
                   >
-                    <span>📞 GỌI TÀI XẾ NGAY</span>
+                    <span>📞 NHẬN CUỐC XE NGAY</span>
                     <span style={{ fontSize: '16px', fontWeight: 900 }}>›</span>
                   </button>
                 </div>
