@@ -811,7 +811,7 @@ function MainApp() {
     localStorage.setItem('welcome_modal_hidden_until', String(Date.now() + 2 * 60 * 60 * 1000));
     setShowWelcomeModal(false);
   };
-  const [downloadStatus, setDownloadStatus] = useState<{
+  const [, setDownloadStatus] = useState<{
     downloadCount: number;
     withinTwoDays: boolean;
     appPlan: string | null;
@@ -1771,11 +1771,7 @@ function MainApp() {
                 setShowErrorPopup(true);
                 return;
               }
-              if (downloadStatus.downloadCount > 0) {
-                setShowDownloadPage(true);
-              } else {
-                setShowPricingModal(true);
-              }
+              setShowPricingModal(true);
             }}
           >
             <div className="download-banner__left">
@@ -2256,11 +2252,7 @@ function MainApp() {
                   className="modern-call-driver-btn"
                   style={{ marginBottom: 10, background: '#2563eb' }}
                   onClick={() => {
-                    if (downloadStatus.downloadCount > 0) {
-                      setShowDownloadPage(true);
-                    } else {
-                      setShowPricingModal(true);
-                    }
+                    setShowPricingModal(true);
                   }}
                 >
                   📱 Tải ứng dụng APK di động
@@ -2832,7 +2824,7 @@ function MainApp() {
           {showDownloadPage && (
             <DownloadAppPage 
               user={user}
-              plan={downloadStatus.downloadCount > 0 ? (downloadStatus.appPlan || selectedPlan) : selectedPlan}
+              plan={selectedPlan || '1y'}
               onDownloaded={(plan) => {
                 setDownloadStatus(prev => ({
                   ...prev,

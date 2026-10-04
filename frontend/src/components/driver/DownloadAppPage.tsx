@@ -23,9 +23,17 @@ type DownloadAppPageProps = {
 const SECRET_PASS = '838668';
 
 const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', onBack, onDownloaded }) => {
-  let amount = 400000;
-  let planLabel = '1 năm';
-  if (plan === 'lifetime') { amount = 1000000; planLabel = 'Vĩnh viễn'; }
+  const [currentPlan, setCurrentPlan] = useState<string>(plan || '1y');
+
+  useEffect(() => {
+    if (plan) {
+      setCurrentPlan(plan);
+    }
+  }, [plan]);
+
+  const isLifetime = currentPlan === 'lifetime';
+  const amount = isLifetime ? 1000000 : 400000;
+  const planLabel = isLifetime ? 'Vĩnh viễn (Trọn đời)' : '1 năm';
 
   const message = `Tai App ${user.phone}`;
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});
@@ -80,8 +88,8 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
     window.location.href = `${baseUrl}/api/download/app`;
 
     try {
-      await driverAPI.recordDownload(plan);
-      if (onDownloaded) onDownloaded(plan);
+      await driverAPI.recordDownload(currentPlan);
+      if (onDownloaded) onDownloaded(currentPlan);
     } catch (err) {
       console.error('Failed to record download:', err);
     }
@@ -128,7 +136,61 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
             </div>
             <div className="download-body-modal">
               <p className="greeting-text">Xin chào <strong>{user.name}</strong>, tài khoản của bạn đã được duyệt!</p>
-              <p className="subtitle-text">Quét mã QR để thanh toán và cài đặt ứng dụng</p>
+              <p className="subtitle-text">Vui lòng chọn gói và quét mã QR để thanh toán kích hoạt ứng dụng</p>
+
+              {/* 2-Plan Selector (400k - 1 năm & 1.000.000đ - Vĩnh viễn) */}
+              <div className="download-plan-selector" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', margin: '14px 0 16px' }}>
+                <div
+                  className={`plan-option-card ${!isLifetime ? 'active' : ''}`}
+                  onClick={() => setCurrentPlan('1y')}
+                  style={{
+                    padding: '12px 10px',
+                    borderRadius: '14px',
+                    border: !isLifetime ? '2px solid #00b14f' : '1.5px solid #cbd5e1',
+                    background: !isLifetime ? '#f0fdf4' : '#ffffff',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    boxShadow: !isLifetime ? '0 4px 12px rgba(0, 177, 79, 0.18)' : '0 1px 3px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '-10px', right: '8px',
+                    background: '#00b14f', color: '#fff', fontSize: '10px', fontWeight: 800,
+                    padding: '2px 7px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,177,79,0.3)'
+                  }}>⭐ 1 NĂM</span>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px' }}>Gói 1 Năm</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: !isLifetime ? '#00b14f' : '#0f172a', marginTop: '4px' }}>400.000đ</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Dùng 12 tháng</div>
+                </div>
+
+                <div
+                  className={`plan-option-card ${isLifetime ? 'active' : ''}`}
+                  onClick={() => setCurrentPlan('lifetime')}
+                  style={{
+                    padding: '12px 10px',
+                    borderRadius: '14px',
+                    border: isLifetime ? '2px solid #f59e0b' : '1.5px solid #cbd5e1',
+                    background: isLifetime ? '#fffbeb' : '#ffffff',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    boxShadow: isLifetime ? '0 4px 12px rgba(245, 158, 11, 0.22)' : '0 1px 3px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '-10px', right: '8px',
+                    background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: 800,
+                    padding: '2px 7px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(245,158,11,0.3)'
+                  }}>👑 VĨNH VIỄN</span>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px' }}>Gói Vĩnh Viễn</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: isLifetime ? '#d97706' : '#0f172a', marginTop: '4px' }}>1.000.000đ</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Dùng trọn đời mãi mãi</div>
+                </div>
+              </div>
+
               <div className="qr-section">
                 <div className="qr-wrapper">
                   <img src={qrCodeUrl} alt="QR Code tải App" className="qr-image" />
@@ -137,9 +199,9 @@ const DownloadAppPage: React.FC<DownloadAppPageProps> = ({ user, plan = '1y', on
                 <div className="download-badges">
                   <span className="badge android">Android APK</span>
                 </div>
-                <div className="payment-info" style={{ marginTop: '16px', background: '#eff6ff', padding: '12px', borderRadius: '12px', width: '100%', border: '1px solid #bfdbfe' }}>
-                  <div style={{ fontSize: '14px', color: '#475569', marginBottom: '4px' }}>Số tiền đăng ký ({planLabel}):</div>
-                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#2563eb' }}>{amount.toLocaleString('vi-VN')}đ</div>
+                <div className="payment-info" style={{ marginTop: '16px', background: isLifetime ? '#fffbeb' : '#eff6ff', padding: '12px', borderRadius: '12px', width: '100%', border: isLifetime ? '1px solid #fde68a' : '1px solid #bfdbfe' }}>
+                  <div style={{ fontSize: '14px', color: '#475569', marginBottom: '4px' }}>Số tiền thanh toán ({planLabel}):</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: isLifetime ? '#d97706' : '#2563eb' }}>{amount.toLocaleString('vi-VN')}đ</div>
                   <div style={{ fontSize: '13px', color: '#64748b', marginTop: '6px' }}>
                     Nội dung CK: <strong style={{ color: '#0f172a' }}>{message}</strong>
                   </div>

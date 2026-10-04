@@ -53,6 +53,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
 
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showDownloadPage, setShowDownloadPage] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('1y');
   const [showIncomePage, setShowIncomePage] = useState(false);
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; accountNo?: string; accountName?: string }>({});
 
@@ -457,6 +458,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
         isOpen={showPricingModal} 
         onClose={() => setShowPricingModal(false)}
         onConfirm={(plan) => {
+          setSelectedPlan(plan.id);
           localStorage.setItem('driver_app_plan', plan.id);
           setShowPricingModal(false);
           setShowDownloadPage(true);
@@ -466,6 +468,7 @@ const DriverDashboard = ({ user, onLogout, onBack }: DriverDashboardProps) => {
       {showDownloadPage && (
         <DownloadAppPage 
           user={user} 
+          plan={selectedPlan}
           onBack={() => setShowDownloadPage(false)} 
         />
       )}
