@@ -97,7 +97,7 @@ const getMyRequests = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
   try {
-    const { status, limit, region, province, keyword, from, to } = req.query;
+    const { status, limit, region, province, keyword, search, from, to, page, all } = req.query;
     const { Op } = require('sequelize');
 
     const filter = {};
@@ -130,44 +130,108 @@ const getAllRequests = async (req, res) => {
         ]
       });
     }
-    if (keyword && String(keyword).trim()) {
-      const kw = String(keyword).trim();
+    const qSearch = search || keyword;
+    if (qSearch && String(qSearch).trim()) {
+      const kw = String(qSearch).trim();
       andClauses.push({
         [Op.or]: [
-          { name:  { [Op.like]: `%${kw}%` } },
-          { phone: { [Op.like]: `%${kw}%` } }
+          { name:       { [Op.like]: `%${kw}%` } },
+          { phone:      { [Op.like]: `%${kw}%` } },
+          { startPoint: { [Op.like]: `%${kw}%` } },
+          { endPoint:   { [Op.like]: `%${kw}%` } }
         ]
       });
     }
     if (andClauses.length > 0) filter[Op.and] = andClauses;
 
-    const queryOptions = {
+    // Fast status counts for dashboard badges
+    const [waitingCount, matchedCount, completedCount] = await Promise.all([
+      WaitingRequest.count({ where: { status: 'waiting' } }),
+      WaitingRequest.count({ where: { status: 'matched' } }),
+      WaitingRequest.count({ where: { status: 'completed' } }),
+    ]);
+
+    const totalCount = waitingCount + matchedCount + completedCount;
+
+    // If client explicitly requests all=true (for export, etc.)
+    if (all === 'true' || all === '1') {
+      const allRequests = await WaitingRequest.findAll({
+        where: filter,
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['name', 'phone']
+        }],
+        order: [['createdAt', 'DESC']]
+      });
+
+      const requests = allRequests.map(r => {
+        const data = r.toJSON();
+        data._id = data.id;
+        if (data.user) {
+          data.userId = data.user;
+        }
+        return data;
+      });
+
+      return res.json({
+        requests,
+        pagination: {
+          total: requests.length,
+          page: 1,
+          limit: requests.length,
+          totalPages: 1
+        },
+        counts: {
+          waiting: waitingCount,
+          matched: matchedCount,
+          completed: completedCount,
+          total: totalCount
+        }
+      });
+    }
+
+    const currentPage = Math.max(1, parseInt(page, 10) || 1);
+    const parsedLimit = parseInt(limit, 10);
+    const pageLimit = parsedLimit > 0 ? Math.min(parsedLimit, 100) : 20;
+    const offset = (currentPage - 1) * pageLimit;
+
+    const { count, rows } = await WaitingRequest.findAndCountAll({
       where: filter,
       include: [{
         model: User,
         as: 'user',
         attributes: ['name', 'phone']
       }],
-      order: [['createdAt', 'DESC']]
-    };
+      order: [['createdAt', 'DESC']],
+      limit: pageLimit,
+      offset
+    });
 
-    const max = Math.min(parseInt(limit || '0', 10) || 0, 500);
-    if (max > 0) {
-      queryOptions.limit = max;
-    }
-
-    const allRequests = await WaitingRequest.findAll(queryOptions);
-    
-    const requests = allRequests.map(r => {
+    const requests = rows.map(r => {
       const data = r.toJSON();
       data._id = data.id;
       if (data.user) {
-        data.userId = data.user; // To mimic Mongoose populate
+        data.userId = data.user;
       }
       return data;
     });
 
-    res.json({ requests });
+    res.json({
+      requests,
+      pagination: {
+        total: count,
+        page: currentPage,
+        limit: pageLimit,
+        totalPages: Math.ceil(count / pageLimit) || 1
+      },
+      counts: {
+        waiting: waitingCount,
+        matched: matchedCount,
+        completed: completedCount,
+        total: totalCount
+      }
+    });
   } catch (error) {
     console.error('Get all requests error:', error);
     res.status(500).json({ message: 'Server error' });

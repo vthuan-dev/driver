@@ -151,13 +151,70 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     return pages;
   };
 
-  const loadRequests = async () => {
+  // Request pagination & counts state
+  const [requestPage, setRequestPage] = useState(1);
+  const [requestLimit, setRequestLimit] = useState(20);
+  const [requestTotalPages, setRequestTotalPages] = useState(1);
+  const [requestTotalCount, setRequestTotalCount] = useState(0);
+  const [requestCounts, setRequestCounts] = useState({ waiting: 0, matched: 0, completed: 0, total: 0 });
+  const [requestListLoading, setRequestListLoading] = useState(false);
+  const [debouncedRequestSearch, setDebouncedRequestSearch] = useState('');
+
+  // Debounce request search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedRequestSearch(requestSearchQuery);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [requestSearchQuery]);
+
+  useEffect(() => {
+    setRequestPage(1);
+  }, [debouncedRequestSearch]);
+
+  const loadRequests = async (
+    page = requestPage,
+    status = requestStatusFilter,
+    search = debouncedRequestSearch,
+    limit = requestLimit
+  ) => {
+    setRequestListLoading(true);
     try {
-      const response = await requestsAPI.getAllRequests();
-      setRequests(response.data.requests ?? []);
+      const response = await requestsAPI.getAllRequests({
+        page,
+        limit,
+        status: status === 'all' ? undefined : status,
+        search: search.trim() || undefined,
+      });
+      const data = response.data;
+      setRequests(data.requests ?? []);
+      if (data.pagination) {
+        setRequestTotalPages(data.pagination.totalPages || 1);
+        setRequestTotalCount(data.pagination.total || 0);
+        setRequestPage(data.pagination.page || 1);
+      }
+      if (data.counts) {
+        setRequestCounts(data.counts);
+      }
     } catch (error) {
       console.error('Error loading requests:', error);
+    } finally {
+      setRequestListLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadRequests(requestPage, requestStatusFilter, debouncedRequestSearch, requestLimit);
+  }, [requestPage, requestStatusFilter, debouncedRequestSearch, requestLimit]);
+
+  const handleRequestTabChange = (status: 'all' | 'waiting' | 'matched' | 'completed') => {
+    setRequestStatusFilter(status);
+    setRequestPage(1);
+  };
+
+  const handleRequestLimitChange = (newLimit: number) => {
+    setRequestLimit(newLimit);
+    setRequestPage(1);
   };
 
   const loadSettings = async () => {
@@ -184,7 +241,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   };
 
   useEffect(() => {
-    loadRequests();
     loadSettings();
   }, []);
 
@@ -361,14 +417,19 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
-  const handleDeleteRequest = async (requestId: string) => {    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
       return;
     }
     
     setLoading(true);
     try {
       await requestsAPI.deleteRequest(requestId);
-      await loadRequests();
+      if (requests.length === 1 && requestPage > 1) {
+        setRequestPage(p => p - 1);
+      } else {
+        await loadRequests();
+      }
     } catch (error) {
       console.error('Error deleting request:', error);
       alert('Có lỗi xảy ra khi xóa yêu cầu');
@@ -376,22 +437,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
       setLoading(false);
     }
   };
-
-
-  
-  // Filter requests by status
-  const statusFilteredRequests =
-    requestStatusFilter === 'all'
-      ? requests
-      : requests.filter((r) => r.status === requestStatusFilter);
-  
-  // Filter requests by phone search
-  const filteredRequests = requestSearchQuery.trim()
-    ? statusFilteredRequests.filter(request => {
-        const numericQuery = requestSearchQuery.replace(/\D/g, '');
-        return numericQuery && request.phone.replace(/\D/g, '').includes(numericQuery);
-      })
-    : statusFilteredRequests;
 
   return (
     <div className="dashboard">
@@ -517,7 +562,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 transition={{ delay: 0.3 }}
               >
                 <div className="stat-icon">🚗</div>
-                <div className="stat-number">{requests.length}</div>
+                <div className="stat-number">{requestCounts.total.toLocaleString('vi-VN')}</div>
                 <div className="stat-label">Yêu cầu chờ cuốc</div>
               </motion.div>
             </div>
@@ -1001,117 +1046,213 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
 
           {activeTab === 'requests' && (
             <div className="requests-section">
-            <div className="requests-header">
+              <div className="requests-header">
                 <h2>Yêu cầu cuốc xe</h2>
                 <p className="requests-subtitle">Lọc nhanh: chờ ghép, đã ghép, đã hoàn thành. Bạn có thể xóa bất kỳ cuốc nào.</p>
               
-              {/* Search Input for Requests */}
-              <div className="search-container">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Tìm kiếm theo số điện thoại..."
-                  value={requestSearchQuery}
-                  onChange={(e) => setRequestSearchQuery(e.target.value)}
-                />
-                {requestSearchQuery && (
-                  <button 
-                    className="clear-search-btn"
-                    onClick={() => setRequestSearchQuery('')}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-              
-              <div className="request-filters">
-                <button
-                  className={`filter-btn ${requestStatusFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setRequestStatusFilter('all')}
-                >
-                  Tất cả ({requests.length})
-                </button>
-                <button
-                  className={`filter-btn ${requestStatusFilter === 'waiting' ? 'active' : ''}`}
-                  onClick={() => setRequestStatusFilter('waiting')}
-                >
-                  Chờ ghép ({requests.filter(r => r.status === 'waiting').length})
-                </button>
-                <button
-                  className={`filter-btn ${requestStatusFilter === 'matched' ? 'active' : ''}`}
-                  onClick={() => setRequestStatusFilter('matched')}
-                >
-                  Đã ghép ({requests.filter(r => r.status === 'matched').length})
-                </button>
-                <button
-                  className={`filter-btn ${requestStatusFilter === 'completed' ? 'active' : ''}`}
-                  onClick={() => setRequestStatusFilter('completed')}
-                >
-                  Hoàn thành ({requests.filter(r => r.status === 'completed').length})
-                </button>
-              </div>
-            </div>
-              
-              {/* No results message */}
-              {requestSearchQuery && filteredRequests.length === 0 && (
-                <div className="no-results">
-                  <p>Không tìm thấy yêu cầu với số điện thoại "{requestSearchQuery}"</p>
+                {/* Search Input for Requests */}
+                <div className="search-container">
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Tìm kiếm theo số điện thoại, tên, điểm đi, điểm đến..."
+                    value={requestSearchQuery}
+                    onChange={(e) => setRequestSearchQuery(e.target.value)}
+                  />
+                  {requestSearchQuery && (
+                    <button 
+                      className="clear-search-btn"
+                      onClick={() => setRequestSearchQuery('')}
+                      aria-label="Clear search"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-              )}
-              
-              <div className="request-list">
-              {filteredRequests.map(request => (
-                  <motion.div 
-                    key={request._id} 
-                    className="request-card"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                
+                <div className="request-filters">
+                  <button
+                    className={`filter-btn ${requestStatusFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => handleRequestTabChange('all')}
                   >
-                    <div className="request-info">
-                      <div className="request-header">
-                        <div className="request-name">{request.name}</div>
-                        <div className="request-phone">{request.phone}</div>
-                      </div>
-                      <div className="request-route">
-                        {request.startPoint} ⇄ {request.endPoint}
-                      </div>
-                      <div className="request-price">
-                        Giá: {request.price.toLocaleString('vi-VN')} VND
-                      </div>
-                      {request.note && (
-                        <div className="request-note">
-                          Ghi chú: {request.note}
+                    Tất cả ({requestCounts.total.toLocaleString('vi-VN')})
+                  </button>
+                  <button
+                    className={`filter-btn ${requestStatusFilter === 'waiting' ? 'active' : ''}`}
+                    onClick={() => handleRequestTabChange('waiting')}
+                  >
+                    Chờ ghép ({requestCounts.waiting.toLocaleString('vi-VN')})
+                  </button>
+                  <button
+                    className={`filter-btn ${requestStatusFilter === 'matched' ? 'active' : ''}`}
+                    onClick={() => handleRequestTabChange('matched')}
+                  >
+                    Đã ghép ({requestCounts.matched.toLocaleString('vi-VN')})
+                  </button>
+                  <button
+                    className={`filter-btn ${requestStatusFilter === 'completed' ? 'active' : ''}`}
+                    onClick={() => handleRequestTabChange('completed')}
+                  >
+                    Hoàn thành ({requestCounts.completed.toLocaleString('vi-VN')})
+                  </button>
+                </div>
+              </div>
+
+              <div className="section" style={{ padding: 0, border: 'none', background: 'transparent', boxShadow: 'none' }}>
+                <div className="section-header-row" style={{ marginTop: 12 }}>
+                  <h3 style={{ fontSize: 16 }}>
+                    {requestStatusFilter === 'all' && 'Tất cả yêu cầu'}
+                    {requestStatusFilter === 'waiting' && 'Chờ ghép'}
+                    {requestStatusFilter === 'matched' && 'Đã ghép'}
+                    {requestStatusFilter === 'completed' && 'Hoàn thành'}
+                    {' '}({requestTotalCount.toLocaleString('vi-VN')})
+                  </h3>
+                  <div className="limit-selector">
+                    <label htmlFor="request-limit-select">Hiển thị:</label>
+                    <select
+                      id="request-limit-select"
+                      value={requestLimit}
+                      onChange={(e) => handleRequestLimitChange(Number(e.target.value))}
+                      className="limit-select"
+                    >
+                      <option value={10}>10 / trang</option>
+                      <option value={20}>20 / trang</option>
+                      <option value={50}>50 / trang</option>
+                      <option value={100}>100 / trang</option>
+                    </select>
+                  </div>
+                </div>
+
+                {requestListLoading ? (
+                  <div className="users-loading-state">
+                    <div className="admin-spinner"></div>
+                    <p>Đang tải danh sách yêu cầu cuốc xe...</p>
+                  </div>
+                ) : requests.length === 0 ? (
+                  <div className="no-results">
+                    <p>
+                      {debouncedRequestSearch
+                        ? `Không tìm thấy yêu cầu phù hợp với từ khóa "${debouncedRequestSearch}"`
+                        : 'Không có yêu cầu nào trong danh sách này'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="request-list">
+                    {requests.map(request => (
+                      <motion.div 
+                        key={request._id} 
+                        className="request-card"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div className="request-info">
+                          <div className="request-header">
+                            <div className="request-name">{request.name}</div>
+                            <div className="request-phone">{request.phone}</div>
+                          </div>
+                          <div className="request-route">
+                            {request.startPoint} ⇄ {request.endPoint}
+                          </div>
+                          <div className="request-price">
+                            Giá: {request.price.toLocaleString('vi-VN')} VND
+                          </div>
+                          {request.note && (
+                            <div className="request-note">
+                              Ghi chú: {request.note}
+                            </div>
+                          )}
+                          <div className="request-date">
+                            {new Date(request.createdAt).toLocaleString('vi-VN')}
+                          </div>
                         </div>
-                      )}
-                      <div className="request-date">
-                        {new Date(request.createdAt).toLocaleString('vi-VN')}
-                      </div>
+                        <div className="request-status">
+                          <span className={`status-badge ${request.status}`}>
+                            {request.status === 'waiting' ? 'Chờ ghép' : 
+                             request.status === 'matched' ? 'Đã ghép' : 'Hoàn thành'}
+                          </span>
+                          <button
+                            className="ban-btn"
+                            onClick={() => handleBanUser((request.userId as any)?._id || (request.userId as any)?.id || String(request.userId), request.name)}
+                            disabled={loading}
+                            title="Khóa tài khoản tài xế"
+                            style={{fontSize: '12px', padding: '6px 10px'}}
+                          >
+                            🔒 Khóa
+                          </button>
+                          <button 
+                            className="delete-btn"
+                            onClick={() => handleDeleteRequest(request._id)}
+                            disabled={loading}
+                            title="Xóa yêu cầu"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Pagination Controls */}
+                {requestTotalPages > 1 && (
+                  <div className="pagination-container">
+                    <div className="pagination-info">
+                      Trang <strong>{requestPage}</strong> / <strong>{requestTotalPages}</strong> ({requestTotalCount.toLocaleString('vi-VN')} yêu cầu)
                     </div>
-                    <div className="request-status">
-                      <span className={`status-badge ${request.status}`}>
-                        {request.status === 'waiting' ? 'Chờ ghép' : 
-                         request.status === 'matched' ? 'Đã ghép' : 'Hoàn thành'}
-                      </span>
+                    <div className="pagination-controls">
                       <button
-                        className="ban-btn"
-                        onClick={() => handleBanUser(request.userId, request.name)}
-                        disabled={loading}
-                        title="Khóa tài khoản tài xế"
-                        style={{fontSize: '12px', padding: '6px 10px'}}
+                        className="page-btn nav-btn"
+                        onClick={() => setRequestPage(1)}
+                        disabled={requestPage <= 1 || requestListLoading}
+                        title="Trang đầu"
                       >
-                        🔒 Khóa
+                        « Trang đầu
                       </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => handleDeleteRequest(request._id)}
-                        disabled={loading}
-                        title="Xóa yêu cầu"
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setRequestPage(p => Math.max(1, p - 1))}
+                        disabled={requestPage <= 1 || requestListLoading}
+                        title="Trang trước"
                       >
-                        🗑️
+                        ‹ Trước
+                      </button>
+
+                      <div className="page-numbers">
+                        {getPageNumbers(requestPage, requestTotalPages).map((p, idx) =>
+                          p === '...' ? (
+                            <span key={`dots-${idx}`} className="page-dots">...</span>
+                          ) : (
+                            <button
+                              key={`page-${p}`}
+                              className={`page-btn ${requestPage === p ? 'active' : ''}`}
+                              onClick={() => setRequestPage(Number(p))}
+                              disabled={requestListLoading}
+                            >
+                              {p}
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setRequestPage(p => Math.min(requestTotalPages, p + 1))}
+                        disabled={requestPage >= requestTotalPages || requestListLoading}
+                        title="Trang sau"
+                      >
+                        Sau ›
+                      </button>
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setRequestPage(requestTotalPages)}
+                        disabled={requestPage >= requestTotalPages || requestListLoading}
+                        title="Trang cuối"
+                      >
+                        Trang cuối »
                       </button>
                     </div>
-                  </motion.div>
-                ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

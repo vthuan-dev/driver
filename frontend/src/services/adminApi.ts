@@ -51,7 +51,8 @@ export const usersAPI = {
 
 // ─── Requests Management API ───────────────────────────────────────────────────
 export const requestsAPI = {
-  getAllRequests:  ()                           => api.get('/admin/requests'),
+  getAllRequests: (params?: { page?: number; limit?: number; status?: string; search?: string; all?: boolean }) =>
+    api.get('/admin/requests', { params }),
   updateRequest:  (id: string, status: string) => api.put(`/admin/requests/${id}`, { status }),
   deleteRequest:  (id: string)                 => api.delete(`/admin/requests/${id}`),
 };
