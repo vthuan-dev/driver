@@ -1233,12 +1233,55 @@
   white-space: nowrap;
 }
 
-/* Sub-action pill boxes inside profile card (2 targeted boxes: Đăng ký & Đăng nhập) */
-.profile-card-right--auth {
+/* Guest profile card layout: Avatar on left, text & buttons column on right */
+.hero-profile-card--guest {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.profile-card-left--auth {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+}
+
+.profile-card-right--auth {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-info-wrap--auth {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.profile-info-wrap--auth .profile-greeting {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.profile-info-wrap--auth .profile-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.profile-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .hero-sub-action-box {

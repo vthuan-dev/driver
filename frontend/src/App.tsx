@@ -1574,55 +1574,58 @@ function MainApp() {
               </div>
             ) : (
               <div
-                className="hero-profile-card"
+                className="hero-profile-card hero-profile-card--guest"
                 onClick={() => setAuthModal('login')}
               >
-                <div className="profile-card-left">
+                <div className="profile-card-left profile-card-left--auth">
                   <div className="profile-avatar-circle" style={{ background: '#00b14f' }}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                   </div>
-                  <div className="profile-info-wrap">
-                    <span className="profile-greeting">Tài xế đối tác</span>
-                    <div className="profile-name">Đăng nhập tài xế</div>
-                  </div>
                 </div>
 
                 <div className="profile-card-right profile-card-right--auth">
-                  <button
-                    type="button"
-                    className="hero-sub-action-box hero-sub-action-box--register"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAuthModal('register');
-                    }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="8.5" cy="7" r="4" />
-                      <line x1="20" y1="8" x2="20" y2="14" />
-                      <line x1="23" y1="11" x2="17" y2="11" />
-                    </svg>
-                    <span>Đăng ký thành viên mới</span>
-                  </button>
+                  <div className="profile-info-wrap profile-info-wrap--auth">
+                    <span className="profile-greeting">Tài xế đối tác</span>
+                    <div className="profile-name">Đăng nhập tài xế</div>
+                  </div>
 
-                  <button
-                    type="button"
-                    className="hero-sub-action-box hero-sub-action-box--login"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAuthModal('login');
-                    }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    <span>Đăng nhập</span>
-                  </button>
+                  <div className="profile-auth-buttons">
+                    <button
+                      type="button"
+                      className="hero-sub-action-box hero-sub-action-box--register"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAuthModal('register');
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                      </svg>
+                      <span>Đăng ký thành viên mới</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="hero-sub-action-box hero-sub-action-box--login"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAuthModal('login');
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                      </svg>
+                      <span>Đăng nhập</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
