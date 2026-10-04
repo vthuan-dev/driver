@@ -70,13 +70,85 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
   const [incomeSearchResults, setIncomeSearchResults] = useState<User[]>([]);
 
-  const loadUsers = async () => {
+  // User pagination & counts state
+  const [userPage, setUserPage] = useState(1);
+  const [userLimit, setUserLimit] = useState(20);
+  const [userTotalPages, setUserTotalPages] = useState(1);
+  const [userTotalCount, setUserTotalCount] = useState(0);
+  const [userCounts, setUserCounts] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+  const [userListLoading, setUserListLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setUserPage(1);
+  }, [debouncedSearch]);
+
+  const loadUsers = async (
+    page = userPage,
+    status = userStatusFilter,
+    search = debouncedSearch,
+    limit = userLimit
+  ) => {
+    setUserListLoading(true);
     try {
-      const response = await usersAPI.getAllUsers();
-      setUsers(response.data.users ?? []);
+      const response = await usersAPI.getAllUsers({
+        page,
+        limit,
+        status,
+        search: search.trim() || undefined,
+      });
+      const data = response.data;
+      setUsers(data.users ?? []);
+      if (data.pagination) {
+        setUserTotalPages(data.pagination.totalPages || 1);
+        setUserTotalCount(data.pagination.total || 0);
+        setUserPage(data.pagination.page || 1);
+      }
+      if (data.counts) {
+        setUserCounts(data.counts);
+      }
     } catch (error) {
       console.error('Error loading users:', error);
+    } finally {
+      setUserListLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadUsers(userPage, userStatusFilter, debouncedSearch, userLimit);
+  }, [userPage, userStatusFilter, debouncedSearch, userLimit]);
+
+  const handleTabChange = (status: 'pending' | 'approved' | 'rejected') => {
+    setUserStatusFilter(status);
+    setUserPage(1);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setUserLimit(newLimit);
+    setUserPage(1);
+  };
+
+  const getPageNumbers = (current: number, total: number) => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total);
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total);
+    }
+    return pages;
   };
 
   const loadRequests = async () => {
@@ -112,7 +184,6 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   };
 
   useEffect(() => {
-    loadUsers();
     loadRequests();
     loadSettings();
   }, []);
@@ -177,7 +248,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     setLoading(true);
     try {
       await usersAPI.deleteUser(userId);
-      await loadUsers();
+      if (users.length === 1 && userPage > 1) {
+        setUserPage(p => p - 1);
+      } else {
+        await loadUsers();
+      }
     } catch (error) {
       console.error('Error removing user:', error);
       alert('Có lỗi xảy ra khi xóa tài xế');
@@ -206,28 +281,31 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   };
 
   // Open the user-search step
-  const openIncomeSearch = () => {
+  const openIncomeSearch = async () => {
     setIncomeSearchOpen(true);
     setIncomeSearchQuery('');
-    setIncomeSearchResults(users.filter(u => u.status === 'approved').slice(0, 8));
+    try {
+      const res = await usersAPI.getAllUsers({ status: 'approved', limit: 8 });
+      setIncomeSearchResults(res.data.users ?? []);
+    } catch (err) {
+      console.error('Error fetching approved users for income:', err);
+      setIncomeSearchResults([]);
+    }
   };
 
-  // Search handler – runs against already-loaded users list
-  const handleIncomeSearch = (q: string) => {
+  // Search handler – queries backend directly
+  const handleIncomeSearch = async (q: string) => {
     setIncomeSearchQuery(q);
-    const approved = users.filter(u => u.status === 'approved');
-    if (!q.trim()) {
-      setIncomeSearchResults(approved.slice(0, 8));
-      return;
+    try {
+      const res = await usersAPI.getAllUsers({
+        status: 'approved',
+        search: q.trim() || undefined,
+        limit: 10,
+      });
+      setIncomeSearchResults(res.data.users ?? []);
+    } catch (err) {
+      console.error('Error searching approved users for income:', err);
     }
-    const numeric = q.replace(/\D/g, '');
-    const lower = q.toLowerCase();
-    const results = approved.filter(u => {
-      const nameMatch = u.name.toLowerCase().includes(lower);
-      const phoneMatch = numeric ? u.phone.replace(/\D/g, '').includes(numeric) : false;
-      return nameMatch || phoneMatch;
-    }).slice(0, 10);
-    setIncomeSearchResults(results);
   };
 
   const fmtInput = (raw: string) => raw.replace(/\D/g, '');
@@ -299,32 +377,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     }
   };
 
-  // Filter function for phone number search
-  const filterUsersByPhone = (userList: User[]): User[] => {
-    if (!searchQuery.trim()) {
-      return userList;
-    }
-    
-    // Extract only numeric characters from search query
-    const numericQuery = searchQuery.replace(/\D/g, '');
-    
-    if (!numericQuery) {
-      return userList;
-    }
-    
-    return userList.filter(user => 
-      user.phone.replace(/\D/g, '').includes(numericQuery)
-    );
-  };
 
-  const pendingUsers = users.filter(user => user.status === 'pending');
-  const approvedUsers = users.filter(user => user.status === 'approved');
-  const rejectedUsers = users.filter(user => user.status === 'rejected');
-
-  // Apply search filter to user lists
-  const filteredPendingUsers = filterUsersByPhone(pendingUsers);
-  const filteredApprovedUsers = filterUsersByPhone(approvedUsers);
-  const filteredRejectedUsers = filterUsersByPhone(rejectedUsers);
   
   // Filter requests by status
   const statusFilteredRequests =
@@ -442,7 +495,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 transition={{ delay: 0.1 }}
               >
                 <div className="stat-icon">⏳</div>
-                <div className="stat-number">{pendingUsers.length}</div>
+                <div className="stat-number">{userCounts.pending.toLocaleString('vi-VN')}</div>
                 <div className="stat-label">Chờ phê duyệt</div>
               </motion.div>
               
@@ -453,7 +506,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 transition={{ delay: 0.2 }}
               >
                 <div className="stat-icon">✅</div>
-                <div className="stat-number">{approvedUsers.length}</div>
+                <div className="stat-number">{userCounts.approved.toLocaleString('vi-VN')}</div>
                 <div className="stat-label">Đã phê duyệt</div>
               </motion.div>
               
@@ -530,7 +583,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="Tìm kiếm theo số điện thoại..."
+                  placeholder="Tìm kiếm theo số điện thoại hoặc họ tên..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -538,6 +591,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   <button 
                     className="clear-search-btn"
                     onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
                   >
                     ✕
                   </button>
@@ -548,41 +602,69 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               <div className="request-filter-tabs" style={{marginBottom: '16px'}}>
                 <button
                   className={`filter-tab ${userStatusFilter === 'pending' ? 'active' : ''}`}
-                  onClick={() => setUserStatusFilter('pending')}
+                  onClick={() => handleTabChange('pending')}
                 >
-                  Chờ phê duyệt ({pendingUsers.length})
+                  Chờ phê duyệt ({userCounts.pending.toLocaleString('vi-VN')})
                 </button>
                 <button
                   className={`filter-tab ${userStatusFilter === 'approved' ? 'active' : ''}`}
-                  onClick={() => setUserStatusFilter('approved')}
+                  onClick={() => handleTabChange('approved')}
                 >
-                  Đã phê duyệt ({approvedUsers.length})
+                  Đã phê duyệt ({userCounts.approved.toLocaleString('vi-VN')})
                 </button>
                 <button
                   className={`filter-tab ${userStatusFilter === 'rejected' ? 'active' : ''}`}
-                  onClick={() => setUserStatusFilter('rejected')}
+                  onClick={() => handleTabChange('rejected')}
                 >
-                  Đã từ chối ({rejectedUsers.length})
+                  Đã từ chối ({userCounts.rejected.toLocaleString('vi-VN')})
                 </button>
               </div>
 
-              {/* No results message */}
-              {searchQuery && filteredPendingUsers.length === 0 && filteredApprovedUsers.length === 0 && filteredRejectedUsers.length === 0 && (
-                <div className="no-results">
-                  <p>Không tìm thấy người dùng với số điện thoại "{searchQuery}"</p>
+              <div className="section">
+                <div className="section-header-row">
+                  <h3>
+                    {userStatusFilter === 'pending' && 'Chờ phê duyệt'}
+                    {userStatusFilter === 'approved' && 'Đã phê duyệt'}
+                    {userStatusFilter === 'rejected' && 'Đã từ chối'}
+                    {' '}({userTotalCount.toLocaleString('vi-VN')})
+                  </h3>
+                  <div className="limit-selector">
+                    <label htmlFor="user-limit-select">Hiển thị:</label>
+                    <select
+                      id="user-limit-select"
+                      value={userLimit}
+                      onChange={(e) => handleLimitChange(Number(e.target.value))}
+                      className="limit-select"
+                    >
+                      <option value={10}>10 / trang</option>
+                      <option value={20}>20 / trang</option>
+                      <option value={50}>50 / trang</option>
+                      <option value={100}>100 / trang</option>
+                    </select>
+                  </div>
                 </div>
-              )}
 
-              {(searchQuery ? filteredPendingUsers.length > 0 : userStatusFilter === 'pending' && filteredPendingUsers.length > 0) && (
-                <div className="section">
-                  <h3>Chờ phê duyệt ({filteredPendingUsers.length})</h3>
+                {userListLoading ? (
+                  <div className="users-loading-state">
+                    <div className="admin-spinner"></div>
+                    <p>Đang tải danh sách tài xế...</p>
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="no-results">
+                    <p>
+                      {debouncedSearch
+                        ? `Không tìm thấy người dùng phù hợp với từ khóa "${debouncedSearch}"`
+                        : 'Không có người dùng nào trong danh sách này'}
+                    </p>
+                  </div>
+                ) : (
                   <div className="user-list">
-                    {filteredPendingUsers.map(user => (
+                    {users.map(user => (
                       <motion.div 
                         key={user._id} 
-                        className="user-card pending"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        className={`user-card ${user.status}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                       >
                         <div className="user-avatar">
                           {user.carImage ? (
@@ -598,132 +680,146 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                             <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
                           )}
                           <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
+                          {user.status === 'approved' && (
+                            <div className="user-trips" style={{ fontSize: 13, color: '#2563eb', fontWeight: 700, margin: '2px 0 4px' }}>
+                              🚙 Cuốc xe đã nhận: {user.fakeCompletedTrips !== undefined && user.fakeCompletedTrips !== null ? user.fakeCompletedTrips : 0} cuốc
+                            </div>
+                          )}
                           <div className="user-date">
-                            Đăng ký: {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                            {user.status === 'pending' && `Đăng ký: ${new Date(user.createdAt).toLocaleDateString('vi-VN')}`}
+                            {user.status === 'approved' && `Phê duyệt: ${user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}`}
+                            {user.status === 'rejected' && `Từ chối: ${user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}`}
                           </div>
                         </div>
                         <div className="user-actions">
-                          <button 
-                            className="approve-btn"
-                            onClick={() => handleApproveUser(user._id)}
-                            disabled={loading}
-                          >
-                            Phê duyệt
-                          </button>
-                          <button 
-                            className="reject-btn"
-                            onClick={() => handleRejectUser(user._id)}
-                            disabled={loading}
-                          >
-                            Từ chối
-                          </button>
+                          {user.status === 'pending' && (
+                            <>
+                              <button 
+                                className="approve-btn"
+                                onClick={() => handleApproveUser(user._id)}
+                                disabled={loading}
+                              >
+                                Phê duyệt
+                              </button>
+                              <button 
+                                className="reject-btn"
+                                onClick={() => handleRejectUser(user._id)}
+                                disabled={loading}
+                              >
+                                Từ chối
+                              </button>
+                            </>
+                          )}
+                          {user.status === 'approved' && (
+                            <>
+                              {user.isBanned ? (
+                                <div className="status-badge banned">Đã khóa</div>
+                              ) : (
+                                <div className="status-badge approved">Đã phê duyệt</div>
+                              )}
+                              {user.isBanned ? (
+                                <button
+                                  className="unban-btn"
+                                  onClick={() => handleUnbanUser(user._id, user.name)}
+                                  disabled={loading}
+                                >
+                                  Mở khóa
+                                </button>
+                              ) : (
+                                <button
+                                  className="ban-btn"
+                                  onClick={() => handleBanUser(user._id, user.name)}
+                                  disabled={loading}
+                                >
+                                  Khóa tài khoản
+                                </button>
+                              )}
+                              <button
+                                className="remove-btn"
+                                onClick={() => handleRemoveUser(user._id, user.name)}
+                                disabled={loading}
+                              >
+                                Xóa khỏi nhóm
+                              </button>
+                              <button
+                                className="income-btn"
+                                onClick={() => openIncomeModal(user)}
+                                disabled={loading}
+                              >
+                                💵 Cài thu nhập / Cuốc
+                              </button>
+                            </>
+                          )}
+                          {user.status === 'rejected' && (
+                            <div className="status-badge rejected">Đã từ chối</div>
+                          )}
                         </div>
                       </motion.div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {(searchQuery ? filteredApprovedUsers.length > 0 : userStatusFilter === 'approved' && filteredApprovedUsers.length > 0) && (
-                <div className="section">
-                  <h3>Đã phê duyệt ({filteredApprovedUsers.length})</h3>
-                  <div className="user-list">
-                    {filteredApprovedUsers.map(user => (
-                      <div key={user._id} className="user-card approved">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
-                        <div className="user-info">
-                          <div className="user-name">{user.name}</div>
-                          <div className="user-phone">Tài khoản: {user.phone}</div>
-                          {user.plainPassword && (
-                            <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
-                          )}
-                          <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
-                          <div className="user-trips" style={{ fontSize: 13, color: '#2563eb', fontWeight: 700, margin: '2px 0 4px' }}>
-                            🚙 Cuốc xe đã nhận: {user.fakeCompletedTrips !== undefined && user.fakeCompletedTrips !== null ? user.fakeCompletedTrips : 0} cuốc
-                          </div>
-                          <div className="user-date">
-                            Phê duyệt: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
-                          </div>
-                        </div>
-                        <div className="user-actions">
-                          {user.isBanned ? (
-                            <div className="status-badge banned">Đã khóa</div>
-                          ) : (
-                            <div className="status-badge approved">Đã phê duyệt</div>
-                          )}
-                          {user.isBanned ? (
-                            <button
-                              className="unban-btn"
-                              onClick={() => handleUnbanUser(user._id, user.name)}
-                              disabled={loading}
-                            >
-                              Mở khóa
-                            </button>
+                {/* Pagination Controls */}
+                {userTotalPages > 1 && (
+                  <div className="pagination-container">
+                    <div className="pagination-info">
+                      Trang <strong>{userPage}</strong> / <strong>{userTotalPages}</strong> ({userTotalCount.toLocaleString('vi-VN')} tài xế)
+                    </div>
+                    <div className="pagination-controls">
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setUserPage(1)}
+                        disabled={userPage <= 1 || userListLoading}
+                        title="Trang đầu"
+                      >
+                        « Trang đầu
+                      </button>
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setUserPage(p => Math.max(1, p - 1))}
+                        disabled={userPage <= 1 || userListLoading}
+                        title="Trang trước"
+                      >
+                        ‹ Trước
+                      </button>
+
+                      <div className="page-numbers">
+                        {getPageNumbers(userPage, userTotalPages).map((p, idx) =>
+                          p === '...' ? (
+                            <span key={`dots-${idx}`} className="page-dots">...</span>
                           ) : (
                             <button
-                              className="ban-btn"
-                              onClick={() => handleBanUser(user._id, user.name)}
-                              disabled={loading}
+                              key={`page-${p}`}
+                              className={`page-btn ${userPage === p ? 'active' : ''}`}
+                              onClick={() => setUserPage(Number(p))}
+                              disabled={userListLoading}
                             >
-                              Khóa tài khoản
+                              {p}
                             </button>
-                          )}
-                          <button
-                            className="remove-btn"
-                            onClick={() => handleRemoveUser(user._id, user.name)}
-                            disabled={loading}
-                          >
-                            Xóa khỏi nhóm
-                          </button>
-                          <button
-                            className="income-btn"
-                            onClick={() => openIncomeModal(user)}
-                            disabled={loading}
-                          >
-                            💵 Cài thu nhập / Cuốc
-                          </button>                        </div>
+                          )
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {(searchQuery ? filteredRejectedUsers.length > 0 : userStatusFilter === 'rejected' && filteredRejectedUsers.length > 0) && (
-                <div className="section">
-                  <h3>Đã từ chối ({filteredRejectedUsers.length})</h3>
-                  <div className="user-list">
-                    {filteredRejectedUsers.map(user => (
-                      <div key={user._id} className="user-card rejected">
-                        <div className="user-avatar">
-                          {user.carImage ? (
-                            <img src={user.carImage} alt={`Xe cua ${user.name}`} />
-                          ) : (
-                            <span>CAR</span>
-                          )}
-                        </div>
-                        <div className="user-info">
-                          <div className="user-name">{user.name}</div>
-                          <div className="user-phone">Tài khoản: {user.phone}</div>
-                          {user.plainPassword && (
-                            <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
-                          )}
-                          <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
-                          <div className="user-date">
-                            Từ chối: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
-                          </div>
-                        </div>
-                        <div className="status-badge rejected">Đã từ chối</div>
-                      </div>
-                    ))}
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setUserPage(p => Math.min(userTotalPages, p + 1))}
+                        disabled={userPage >= userTotalPages || userListLoading}
+                        title="Trang sau"
+                      >
+                        Sau ›
+                      </button>
+                      <button
+                        className="page-btn nav-btn"
+                        onClick={() => setUserPage(userTotalPages)}
+                        disabled={userPage >= userTotalPages || userListLoading}
+                        title="Trang cuối"
+                      >
+                        Trang cuối »
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 

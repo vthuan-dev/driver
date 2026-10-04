@@ -37,9 +37,10 @@ export const adminAuthAPI = {
 
 // ─── Users Management API ──────────────────────────────────────────────────────
 export const usersAPI = {
-  getPendingUsers: ()           => api.get('/admin/users/pending'),
-  getAllUsers:     ()           => api.get('/admin/users'),
-  approveUser:    (id: string) => api.put(`/admin/users/${id}/approve`),
+  getPendingUsers: () => api.get('/admin/users/pending'),
+  getAllUsers: (params?: { page?: number; limit?: number; status?: string; search?: string; all?: boolean }) =>
+    api.get('/admin/users', { params }),
+  approveUser: (id: string) => api.put(`/admin/users/${id}/approve`),
   rejectUser:     (id: string) => api.put(`/admin/users/${id}/reject`),
   deleteUser:     (id: string)                    => api.delete(`/admin/users/${id}`),
   banUser:        (id: string, reason: string)    => api.put(`/admin/users/${id}/ban`, { reason }),

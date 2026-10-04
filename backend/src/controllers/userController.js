@@ -1,4 +1,5 @@
 const { User } = require('../models');
+const { Op } = require('sequelize');
 
 const getPendingUsers = async (req, res) => {
   try {
@@ -25,18 +26,92 @@ const getPendingUsers = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const allUsers = await User.findAll({
+    const { status, search, all } = req.query;
+
+    const where = {};
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      where.status = status;
+    }
+
+    if (search && String(search).trim()) {
+      const cleanSearch = String(search).trim();
+      where[Op.or] = [
+        { phone: { [Op.like]: `%${cleanSearch}%` } },
+        { name: { [Op.like]: `%${cleanSearch}%` } },
+      ];
+    }
+
+    // Counts for tabs so badges and stats cards always show accurate totals
+    const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
+      User.count({ where: { status: 'pending' } }),
+      User.count({ where: { status: 'approved' } }),
+      User.count({ where: { status: 'rejected' } }),
+    ]);
+
+    // If client explicitly requests all=true (for export or special operations)
+    if (all === 'true' || all === '1') {
+      const allUsers = await User.findAll({
+        where,
+        attributes: { exclude: ['password'] },
+        order: [['createdAt', 'DESC']]
+      });
+
+      const users = allUsers.map(u => {
+        const data = u.toJSON();
+        data._id = data.id;
+        return data;
+      });
+
+      return res.json({
+        users,
+        pagination: {
+          total: users.length,
+          page: 1,
+          limit: users.length,
+          totalPages: 1
+        },
+        counts: {
+          pending: pendingCount,
+          approved: approvedCount,
+          rejected: rejectedCount,
+          total: pendingCount + approvedCount + rejectedCount
+        }
+      });
+    }
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await User.findAndCountAll({
+      where,
       attributes: { exclude: ['password'] },
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset
     });
-    
-    const users = allUsers.map(u => {
+
+    const users = rows.map(u => {
       const data = u.toJSON();
       data._id = data.id; // For frontend compatibility
       return data;
     });
 
-    res.json({ users });
+    res.json({
+      users,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit) || 1
+      },
+      counts: {
+        pending: pendingCount,
+        approved: approvedCount,
+        rejected: rejectedCount,
+        total: pendingCount + approvedCount + rejectedCount
+      }
+    });
   } catch (error) {
     console.error('Get all users error:', error);
     res.status(500).json({ message: 'Server error' });
