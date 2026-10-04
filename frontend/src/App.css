@@ -2077,9 +2077,9 @@
 .mrc-phone-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   margin-bottom: 12px;
-  margin-left: 22px;
 }
 
 .mrc-phone-icon {
