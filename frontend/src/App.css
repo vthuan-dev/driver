@@ -2077,8 +2077,9 @@
 .mrc-phone-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   margin-bottom: 12px;
+  margin-left: 22px;
 }
 
 .mrc-phone-icon {
@@ -2089,7 +2090,9 @@
 .mrc-phone-num {
   font-size: 14px;
   font-weight: 700;
-  color: #334155;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+  user-select: text;
 }
 
 .mrc-copy-btn {

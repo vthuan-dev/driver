@@ -208,6 +208,15 @@ function maskPhoneStrict(phone: string): string {
   return phone
 }
 
+function maskPhoneLast5(phone: string): string {
+  if (!phone) return ''
+  const clean = phone.replace(/\s+/g, '')
+  if (clean.length > 5) {
+    return clean.slice(0, clean.length - 5) + '*****'
+  }
+  return '*****'
+}
+
 //
 
 // Admin App Component
@@ -2057,13 +2066,29 @@ function MainApp() {
                   {/* Phone row with copy button */}
                   <div className="mrc-phone-row">
                     <span className="mrc-phone-icon">📞</span>
-                    <span className="mrc-phone-num">{req.phone}</span>
+                    <span
+                      className="mrc-phone-num"
+                      style={{ cursor: user ? 'default' : 'pointer' }}
+                      title={user ? undefined : 'Đăng nhập để xem đầy đủ số điện thoại'}
+                      onClick={(e) => {
+                        if (!user) {
+                          e.stopPropagation();
+                          setAuthModal('login');
+                        }
+                      }}
+                    >
+                      {user ? req.phone : maskPhoneLast5(req.phone)}
+                    </span>
                     <button
                       type="button"
                       className="mrc-copy-btn"
-                      title="Sao chép số điện thoại"
+                      title={user ? "Sao chép số điện thoại" : "Đăng nhập để xem số điện thoại"}
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (!user) {
+                          setAuthModal('login');
+                          return;
+                        }
                         navigator.clipboard.writeText(req.phone);
                         setCopiedPhoneId(req._id);
                         setTimeout(() => setCopiedPhoneId(null), 2000);
