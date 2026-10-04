@@ -1604,7 +1604,7 @@ function MainApp() {
                       <line x1="20" y1="8" x2="20" y2="14" />
                       <line x1="23" y1="11" x2="17" y2="11" />
                     </svg>
-                    <span>Đăng ký</span>
+                    <span>Đăng ký thành viên mới</span>
                   </button>
 
                   <button
