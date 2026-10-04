@@ -17,6 +17,9 @@ type User = {
   isBanned?: boolean;
   banReason?: string;
   plainPassword?: string;
+  fakeIncomeAmount?: number;
+  fakeIncomeTips?: number;
+  fakeCompletedTrips?: number;
 };
 
 type Request = {
@@ -56,6 +59,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
   const [incomeForm, setIncomeForm] = useState({
     fakeIncomeAmount: '',
     fakeIncomeTips: '',
+    fakeCompletedTrips: '',
   });
   const [incomeHistory, setIncomeHistory] = useState<{ date: string; amount: string }[]>([]);
   const [incomeLoading, setIncomeLoading] = useState(false);
@@ -188,7 +192,11 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     setIncomeSearchOpen(false);
     setIncomeSearchQuery('');
     setIncomeSearchResults([]);
-    setIncomeForm({ fakeIncomeAmount: '', fakeIncomeTips: '' });
+    setIncomeForm({
+      fakeIncomeAmount: user.fakeIncomeAmount ? String(user.fakeIncomeAmount) : '',
+      fakeIncomeTips: user.fakeIncomeTips ? String(user.fakeIncomeTips) : '',
+      fakeCompletedTrips: user.fakeCompletedTrips !== undefined && user.fakeCompletedTrips !== null ? String(user.fakeCompletedTrips) : '0',
+    });
     // Pre-populate today as first history row
     const now = new Date();
     const dd = String(now.getDate()).padStart(2, '0');
@@ -233,6 +241,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
     if (!incomeModalUser) return;
     const amount = parseMoney(incomeForm.fakeIncomeAmount);
     const tips = parseMoney(incomeForm.fakeIncomeTips);
+    const trips = parseInt(incomeForm.fakeCompletedTrips, 10) || 0;
 
     // Build history from rows that have both date + amount filled
     const history = incomeHistory
@@ -252,9 +261,17 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
       await usersAPI.setDriverIncome(incomeModalUser._id, {
         fakeIncomeAmount: amount,
         fakeIncomeTips: tips,
+        fakeCompletedTrips: trips,
         fakeIncomeHistory: history,
       });
-      setIncomeMsg('✅ Đã cập nhật thu nhập thành công!');
+      setIncomeMsg('✅ Đã cập nhật thu nhập & cuốc xe thành công!');
+      // Update local users list so UI updates immediately
+      setUsers(prev => prev.map(u => u._id === incomeModalUser._id ? {
+        ...u,
+        fakeIncomeAmount: amount,
+        fakeIncomeTips: tips,
+        fakeCompletedTrips: trips,
+      } : u));
       setTimeout(() => {
         setIncomeModalUser(null);
         setIncomeMsg('');
@@ -627,6 +644,9 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                             <div className="user-plain-password">Mật khẩu: <strong>{user.plainPassword}</strong></div>
                           )}
                           <div className="user-car">Tên phương tiện: {user.carType} - {user.carYear}</div>
+                          <div className="user-trips" style={{ fontSize: 13, color: '#2563eb', fontWeight: 700, margin: '2px 0 4px' }}>
+                            🚙 Cuốc xe đã nhận: {user.fakeCompletedTrips !== undefined && user.fakeCompletedTrips !== null ? user.fakeCompletedTrips : 0} cuốc
+                          </div>
                           <div className="user-date">
                             Phê duyệt: {user.approvedAt ? new Date(user.approvedAt).toLocaleDateString('vi-VN') : 'N/A'}
                           </div>
@@ -666,7 +686,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                             onClick={() => openIncomeModal(user)}
                             disabled={loading}
                           >
-                            💵 Cài thu nhập
+                            💵 Cài thu nhập / Cuốc
                           </button>                        </div>
                       </div>
                     ))}
@@ -1139,7 +1159,7 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                     background: 'linear-gradient(135deg,#1a2340,#243252)',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 18
                   }}>💵</span>
-                  Cài thu nhập ảo
+                  Cài thu nhập & cuốc xe
                 </div>
                 <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
                   👤 {incomeModalUser?.name} &nbsp;·&nbsp; {incomeModalUser?.phone}
@@ -1163,6 +1183,44 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8,
                 }}>{incomeMsg}</div>
               )}
+
+              {/* ── Cuốc xe đã nhận field ── */}
+              <div style={{
+                background: '#eff6ff',
+                border: '1.5px solid #bfdbfe',
+                borderRadius: 14,
+                padding: '14px 16px',
+                marginBottom: 18
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    🚙 Cuốc xe đã nhận
+                  </div>
+                  <span style={{ fontSize: 11, color: '#1d4ed8', fontWeight: 700, background: '#dbeafe', padding: '2px 8px', borderRadius: 20 }}>
+                    Hiển thị trang chủ tài xế
+                  </span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text" inputMode="numeric"
+                    placeholder="0"
+                    value={incomeForm.fakeCompletedTrips}
+                    onChange={e => setIncomeForm(f => ({ ...f, fakeCompletedTrips: fmtInput(e.target.value) }))}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: 12,
+                      border: '2px solid #93c5fd', fontSize: 16, outline: 'none',
+                      boxSizing: 'border-box', fontWeight: 700, fontFamily: 'inherit',
+                      background: '#ffffff', color: '#1e3a8a',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#2563eb'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#93c5fd'}
+                  />
+                </div>
+                <div style={{ fontSize: 12, color: '#1e40af', marginTop: 6, fontWeight: 600 }}>
+                  👉 Hiển thị trên ô &quot;Cuốc xe đã nhận&quot; trang chủ tài: <strong>{incomeForm.fakeCompletedTrips !== '' ? `${parseInt(incomeForm.fakeCompletedTrips, 10) || 0} cuốc` : '0 cuốc'}</strong>
+                </div>
+              </div>
 
               {/* ── Two income fields side by side ── */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>

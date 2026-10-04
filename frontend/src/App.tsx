@@ -68,6 +68,7 @@ type User = {
   carYear: string
   carImage?: string
   status: 'pending' | 'approved' | 'rejected'
+  fakeCompletedTrips?: number
 }
 
 const fallbackDriversTuples: Array<[string, string, string, string, Region]> = [
@@ -908,12 +909,12 @@ function MainApp() {
   const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
   const [showBalance, setShowBalance] = useState(true);
   const [driverIncomeData, setDriverIncomeData] = useState<{ totalIncome: number } | null>(null);
-  const [driverStatsData, setDriverStatsData] = useState<{ monthlyTrips: number; totalTrips: number; balance: number } | null>(null);
+  const [driverStatsData, setDriverStatsData] = useState<{ monthlyTrips: number; totalTrips: number; balance: number; fakeCompletedTrips?: number } | null>(null);
 
-  // Fetch real income & trip stats when user is approved driver
+  // Fetch real income & trip stats when user is logged in
   useEffect(() => {
     const fetchHomeDriverStats = async () => {
-      if (!user || user.status !== 'approved') {
+      if (!user) {
         setDriverIncomeData(null);
         setDriverStatsData(null);
         return;
@@ -1675,7 +1676,7 @@ function MainApp() {
               <div className="qs-value-wrap">
                 <span className="qs-value">
                   {user
-                    ? `${driverStatsData?.monthlyTrips ?? driverStatsData?.totalTrips ?? 0} cuốc`
+                    ? `${driverStatsData?.monthlyTrips ?? driverStatsData?.totalTrips ?? user.fakeCompletedTrips ?? 0} cuốc`
                     : `${requests.length > 0 ? requests.length : '4.250+'} cuốc`}
                 </span>
                 <span className="qs-extra" style={{ color: '#2563eb' }}>📊</span>

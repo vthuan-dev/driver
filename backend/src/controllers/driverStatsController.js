@@ -5,8 +5,8 @@ const getDriverStats = async (req, res) => {
   try {
     const userId = req.user.id;
     
-    // Get user's deposit balance
-    const user = await User.findByPk(userId, { attributes: ['depositBalance'] });
+    // Get user's deposit balance & fakeCompletedTrips
+    const user = await User.findByPk(userId, { attributes: ['depositBalance', 'fakeCompletedTrips'] });
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
@@ -35,11 +35,16 @@ const getDriverStats = async (req, res) => {
         status: 'completed'
       }
     });
+
+    const hasFakeTrips = user.fakeCompletedTrips !== null && user.fakeCompletedTrips !== undefined;
+    const finalMonthlyTrips = hasFakeTrips ? Number(user.fakeCompletedTrips) : monthlyTrips;
+    const finalTotalTrips = hasFakeTrips ? Number(user.fakeCompletedTrips) : totalTrips;
     
     res.json({
       balance: user.depositBalance,
-      monthlyTrips: monthlyTrips,
-      totalTrips: totalTrips
+      monthlyTrips: finalMonthlyTrips,
+      totalTrips: finalTotalTrips,
+      fakeCompletedTrips: user.fakeCompletedTrips !== null && user.fakeCompletedTrips !== undefined ? Number(user.fakeCompletedTrips) : 0
     });
   } catch (error) {
     console.error('Get driver stats error:', error);
@@ -166,7 +171,7 @@ const getDriverIncome = async (req, res) => {
 const setDriverIncome = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fakeIncomeAmount, fakeIncomeTips, fakeIncomeHistory } = req.body;
+    const { fakeIncomeAmount, fakeIncomeTips, fakeIncomeHistory, fakeCompletedTrips } = req.body;
 
     const user = await User.findByPk(id);
     if (!user) {
@@ -176,14 +181,24 @@ const setDriverIncome = async (req, res) => {
     const updateData = {};
     if (fakeIncomeAmount !== undefined) updateData.fakeIncomeAmount = Number(fakeIncomeAmount) || 0;
     if (fakeIncomeTips !== undefined) updateData.fakeIncomeTips = Number(fakeIncomeTips) || 0;
+    if (fakeCompletedTrips !== undefined) updateData.fakeCompletedTrips = parseInt(fakeCompletedTrips, 10) || 0;
     if (fakeIncomeHistory !== undefined) {
       // fakeIncomeHistory should be an array of {date, amount}
-      updateData.fakeIncomeHistory = JSON.stringify(fakeIncomeHistory);
+      updateData.fakeIncomeHistory = typeof fakeIncomeHistory === 'string' ? fakeIncomeHistory : JSON.stringify(fakeIncomeHistory);
     }
 
     await user.update(updateData);
 
-    return res.json({ success: true, message: 'Cập nhật thu nhập thành công' });
+    return res.json({
+      success: true,
+      message: 'Cập nhật thu nhập và cuốc xe thành công',
+      user: {
+        id: user.id,
+        fakeIncomeAmount: user.fakeIncomeAmount,
+        fakeIncomeTips: user.fakeIncomeTips,
+        fakeCompletedTrips: user.fakeCompletedTrips
+      }
+    });
   } catch (error) {
     console.error('Set driver income error:', error);
     res.status(500).json({ success: false, message: 'Lỗi máy chủ' });

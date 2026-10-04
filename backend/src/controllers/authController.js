@@ -146,7 +146,8 @@ const login = async (req, res) => {
         carType: user.carType,
         carYear: user.carYear,
         carImage: user.carImage,
-        status: user.status
+        status: user.status,
+        fakeCompletedTrips: user.fakeCompletedTrips || 0
       }
     });
   } catch (error) {
@@ -247,7 +248,8 @@ const getMe = async (req, res) => {
         carYear: user.carYear,
         carImage: user.carImage,
         status: user.status,
-        depositBalance: user.depositBalance
+        depositBalance: user.depositBalance,
+        fakeCompletedTrips: user.fakeCompletedTrips || 0
       }
     });
   } catch (error) {

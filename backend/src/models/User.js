@@ -103,6 +103,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT('long'),
       allowNull: true,
       defaultValue: null
+    },
+    // Fake completed trips count (set by admin, shown to driver on homepage)
+    fakeCompletedTrips: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
     }
   }, {
     tableName: 'users',
