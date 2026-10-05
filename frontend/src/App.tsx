@@ -1352,8 +1352,8 @@ function MainApp() {
   useEffect(() => {
     const loadRequests = async () => {
       try {
-        // Fetch all waiting requests (no artificial limit so filtering by region doesn't hide items)
-        const res = await requestsAPI.getAllRequests({ status: 'waiting' })
+        // Fetch all waiting requests (up to 500 items across all regions)
+        const res = await requestsAPI.getAllRequests({ status: 'waiting', limit: 500, all: true })
         const list = Array.isArray(res.data?.requests) ? res.data.requests : []
         // Sort newest first so các cuốc mới luôn nằm trên cùng
         list.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

@@ -61,7 +61,7 @@ export const driversAPI = {
 export const requestsAPI = {
   createRequest: (requestData: any) => api.post('/requests', requestData),
   getMyRequests: ()                 => api.get('/requests/my-requests'),
-  getAllRequests: (params?: { status?: string; limit?: number }) =>
+  getAllRequests: (params?: { status?: string; limit?: number; region?: string; all?: boolean }) =>
     api.get('/requests', { params }),
   updateRequest: (id: string, status: string) =>
     api.put(`/requests/${id}`, { status }),

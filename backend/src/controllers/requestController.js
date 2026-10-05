@@ -193,7 +193,7 @@ const getAllRequests = async (req, res) => {
 
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const parsedLimit = parseInt(limit, 10);
-    const pageLimit = parsedLimit > 0 ? Math.min(parsedLimit, 100) : 20;
+    const pageLimit = parsedLimit > 0 ? Math.min(parsedLimit, 1000) : 500;
     const offset = (currentPage - 1) * pageLimit;
 
     const { count, rows } = await WaitingRequest.findAndCountAll({
