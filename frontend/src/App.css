@@ -2061,8 +2061,8 @@
   background: #ffffff;
   border-radius: 20px;
   padding: 16px;
-  border: 1.5px solid #10b981;
-  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
 
 .mrc-top-row {
@@ -2226,7 +2226,7 @@
 }
 
 .mrc-price-amount {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
   color: #00b14f;
   line-height: 1.2;
@@ -2260,16 +2260,16 @@
   background: #00b14f;
   color: #ffffff;
   border: none;
-  border-radius: 14px;
-  padding: 12px;
-  font-size: 14.5px;
+  border-radius: 28px;
+  padding: 13px;
+  font-size: 15px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.28);
+  box-shadow: 0 4px 14px rgba(0, 177, 79, 0.3);
   transition: all 0.2s ease;
 }
 
