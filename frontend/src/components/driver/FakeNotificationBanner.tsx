@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { driverFakeNotificationsAPI } from '../../services/api';
 import './DriverDashboard.css';
+import { getPlaceImage } from './FeaturedRidesSection';
 
 type Props = {
   user?: {
@@ -315,6 +316,72 @@ const FakeNotificationBanner = ({
                   <span className="ride-price">{Number(notification.price).toLocaleString('vi-VN')}đ</span>
                   <span className="ride-price-label">Giá chuyến</span>
                 </span>
+              </div>
+
+              {/* Dynamic Google Maps Route View */}
+              <div
+                className="featured-map-view"
+                title="Nhấn để mở chỉ đường trên Google Maps"
+                onClick={() => {
+                  const start = notification.startDetail || notification.startPoint;
+                  const end = notification.endDetail || notification.endPoint;
+                  const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start + ', Việt Nam')}&destination=${encodeURIComponent(end + ', Việt Nam')}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                <div className="featured-map-bg">
+                  <iframe
+                    title={`Bản đồ ${notification.startPoint} đến ${notification.endPoint}`}
+                    src={`https://maps.google.com/maps?saddr=${encodeURIComponent((notification.startDetail || notification.startPoint) + ', Việt Nam')}&daddr=${encodeURIComponent((notification.endDetail || notification.endPoint) + ', Việt Nam')}&output=embed`}
+                    className="featured-map-iframe"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div className="featured-map-expand-badge">
+                  <span>🗺️ Google Maps</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800 }}>↗</span>
+                </div>
+
+                {/* Start Point Marker Card */}
+                <div className="featured-map-marker featured-map-marker--start">
+                  {getPlaceImage(notification.startPoint, notification.startDetail) ? (
+                    <img
+                      src={getPlaceImage(notification.startPoint, notification.startDetail)!}
+                      alt={notification.startDetail || notification.startPoint}
+                      className="marker-img"
+                      onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="marker-img-placeholder marker-img-placeholder--start">
+                      <span>📍</span>
+                    </div>
+                  )}
+                  <div className="marker-content">
+                    <span className="marker-badge marker-badge--start">Điểm đón</span>
+                    <div className="marker-address">{notification.startDetail || notification.startPoint}</div>
+                  </div>
+                </div>
+
+                {/* End Point Marker Card */}
+                <div className="featured-map-marker featured-map-marker--end">
+                  {getPlaceImage(notification.endPoint, notification.endDetail) ? (
+                    <img
+                      src={getPlaceImage(notification.endPoint, notification.endDetail)!}
+                      alt={notification.endDetail || notification.endPoint}
+                      className="marker-img"
+                      onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="marker-img-placeholder marker-img-placeholder--end">
+                      <span>🏁</span>
+                    </div>
+                  )}
+                  <div className="marker-content">
+                    <span className="marker-badge marker-badge--end">Điểm đến</span>
+                    <div className="marker-address">{notification.endDetail || notification.endPoint}</div>
+                  </div>
+                </div>
               </div>
 
               {/* Row 3: Timeline Route Box (Điểm đón -> Điểm đến) */}
