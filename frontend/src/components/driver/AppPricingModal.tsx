@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AppTourCard, TourCurvedArrow } from './AppTourGuide';
 
-type Plan = {
+export type Plan = {
   id: string;
   label: string;
   months: number;
@@ -11,17 +12,27 @@ type Plan = {
 };
 
 const PLANS: Plan[] = [
-  { id: '1y', label: '1 năm', months: 12, price: 400000, badge: 'Phổ biến ⭐', description: 'Tiết kiệm nhất cho lâu dài' },
-  { id: 'lifetime', label: 'Dùng vĩnh viễn', months: 9999, price: 1000000, badge: 'Tốt nhất 👑', description: 'Một lần - dùng mãi mãi' },
+  { id: '1y', label: '1 năm', months: 12, price: 400000, badge: 'PHỔ BIẾN ★', description: 'Tiết kiệm nhất cho lâu dài' },
+  { id: 'lifetime', label: 'Dùng vĩnh viễn', months: 9999, price: 1000000, badge: 'TỐT NHẤT 👑', description: 'Một lần – dùng mãi mãi' },
 ];
 
 type AppPricingModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (plan: Plan) => void;
+  isTourStep2?: boolean;
+  onTourClose?: () => void;
+  onTourNext?: () => void;
 };
 
-const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onConfirm }) => {
+const AppPricingModal: React.FC<AppPricingModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  isTourStep2,
+  onTourClose,
+  onTourNext,
+}) => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('1y');
 
   if (!isOpen) return null;
@@ -49,22 +60,57 @@ const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onCo
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            style={{ maxWidth: '500px', width: '90%', padding: 0, overflow: 'hidden' }}
+            style={{ maxWidth: '480px', width: '92%', padding: 0, overflow: 'hidden' }}
           >
+            {/* Header matching Image 1 */}
             <div className="pricing-header">
               <h2 className="pricing-title">Chọn gói duy trì App</h2>
-              <p className="pricing-subtitle">Để tiếp tục tải và sử dụng ứng dụng tài xế, vui lòng chọn gói phù hợp</p>
+              <p className="pricing-subtitle">
+                Để tiếp tục tải và sử dụng ứng dụng tài xế, vui lòng chọn gói phù hợp
+              </p>
             </div>
 
             <div className="pricing-body">
+              {/* Tour Step 2 Tooltip Overlay matching Image 1 */}
+              {isTourStep2 && (
+                <div className="tour-step2-wrapper">
+                  <AppTourCard
+                    title="Nhấn vào đây để chọn gói"
+                    description={
+                      <>
+                        Chọn gói 1 năm – 400.000đ hoặc Dùng vĩnh viễn – 1.000.000đ. Xác nhận thanh toán là{' '}
+                        <span className="tour-highlight-red">nhận link tải APK ngay!</span>
+                      </>
+                    }
+                    buttonText="Tiếp theo (1/2) ›"
+                    onNext={onTourNext || onClose}
+                    onClose={onTourClose || onClose}
+                  />
+                  <div className="tour-arrow-step2">
+                    <TourCurvedArrow />
+                  </div>
+                </div>
+              )}
+
               <div id="joyride-pricing-cards" className="pricing-cards">
                 {PLANS.map((plan) => (
                   <div
                     key={plan.id}
-                    className={`pricing-card ${selectedPlanId === plan.id ? 'selected' : ''}`}
+                    id={`pricing-card-${plan.id}`}
+                    className={`pricing-card ${selectedPlanId === plan.id ? 'selected' : ''} ${
+                      isTourStep2 && plan.id === '1y' ? 'tour-highlight-glow' : ''
+                    }`}
                     onClick={() => setSelectedPlanId(plan.id)}
                   >
-                    {plan.badge && <div className="pricing-badge">{plan.badge}</div>}
+                    {plan.badge && (
+                      <div
+                        className={`pricing-badge ${
+                          plan.id === 'lifetime' ? 'pricing-badge--lifetime' : ''
+                        }`}
+                      >
+                        {plan.badge}
+                      </div>
+                    )}
                     <div className="pricing-card-content">
                       <div className="pricing-radio">
                         <div className={`radio-inner ${selectedPlanId === plan.id ? 'active' : ''}`} />
@@ -79,6 +125,7 @@ const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onCo
                 ))}
               </div>
 
+              {/* Note box matching Image 1 */}
               <div className="pricing-note">
                 <span className="note-icon">💡</span>
                 <p>
@@ -87,11 +134,12 @@ const AppPricingModal: React.FC<AppPricingModalProps> = ({ isOpen, onClose, onCo
               </div>
             </div>
 
+            {/* Footer matching Image 1 */}
             <div className="pricing-footer">
-              <button className="pricing-btn-cancel" onClick={onClose}>
+              <button type="button" className="pricing-btn-cancel" onClick={onClose}>
                 Để sau
               </button>
-              <button className="pricing-btn-confirm" onClick={handleConfirm}>
+              <button type="button" className="pricing-btn-confirm" onClick={handleConfirm}>
                 Xác nhận thanh toán
               </button>
             </div>

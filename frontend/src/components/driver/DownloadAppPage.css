@@ -227,24 +227,28 @@
 }
 
 .pricing-card.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  border-color: #00b14f;
+  background: #f0fdf4;
+  box-shadow: 0 4px 12px rgba(0, 177, 79, 0.12);
 }
 
 .pricing-badge {
   position: absolute;
   top: -10px;
   right: 16px;
-  background: #ef4444;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 4px 10px;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.pricing-badge--lifetime {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
 }
 
 .pricing-card-content {
@@ -265,7 +269,7 @@
 }
 
 .pricing-card.selected .pricing-radio {
-  border-color: #3b82f6;
+  border-color: #00b14f;
 }
 
 .radio-inner {

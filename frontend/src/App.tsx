@@ -12,8 +12,7 @@ import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
 import DriverIncomePage from './components/driver/DriverIncomePage'
-import { Joyride, STATUS, EVENTS } from 'react-joyride'
-import type { Step } from 'react-joyride'
+import { AppTourCard, TourCurvedArrow } from './components/driver/AppTourGuide'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -762,41 +761,30 @@ function MainApp() {
   const [showDownloadPage, setShowDownloadPage] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('1y');
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [runTour, setRunTour] = useState(false);
+  const [tourStep, setTourStep] = useState<1 | 2 | null>(null);
 
-  const tourSteps: Step[] = [
-    {
-      target: '#joyride-download-btn',
-      title: '📱 Tải ứng dụng di động',
-      content: 'Nhấn vào đây để tải app về điện thoại. App hỗ trợ thông báo cuốc xe TỨC THÌ – không bỏ lỡ kèo nào!',
-      placement: 'bottom',
-      skipBeacon: true,
-    },
-    {
-      target: '#joyride-pricing-cards',
-      title: '💳 Chọn gói phù hợp',
-      content: 'Chọn gói 1 năm – 400.000đ ⭐ hoặc Dùng vĩnh viễn – 1.000.000đ 👑. Xác nhận thanh toán là nhận link tải APK ngay!',
-      placement: 'top',
-      skipBeacon: true,
-      targetWaitTimeout: 4000,
-    },
-  ];
-
-  const handleJoyrideCallback = (data: any) => {
-    const { status, type, index } = data;
-    if (type === EVENTS.STEP_AFTER && index === 0) {
-      setShowPricingModal(true);
-    }
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRunTour(false);
-      localStorage.setItem('joyride_done', '1');
-    }
+  const startAppTour = () => {
+    setTourStep(1);
+    setTimeout(() => {
+      const banner = document.getElementById('joyride-download-btn');
+      banner?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 250);
   };
 
   const startTour = () => {
     if (user?.status === 'approved' && !localStorage.getItem('joyride_done')) {
-      setRunTour(true);
+      startAppTour();
     }
+  };
+
+  const handleCloseTour = () => {
+    setTourStep(null);
+    localStorage.setItem('joyride_done', '1');
+  };
+
+  const handleNextTourStep1 = () => {
+    setShowPricingModal(true);
+    setTourStep(2);
   };
 
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -1255,28 +1243,15 @@ function MainApp() {
   return (
     <div className="app">
 
-      {/* Joyride tour hướng dẫn tải APK */}
-      <Joyride
-        steps={tourSteps}
-        run={runTour}
-        continuous
-        onEvent={handleJoyrideCallback}
-        locale={{
-          back: 'Quay lại',
-          close: 'Đóng',
-          last: 'Xong',
-          next: 'Tiếp theo',
-          skip: 'Bỏ qua',
-        }}
-        options={{ primaryColor: '#22c55e', showProgress: true, zIndex: 10000 }}
-      />
-
       {/* Welcome modal hiện sau khi login */}
       <LoginWelcomeModal
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
         onHide2Hours={handleHideWelcome2Hours}
-        onDownloadGuide={() => { localStorage.removeItem('joyride_done'); setTimeout(() => setRunTour(true), 300); }}
+        onDownloadGuide={() => {
+          localStorage.removeItem('joyride_done');
+          setTimeout(startAppTour, 300);
+        }}
         onAfterClose={startTour}
       />
 
@@ -1476,6 +1451,19 @@ function MainApp() {
                       <span style={menuIconStyle}>💵</span>
                       <span style={{ fontWeight: 700, color: '#1a2340' }}>Thu nhập tài xế</span>
                       <span style={{ ...menuArrowStyle, color: '#00b14f' }}>›</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        localStorage.removeItem('joyride_done');
+                        startAppTour();
+                      }}
+                      style={menuItemStyle}
+                    >
+                      <span style={menuIconStyle}>📱</span>
+                      <span>Hướng dẫn tải app</span>
+                      <span style={menuArrowStyle}>›</span>
                     </button>
                   </>
                 )}
@@ -1761,41 +1749,78 @@ function MainApp() {
             </div>
           </div>
 
-          {/* App Download Banner */}
-          <div
-            className="modern-download-banner"
-            onClick={() => {
-              if (!user) {
-                setAuthModal('login');
-                return;
-              }
-              if (user.status !== 'approved') {
-                setErrorPopupTitle('Thông báo');
-                setErrorMessage('Tài khoản của bạn đang chờ phê duyệt.');
-                setShowErrorPopup(true);
-                return;
-              }
-              setShowPricingModal(true);
-            }}
-          >
-            <div className="download-banner__left">
-              <div className="download-phone-mockup">
-                <div className="phone-screen-inner">
-                  <span>ĐC</span>
+          {/* App Download Banner with Tour Step 1 */}
+          <div className={`tour-banner-container ${tourStep === 1 ? 'tour-active' : ''}`}>
+            {tourStep === 1 && (
+              <>
+                <div
+                  className="tour-backdrop"
+                  onClick={handleCloseTour}
+                />
+                <div className="tour-step1-popup">
+                  <AppTourCard
+                    title="Nhấn vào đây để tải ứng dụng di động"
+                    description={
+                      <>
+                        Cài app để nhận thông báo{' '}
+                        <span className="tour-highlight-red">cuốc nổ tức thì</span>{' '}
+                        để không bỏ lỡ kèo thơm nào!
+                      </>
+                    }
+                    buttonText="Tiếp theo (1/2) ›"
+                    onNext={handleNextTourStep1}
+                    onClose={handleCloseTour}
+                  />
+                  <div className="tour-arrow-step1">
+                    <TourCurvedArrow />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div
+              className={`modern-download-banner ${tourStep === 1 ? 'tour-highlight-glow' : ''}`}
+              id="joyride-download-btn"
+              onClick={() => {
+                if (!user) {
+                  setAuthModal('login');
+                  return;
+                }
+                if (user.status !== 'approved') {
+                  setErrorPopupTitle('Thông báo');
+                  setErrorMessage('Tài khoản của bạn đang chờ phê duyệt.');
+                  setShowErrorPopup(true);
+                  return;
+                }
+                setShowPricingModal(true);
+                if (tourStep === 1) {
+                  setTourStep(2);
+                }
+              }}
+            >
+              <div className="download-banner__left">
+                <div className="download-phone-mockup">
+                  <div className="phone-screen-inner">
+                    <span>ĐC</span>
+                  </div>
+                </div>
+                <div className="download-banner__text">
+                  <div className="download-banner__title">Tải ứng dụng di động</div>
+                  <div className="download-banner__sub">
+                    Cài app để nhận thông báo{' '}
+                    <span style={{ color: '#ffea79', fontWeight: 700 }}>cuốc nổ tức thì</span>{' '}
+                    để không bỏ lỡ kèo thơm nào!
+                  </div>
                 </div>
               </div>
-              <div className="download-banner__text">
-                <div className="download-banner__title">Tải ứng dụng di động</div>
-                <div className="download-banner__sub">Nhận thông báo cuốc xe nhanh hơn</div>
-              </div>
+              <button type="button" className="download-banner__btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Tải ngay</span>
+                <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
+              </button>
             </div>
-            <button type="button" className="download-banner__btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              <span>Tải ngay</span>
-              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
-            </button>
           </div>
 
           {/* Region Tabs (Miền Bắc, Miền Trung, Miền Nam) */}
@@ -2817,12 +2842,19 @@ function MainApp() {
         <>
           <AppPricingModal 
             isOpen={showPricingModal} 
-            onClose={() => setShowPricingModal(false)}
+            onClose={() => {
+              setShowPricingModal(false);
+              if (tourStep === 2) setTourStep(null);
+            }}
             onConfirm={(plan) => {
               setSelectedPlan(plan.id);
               setShowPricingModal(false);
               setShowDownloadPage(true);
+              if (tourStep === 2) handleCloseTour();
             }}
+            isTourStep2={tourStep === 2}
+            onTourClose={handleCloseTour}
+            onTourNext={handleCloseTour}
           />
 
           {showDownloadPage && (

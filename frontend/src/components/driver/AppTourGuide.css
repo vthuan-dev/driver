@@ -1,0 +1,242 @@
+/* App Tour Guide Styling matching user reference images */
+
+/* Dim Backdrop for Step 1 */
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+  animation: tourFadeIn 0.25s ease-out;
+}
+
+/* Container for Download Banner in App.tsx */
+.tour-banner-container {
+  position: relative;
+}
+
+.tour-banner-container.tour-active {
+  z-index: 999;
+}
+
+/* Step 1 Floating Tooltip Popup above Download Banner */
+.tour-step1-popup {
+  position: absolute;
+  bottom: calc(100% + 22px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: calc(100% - 8px);
+  max-width: 380px;
+  z-index: 1002;
+  animation: tourFadeIn 0.25s ease-out;
+}
+
+/* Step 2 Tooltip Container inside Pricing Modal */
+.tour-step2-wrapper {
+  position: relative;
+  margin-bottom: 24px;
+  width: 100%;
+  z-index: 1002;
+  animation: tourFadeIn 0.25s ease-out;
+}
+
+/* Tooltip White Card */
+.tour-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22), 0 3px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Card Header */
+.tour-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+/* Phone Mockup Icon */
+.tour-phone-mockup {
+  width: 32px;
+  height: 48px;
+  background: #0f172a;
+  border: 2px solid #0f172a;
+  border-radius: 7px;
+  padding: 2.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+
+.tour-phone-notch {
+  width: 10px;
+  height: 2px;
+  background: #334155;
+  border-radius: 2px;
+  margin-bottom: 2.5px;
+}
+
+.tour-phone-screen {
+  width: 100%;
+  flex: 1;
+  background: #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tour-phone-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #00a651;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.3px;
+}
+
+/* Card Title */
+.tour-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  flex: 1;
+  padding-right: 22px;
+  letter-spacing: -0.2px;
+}
+
+/* Card Close Button */
+.tour-card-close {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.tour-card-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Card Description */
+.tour-card-desc {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.48;
+  margin: 8px 0 12px;
+}
+
+.tour-highlight-red {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* Card Footer with Next Button */
+.tour-card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tour-btn-next {
+  background: #00a651;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 166, 81, 0.35);
+  transition: all 0.15s ease;
+}
+
+.tour-btn-next:hover {
+  background: #00873e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 166, 81, 0.45);
+}
+
+.tour-btn-next:active {
+  transform: translateY(0);
+}
+
+/* Curved Red Arrow Elements */
+.tour-arrow-step1 {
+  position: absolute;
+  left: 28px;
+  bottom: -28px;
+  z-index: 1003;
+  pointer-events: none;
+}
+
+.tour-arrow-step2 {
+  position: absolute;
+  left: 28px;
+  bottom: -28px;
+  z-index: 1003;
+  pointer-events: none;
+}
+
+.tour-curved-arrow-svg {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+}
+
+/* Target Element Glowing Pulse Animation */
+@keyframes tourGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px #ef4444, 0 0 16px rgba(239, 68, 68, 0.65);
+    border-color: #ef4444 !important;
+  }
+  50% {
+    box-shadow: 0 0 0 5.5px #ef4444, 0 0 26px rgba(239, 68, 68, 0.95);
+    border-color: #f87171 !important;
+  }
+}
+
+.tour-highlight-glow {
+  position: relative !important;
+  border: 2.5px solid #ef4444 !important;
+  animation: tourGlowPulse 1.6s infinite ease-in-out !important;
+  z-index: 1001 !important;
+}
+
+@keyframes tourFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
