@@ -9,6 +9,7 @@ type Props = {
     [key: string]: any;
   } | null;
   region?: 'north' | 'central' | 'south';
+  limit?: number;
   onRequireAuth?: () => void;
   onRegisterClick?: () => void;
   onViewAllClick?: () => void;
@@ -125,7 +126,9 @@ const defaultRidesByRegion: Record<string, any[]> = {
 const FakeNotificationBanner = ({
   user,
   region = 'north',
+  limit,
   onRequireAuth,
+  onViewAllClick,
 }: Props) => {
   const [fakeNotifications, setFakeNotifications] = useState<any[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -137,7 +140,7 @@ const FakeNotificationBanner = ({
   const fetchFakeNotifications = async (currentRegion: string) => {
     try {
       setLoadingNotifications(true);
-      const response = await driverFakeNotificationsAPI.getFakeNotifications(currentRegion);
+      const response = await driverFakeNotificationsAPI.getFakeNotifications(currentRegion, true);
       const newNotifications = response.data.data || [];
 
       if (newNotifications.length > 0) {
@@ -232,9 +235,10 @@ const FakeNotificationBanner = ({
 
   // Merge database fake notifications with default mock rides so the list is NEVER empty
   const baseRides = defaultRidesByRegion[region] || defaultRidesByRegion.north;
-  const displayList = fakeNotifications.length > 0
+  const fullList = fakeNotifications.length > 0
     ? [...fakeNotifications, ...baseRides.filter((b) => !fakeNotifications.some((f) => f.startPoint === b.startPoint && f.endPoint === b.endPoint))]
     : baseRides;
+  const displayList = limit ? fullList.slice(0, limit) : fullList;
 
   return (
     <div className="fake-notifications-section">
@@ -243,7 +247,27 @@ const FakeNotificationBanner = ({
         <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>
           🔔 Bạn có cuốc xe có thể nhận
         </h3>
-        {loadingNotifications ? (
+        {onViewAllClick ? (
+          <button
+            type="button"
+            className="featured-view-all-btn"
+            onClick={onViewAllClick}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#00b14f',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <span>Xem tất cả</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
+          </button>
+        ) : loadingNotifications ? (
           <span className="loading-spinner">⟳</span>
         ) : (
           <span className="ride-latest-badge">Mới nhất</span>

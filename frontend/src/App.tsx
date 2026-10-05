@@ -8,7 +8,6 @@ import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
 import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
-import FeaturedRidesSection from './components/driver/FeaturedRidesSection'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
@@ -2175,8 +2174,8 @@ function MainApp() {
             ))}
           </div>
 
-          {/* Featured Ride Section: 5 cuốc xe ảo with Google Maps route matching Homepage */}
-          <FeaturedRidesSection
+          {/* Fake Notifications Section: 5 cuốc xe ảo matching #root > div > div > div.fake-notifications-section > div.fake-notifications-list */}
+          <FakeNotificationBanner
             user={user}
             region={activeRequestRegion}
             limit={5}
@@ -2207,26 +2206,35 @@ function MainApp() {
               : sampleFallbackRides.filter((s) => s.region === activeRequestRegion);
 
             return (
-              <div className="normal-rides-section" style={{ marginTop: '24px' }}>
-                <div className="featured-rides-header">
-                  <div className="featured-rides-title">
-                    <span className="featured-bell-icon">🚗</span>
-                    <h3>Cuốc xe khách đặt</h3>
-                  </div>
+              <div className="normal-rides-section" style={{ margin: '14px 14px 24px' }}>
+                <div className="section-header" style={{ marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                    🚗 Cuốc xe khách đặt ({regionLabels[activeRequestRegion]})
+                  </h3>
                   <button
                     type="button"
-                    className="featured-view-all-btn"
                     onClick={() => {
                       setActiveNavTab('rides');
                       setRidesSubFilter('all');
                     }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#00b14f',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
                   >
                     <span>Xem tất cả</span>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold' }}>›</span>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
                   </button>
                 </div>
 
-                <div className="modern-rides-list" style={{ marginTop: '12px' }}>
+                <div className="modern-rides-list">
                   {displayRides.map((req) => renderModernRideCard(req))}
                 </div>
               </div>
