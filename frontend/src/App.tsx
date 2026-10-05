@@ -218,6 +218,234 @@ function maskPhoneLast5(phone: string): string {
   return '*****'
 }
 
+const sampleFallbackRides: Array<{
+  _id: string;
+  name: string;
+  phone: string;
+  startPoint: string;
+  endPoint: string;
+  price: number;
+  carType: string;
+  tripType: string;
+  note: string;
+  createdAt: string;
+  region: Region;
+}> = [
+  // Miền Bắc
+  {
+    _id: 'sample-north-1',
+    name: 'Hà Văn Huy',
+    phone: '0913488386',
+    startPoint: 'Hà Nội (Mỹ Đình)',
+    endPoint: 'Hà Nam (Phủ Lý)',
+    price: 1100000,
+    carType: '4',
+    tripType: 'round',
+    note: 'Đi 2 chiều Hà Nội - Hà Nam, xe 4 chỗ sạch sẽ, đón 8h sáng',
+    createdAt: new Date().toISOString(),
+    region: 'north'
+  },
+  {
+    _id: 'sample-north-2',
+    name: 'Nguyễn Quốc Dũng',
+    phone: '0985015240',
+    startPoint: 'Bắc Ninh (TP. Bắc Ninh)',
+    endPoint: 'Sơn La (Mộc Châu)',
+    price: 3000000,
+    carType: '7',
+    tripType: 'one-way',
+    note: 'Cần xe 7 chỗ chở gia đình đi du lịch cuối tuần, tài xế lái êm',
+    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    region: 'north'
+  },
+  {
+    _id: 'sample-north-3',
+    name: 'Nguyễn Xuân Được',
+    phone: '0968566350',
+    startPoint: 'Hà Nội (Cầu Giấy)',
+    endPoint: 'Nam Định (TP. Nam Định)',
+    price: 800000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách 1 người ít đồ, xe sạch sẽ không khói thuốc',
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    region: 'north'
+  },
+  {
+    _id: 'sample-north-4',
+    name: 'Đặng Tuấn Anh',
+    phone: '0977889900',
+    startPoint: 'Hà Nội (Sân bay Nội Bài)',
+    endPoint: 'Quảng Ninh (Hạ Long)',
+    price: 1100000,
+    carType: '7',
+    tripType: 'one-way',
+    note: 'Đi đường cao tốc, cần xe cốp rộng chở hành lý',
+    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    region: 'north'
+  },
+  {
+    _id: 'sample-north-5',
+    name: 'Vũ Hải Long',
+    phone: '0943221199',
+    startPoint: 'Hải Phòng (Lê Chân)',
+    endPoint: 'Hà Nội (Hoàn Kiếm)',
+    price: 900000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách đi công tác trong ngày, xuất vé hoặc hóa đơn VAT',
+    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    region: 'north'
+  },
+  {
+    _id: 'sample-north-6',
+    name: 'Lê Thanh Bình',
+    phone: '0936112233',
+    startPoint: 'Hà Nội (Times City)',
+    endPoint: 'Ninh Bình (Tràng An)',
+    price: 1050000,
+    carType: '7',
+    tripType: 'round',
+    note: 'Gia đình 5 người tham quan Tràng An Bái Đính về trong ngày',
+    createdAt: new Date(Date.now() - 1000 * 60 * 150).toISOString(),
+    region: 'north'
+  },
+
+  // Miền Trung
+  {
+    _id: 'sample-central-1',
+    name: 'Trần Đình Khôi',
+    phone: '0905123456',
+    startPoint: 'Đà Nẵng (Sân bay Quốc tế)',
+    endPoint: 'Hội An (Quảng Nam)',
+    price: 350000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách du lịch 2 người, đón tại sảnh ga đến lúc 14h',
+    createdAt: new Date().toISOString(),
+    region: 'central'
+  },
+  {
+    _id: 'sample-central-2',
+    name: 'Nguyễn Văn Thịnh',
+    phone: '0914887766',
+    startPoint: 'Huế (TP. Huế)',
+    endPoint: 'Đà Nẵng (Hải Châu)',
+    price: 950000,
+    carType: '7',
+    tripType: 'one-way',
+    note: 'Khách gia đình 4 người đi qua hầm Hải Vân, đón tận nhà',
+    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    region: 'central'
+  },
+  {
+    _id: 'sample-central-3',
+    name: 'Lê Hoàng Nam',
+    phone: '0978554433',
+    startPoint: 'Nha Trang (Khánh Hòa)',
+    endPoint: 'Đà Lạt (Lâm Đồng)',
+    price: 1400000,
+    carType: '7',
+    tripType: 'one-way',
+    note: 'Khách đi đèo Khánh Lê, cần tài xế quen đường núi cẩn thận',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+    region: 'central'
+  },
+  {
+    _id: 'sample-central-4',
+    name: 'Phan Minh Đức',
+    phone: '0935661122',
+    startPoint: 'Quy Nhơn (Bình Định)',
+    endPoint: 'Tuy Hòa (Phú Yên)',
+    price: 850000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách đi công tác 1 người, cần đón đúng 9h sáng',
+    createdAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
+    region: 'central'
+  },
+  {
+    _id: 'sample-central-5',
+    name: 'Bùi Thị Hồng',
+    phone: '0988776655',
+    startPoint: 'Thanh Hóa (TP. Thanh Hóa)',
+    endPoint: 'Nghệ An (Vinh)',
+    price: 1200000,
+    carType: '4',
+    tripType: 'round',
+    note: 'Đi thăm người thân 2 chiều, đi cao tốc Mai Sơn - QL45',
+    createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    region: 'central'
+  },
+
+  // Miền Nam
+  {
+    _id: 'sample-south-1',
+    name: 'Phạm Minh Tuấn',
+    phone: '0938667788',
+    startPoint: 'TP. Hồ Chí Minh (Quận 1)',
+    endPoint: 'Vũng Tàu (Bãi Sau)',
+    price: 950000,
+    carType: '7',
+    tripType: 'round',
+    note: 'Đi nghỉ dưỡng gia đình cuối tuần, đón lúc 7h sáng đi cao tốc Long Thành',
+    createdAt: new Date().toISOString(),
+    region: 'south'
+  },
+  {
+    _id: 'sample-south-2',
+    name: 'Huỳnh Gia Bảo',
+    phone: '0908112233',
+    startPoint: 'TP. Hồ Chí Minh (Tân Sơn Nhất)',
+    endPoint: 'Bình Dương (Thủ Dầu Một)',
+    price: 450000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Đón sảnh quốc nội sân bay Tân Sơn Nhất, khách ít hành lý',
+    createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    region: 'south'
+  },
+  {
+    _id: 'sample-south-3',
+    name: 'Võ Thanh Tùng',
+    phone: '0947556677',
+    startPoint: 'TP. Hồ Chí Minh (Bình Thạnh)',
+    endPoint: 'Đồng Nai (Biên Hòa)',
+    price: 380000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách đi làm, xe 4 chỗ có máy lạnh mát',
+    createdAt: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+    region: 'south'
+  },
+  {
+    _id: 'sample-south-4',
+    name: 'Đặng Ngọc Lan',
+    phone: '0918223344',
+    startPoint: 'TP. Hồ Chí Minh (Quận 7)',
+    endPoint: 'Cần Thơ (Ninh Kiều)',
+    price: 1650000,
+    carType: '7',
+    tripType: 'one-way',
+    note: 'Khách gia đình về quê, đi cao tốc Trung Lương - Mỹ Thuận',
+    createdAt: new Date(Date.now() - 1000 * 60 * 95).toISOString(),
+    region: 'south'
+  },
+  {
+    _id: 'sample-south-5',
+    name: 'Ngô Quốc Cường',
+    phone: '0969887766',
+    startPoint: 'Tây Ninh (Trảng Bàng)',
+    endPoint: 'TP. Hồ Chí Minh (Quận 12)',
+    price: 600000,
+    carType: '4',
+    tripType: 'one-way',
+    note: 'Khách 2 người cần xe đón trước 11h trưa',
+    createdAt: new Date(Date.now() - 1000 * 60 * 140).toISOString(),
+    region: 'south'
+  }
+];
+
 //
 
 // Admin App Component
@@ -958,6 +1186,112 @@ function MainApp() {
     const last = parts.length > 1 ? parts[parts.length - 1][0] : ''
     return (first + last).toUpperCase() || 'TX'
   }
+
+  const renderModernRideCard = (req: any) => (
+    <div key={req._id} className="modern-ride-card">
+      {/* Top Row: MỚI badge, Customer Name, Time badge, Menu */}
+      <div className="mrc-top-row">
+        <div className="mrc-caller-wrap">
+          <span className="mrc-badge-new">⚡ MỚI</span>
+          <span className="mrc-caller-name">{req.name || 'Khách hàng'}</span>
+        </div>
+        <div className="mrc-time-wrap">
+          <span className="mrc-time-badge">🕐 Vừa xong</span>
+          <span className="mrc-menu-btn">⋮</span>
+        </div>
+      </div>
+
+      {/* Phone row with copy button */}
+      <div className="mrc-phone-row">
+        <span className="mrc-phone-icon">📞</span>
+        <span
+          className="mrc-phone-num"
+          style={{ cursor: user ? 'default' : 'pointer' }}
+          title={user ? undefined : 'Đăng nhập để xem đầy đủ số điện thoại'}
+          onClick={(e) => {
+            if (!user) {
+              e.stopPropagation();
+              setAuthModal('login');
+            }
+          }}
+        >
+          {user ? req.phone : maskPhoneLast5(req.phone)}
+        </span>
+        <button
+          type="button"
+          className="mrc-copy-btn"
+          title={user ? "Sao chép số điện thoại" : "Đăng nhập để xem số điện thoại"}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!user) {
+              setAuthModal('login');
+              return;
+            }
+            navigator.clipboard.writeText(req.phone);
+            setCopiedPhoneId(req._id);
+            setTimeout(() => setCopiedPhoneId(null), 2000);
+          }}
+        >
+          {copiedPhoneId === req._id ? '✓' : '📄'}
+        </button>
+      </div>
+
+      {/* Middle Grid: Left Route Points, Right Mint Price Card */}
+      <div className="mrc-middle-grid">
+        <div className="mrc-route-track">
+          <div className="mrc-point-row">
+            <span className="mrc-point-dot mrc-point-dot--green" />
+            <div className="mrc-point-text-wrap">
+              <span className="mrc-point-title">{req.startPoint}</span>
+              <span className="mrc-point-sub">Điểm đi</span>
+            </div>
+          </div>
+          <div className="mrc-route-divider" />
+          <div className="mrc-point-row">
+            <span className="mrc-point-dot mrc-point-dot--red" />
+            <div className="mrc-point-text-wrap">
+              <span className="mrc-point-title">{req.endPoint}</span>
+              <span className="mrc-point-sub">Điểm đến</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mrc-price-card">
+          <div className="mrc-price-label">👛 Giá chuyến</div>
+          <div className="mrc-price-amount">
+            {Number(req.price).toLocaleString('vi-VN')}đ
+          </div>
+        </div>
+      </div>
+
+      {/* Note Box */}
+      <div className="mrc-note-box">
+        <span className="mrc-note-icon">📄</span>
+        <span className="mrc-note-text">
+          <strong>Ghi chú: </strong>
+          {req.note || 'Khách đặt xe đi trong ngày, cần xe sạch sẽ, tài xế đúng giờ.'}
+        </span>
+      </div>
+
+      {/* Action Button: NHẬN CUỐC XE NGAY */}
+      <button
+        type="button"
+        className="mrc-call-btn"
+        onClick={() => {
+          if (!user) {
+            setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+            setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+            setShowErrorPopup(true);
+            return;
+          }
+          setCallSheet({ phone: req.phone });
+        }}
+      >
+        <span>📞 NHẬN CUỐC XE NGAY</span>
+        <span style={{ fontSize: '16px', fontWeight: 900 }}>›</span>
+      </button>
+    </div>
+  );
 
   // Load drivers from API
   useEffect(() => {
@@ -1841,10 +2175,11 @@ function MainApp() {
             ))}
           </div>
 
-          {/* Featured Ride Section: Cuốc xe mới nhất with Google Maps route matching Homepage */}
+          {/* Featured Ride Section: 5 cuốc xe ảo with Google Maps route matching Homepage */}
           <FeaturedRidesSection
             user={user}
             region={activeRequestRegion}
+            limit={5}
             onRequireAuth={() => {
               setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
               setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
@@ -1862,6 +2197,41 @@ function MainApp() {
               setRidesSubFilter('all');
             }}
           />
+
+          {/* Normal Rides Section: Danh sách cuốc xe bình thường theo miền ngay phía dưới */}
+          {(() => {
+            const pool = requests.length > 0 ? requests : sampleFallbackRides;
+            const regionRides = pool.filter((r) => (r.region || 'north') === activeRequestRegion);
+            const displayRides = regionRides.length > 0
+              ? regionRides
+              : sampleFallbackRides.filter((s) => s.region === activeRequestRegion);
+
+            return (
+              <div className="normal-rides-section" style={{ marginTop: '24px' }}>
+                <div className="featured-rides-header">
+                  <div className="featured-rides-title">
+                    <span className="featured-bell-icon">🚗</span>
+                    <h3>Cuốc xe khách đặt</h3>
+                  </div>
+                  <button
+                    type="button"
+                    className="featured-view-all-btn"
+                    onClick={() => {
+                      setActiveNavTab('rides');
+                      setRidesSubFilter('all');
+                    }}
+                  >
+                    <span>Xem tất cả</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold' }}>›</span>
+                  </button>
+                </div>
+
+                <div className="modern-rides-list" style={{ marginTop: '12px' }}>
+                  {displayRides.map((req) => renderModernRideCard(req))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1981,87 +2351,6 @@ function MainApp() {
           {/* Modern Ride Cards List matching Image 2 */}
           <div className="modern-rides-list">
             {(() => {
-              const sampleFallbackRides = [
-                {
-                  _id: 'sample-1',
-                  name: 'Hà Văn Huy',
-                  phone: '0913488386',
-                  startPoint: 'Hà Nội',
-                  endPoint: 'Hà Nam',
-                  price: 1100000,
-                  carType: '4',
-                  tripType: 'round',
-                  note: 'Đi 2 chiều, Hà Nội - Hà Nam, Toyota altis',
-                  createdAt: new Date().toISOString(),
-                  region: 'north' as Region
-                },
-                {
-                  _id: 'sample-2',
-                  name: 'Nguyễn Quốc dũng',
-                  phone: '0985015240',
-                  startPoint: 'Bắc Ninh',
-                  endPoint: 'Sơn La',
-                  price: 3000000,
-                  carType: '7',
-                  tripType: 'one-way',
-                  note: 'xe innova cross 2026 8 chỗ',
-                  createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-                  region: 'north' as Region
-                },
-                {
-                  _id: 'sample-3',
-                  name: 'Nguyễn Xuân được',
-                  phone: '0968566350',
-                  startPoint: 'Hà Nội',
-                  endPoint: 'Nam Định',
-                  price: 800000,
-                  carType: '4',
-                  tripType: 'one-way',
-                  note: 'Khách 1 người ít đồ, xe sạch sẽ',
-                  createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-                  region: 'north' as Region
-                },
-                {
-                  _id: 'sample-4',
-                  name: 'Đặng Tuấn Anh',
-                  phone: '0977889900',
-                  startPoint: 'Hà Nội (Cầu Giấy)',
-                  endPoint: 'Quảng Ninh (Hạ Long)',
-                  price: 1100000,
-                  carType: '7',
-                  tripType: 'one-way',
-                  note: 'Đi đường cao tốc, cần tài xế chạy êm, không khói thuốc.',
-                  createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-                  region: 'north' as Region
-                },
-                {
-                  _id: 'sample-5',
-                  name: 'Trần Đình Khôi',
-                  phone: '0905123456',
-                  startPoint: 'Đà Nẵng (Sân bay)',
-                  endPoint: 'Hội An (Quảng Nam)',
-                  price: 320000,
-                  carType: '4',
-                  tripType: 'one-way',
-                  note: 'Khách du lịch 2 người, đón tận nơi tại sảnh ga đến.',
-                  createdAt: new Date().toISOString(),
-                  region: 'central' as Region
-                },
-                {
-                  _id: 'sample-6',
-                  name: 'Phạm Minh Tuấn',
-                  phone: '0938667788',
-                  startPoint: 'TP. Hồ Chí Minh (Quận 1)',
-                  endPoint: 'Vũng Tàu (Bãi Sau)',
-                  price: 950000,
-                  carType: '7',
-                  tripType: 'round',
-                  note: 'Đi nghỉ dưỡng gia đình cuối tuần, đón lúc 7h sáng.',
-                  createdAt: new Date().toISOString(),
-                  region: 'south' as Region
-                }
-              ];
-
               const pool = requests.length > 0 ? requests : sampleFallbackRides;
 
               const filtered = pool
@@ -2101,111 +2390,7 @@ function MainApp() {
 
               const displayList = filtered.length > 0 ? filtered : sampleFallbackRides.filter(s => s.region === activeRequestRegion);
 
-              return displayList.map((req) => (
-                <div key={req._id} className="modern-ride-card">
-                  {/* Top Row: MỚI badge, Customer Name, Time badge, Menu */}
-                  <div className="mrc-top-row">
-                    <div className="mrc-caller-wrap">
-                      <span className="mrc-badge-new">⚡ MỚI</span>
-                      <span className="mrc-caller-name">{req.name || 'Khách hàng'}</span>
-                    </div>
-                    <div className="mrc-time-wrap">
-                      <span className="mrc-time-badge">🕐 Vừa xong</span>
-                      <span className="mrc-menu-btn">⋮</span>
-                    </div>
-                  </div>
-
-                  {/* Phone row with copy button */}
-                  <div className="mrc-phone-row">
-                    <span className="mrc-phone-icon">📞</span>
-                    <span
-                      className="mrc-phone-num"
-                      style={{ cursor: user ? 'default' : 'pointer' }}
-                      title={user ? undefined : 'Đăng nhập để xem đầy đủ số điện thoại'}
-                      onClick={(e) => {
-                        if (!user) {
-                          e.stopPropagation();
-                          setAuthModal('login');
-                        }
-                      }}
-                    >
-                      {user ? req.phone : maskPhoneLast5(req.phone)}
-                    </span>
-                    <button
-                      type="button"
-                      className="mrc-copy-btn"
-                      title={user ? "Sao chép số điện thoại" : "Đăng nhập để xem số điện thoại"}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!user) {
-                          setAuthModal('login');
-                          return;
-                        }
-                        navigator.clipboard.writeText(req.phone);
-                        setCopiedPhoneId(req._id);
-                        setTimeout(() => setCopiedPhoneId(null), 2000);
-                      }}
-                    >
-                      {copiedPhoneId === req._id ? '✓' : '📄'}
-                    </button>
-                  </div>
-
-                  {/* Middle Grid: Left Route Points, Right Mint Price Card */}
-                  <div className="mrc-middle-grid">
-                    <div className="mrc-route-track">
-                      <div className="mrc-point-row">
-                        <span className="mrc-point-dot mrc-point-dot--green" />
-                        <div className="mrc-point-text-wrap">
-                          <span className="mrc-point-title">{req.startPoint}</span>
-                          <span className="mrc-point-sub">Điểm đi</span>
-                        </div>
-                      </div>
-                      <div className="mrc-route-divider" />
-                      <div className="mrc-point-row">
-                        <span className="mrc-point-dot mrc-point-dot--red" />
-                        <div className="mrc-point-text-wrap">
-                          <span className="mrc-point-title">{req.endPoint}</span>
-                          <span className="mrc-point-sub">Điểm đến</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mrc-price-card">
-                      <div className="mrc-price-label">👛 Giá chuyến</div>
-                      <div className="mrc-price-amount">
-                        {Number(req.price).toLocaleString('vi-VN')}đ
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Note Box */}
-                  <div className="mrc-note-box">
-                    <span className="mrc-note-icon">📄</span>
-                    <span className="mrc-note-text">
-                      <strong>Ghi chú: </strong>
-                      {req.note || 'Khách đặt xe đi trong ngày, cần xe sạch sẽ, tài xế đúng giờ.'}
-                    </span>
-                  </div>
-
-                  {/* Action Button: NHẬN CUỐC XE NGAY */}
-                  <button
-                    type="button"
-                    className="mrc-call-btn"
-                    onClick={() => {
-                      if (!user) {
-                        setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
-                        setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
-                        setShowErrorPopup(true);
-                        return;
-                      }
-                      setCallSheet({ phone: req.phone });
-                    }}
-                  >
-                    <span>📞 NHẬN CUỐC XE NGAY</span>
-                    <span style={{ fontSize: '16px', fontWeight: 900 }}>›</span>
-                  </button>
-                </div>
-              ));
+              return displayList.map((req) => renderModernRideCard(req));
             })()}
           </div>
         </div>

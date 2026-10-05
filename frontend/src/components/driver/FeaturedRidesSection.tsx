@@ -10,6 +10,7 @@ type Props = {
     [key: string]: any;
   } | null;
   region?: Region;
+  limit?: number;
   onRequireAuth?: () => void;
   onRegisterClick?: () => void;
   onViewAllClick?: () => void;
@@ -511,11 +512,17 @@ const featuredRidesByRegion: Record<Region, any[]> = {
 const FeaturedRidesSection = ({
   user,
   region = 'north',
+  limit,
   onRequireAuth,
   onRegisterClick: _onRegisterClick,
   onViewAllClick
 }: Props) => {
-  const [rides, setRides] = useState<any[]>(featuredRidesByRegion[region] || featuredRidesByRegion.north);
+  const getInitialRides = () => {
+    const list = featuredRidesByRegion[region] || featuredRidesByRegion.north;
+    return limit ? list.slice(0, limit) : list;
+  };
+
+  const [rides, setRides] = useState<any[]>(getInitialRides);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -526,14 +533,16 @@ const FeaturedRidesSection = ({
       try {
         const res = await driverFakeNotificationsAPI.getFakeNotifications(region, true);
         if (isMounted && res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
-          setRides(res.data.data);
+          const list = res.data.data;
+          setRides(limit ? list.slice(0, limit) : list);
           return;
         }
       } catch (err) {
         console.warn('Cannot fetch fake-notifications from backend, using default list:', err);
       }
       if (isMounted) {
-        setRides(featuredRidesByRegion[region] || featuredRidesByRegion.north);
+        const list = featuredRidesByRegion[region] || featuredRidesByRegion.north;
+        setRides(limit ? list.slice(0, limit) : list);
       }
     };
 
@@ -541,7 +550,7 @@ const FeaturedRidesSection = ({
     return () => {
       isMounted = false;
     };
-  }, [region]);
+  }, [region, limit]);
 
   const handleRegisterOrAccept = async (notification: any) => {
     if (!user) {
