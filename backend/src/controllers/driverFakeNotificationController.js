@@ -42,17 +42,26 @@ exports.getFakeNotifications = async (req, res) => {
       };
     }
 
-    // Random số lượng theo cấu hình
-    const minCount = settings.minFakeCount;
-    const maxCount = settings.maxFakeCount;
-    const count = Math.min(
-      templates.length,
-      Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount
-    );
+    // Random số lượng theo cấu hình hoặc lấy tất cả nếu có query param
+    const returnAll = req.query.all === 'true';
+    const limitQuery = req.query.limit ? parseInt(req.query.limit) : null;
 
-    // Shuffle and take random templates
-    const shuffled = templates.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, count);
+    let selected;
+    if (returnAll) {
+      selected = templates;
+    } else if (limitQuery) {
+      selected = templates.slice(0, limitQuery);
+    } else {
+      const minCount = settings.minFakeCount || 10;
+      const maxCount = settings.maxFakeCount || 10;
+      const count = Math.min(
+        templates.length,
+        Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount
+      );
+
+      const shuffled = [...templates].sort(() => 0.5 - Math.random());
+      selected = shuffled.slice(0, count);
+    }
 
     res.status(200).json({
       success: true,

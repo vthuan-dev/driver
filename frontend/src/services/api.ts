@@ -77,7 +77,7 @@ export const driverAPI = {
 
 // ─── Driver Fake Notifications API ────────────────────────────────────────────
 export const driverFakeNotificationsAPI = {
-  getFakeNotifications:   (region: string) => api.get(`/driver/fake-notifications?region=${region}`),
+  getFakeNotifications:   (region: string, all?: boolean) => api.get(`/driver/fake-notifications?region=${region}${all ? '&all=true' : ''}`),
   acceptFakeNotification: (id: string)     => api.post(`/driver/fake-notifications/${id}/accept`),
 };
 

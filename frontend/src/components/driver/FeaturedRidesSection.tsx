@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { driverFakeNotificationsAPI } from '../../services/api';
 
 type Region = 'north' | 'central' | 'south';
 
@@ -510,10 +512,60 @@ const FeaturedRidesSection = ({
   user,
   region = 'north',
   onRequireAuth,
-  onRegisterClick,
+  onRegisterClick: _onRegisterClick,
   onViewAllClick
 }: Props) => {
-  const currentList = featuredRidesByRegion[region] || featuredRidesByRegion.north;
+  const [rides, setRides] = useState<any[]>(featuredRidesByRegion[region] || featuredRidesByRegion.north);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBackendRides = async () => {
+      try {
+        const res = await driverFakeNotificationsAPI.getFakeNotifications(region, true);
+        if (isMounted && res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
+          setRides(res.data.data);
+          return;
+        }
+      } catch (err) {
+        console.warn('Cannot fetch fake-notifications from backend, using default list:', err);
+      }
+      if (isMounted) {
+        setRides(featuredRidesByRegion[region] || featuredRidesByRegion.north);
+      }
+    };
+
+    fetchBackendRides();
+    return () => {
+      isMounted = false;
+    };
+  }, [region]);
+
+  const handleRegisterOrAccept = async (notification: any) => {
+    if (!user) {
+      if (onRequireAuth) onRequireAuth();
+      return;
+    }
+    const notifId = notification._id || notification.id;
+    try {
+      setAcceptingId(String(notifId));
+      if (notifId && !String(notifId).startsWith('featured-')) {
+        await driverFakeNotificationsAPI.acceptFakeNotification(String(notifId));
+      } else {
+        await new Promise((r) => setTimeout(r, 600));
+      }
+      setErrorMessage('Đã có tài xế nhận cuốc xe này trước bạn 1 giây!');
+      setShowErrorPopup(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Đã có tài xế nhận cuốc, vui lòng đợi cuốc tiếp theo';
+      setErrorMessage(msg);
+      setShowErrorPopup(true);
+    } finally {
+      setAcceptingId(null);
+    }
+  };
 
   return (
     <div className="featured-rides-section">
@@ -537,21 +589,22 @@ const FeaturedRidesSection = ({
 
       <AnimatePresence mode="wait">
         <div className="featured-rides-list" key={region}>
-          {currentList.map((notification, index) => {
+          {rides.map((notification, index) => {
             const dateObj = notification.displayDate ? new Date(notification.displayDate) : new Date();
             const weekday = dateObj.toLocaleDateString('vi-VN', { weekday: 'long' });
             const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
             const dateStr = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const timeString = `${notification.displayTime || '04:00'} · ${weekdayCap}, ${dateStr}`;
+            const itemKey = String(notification._id || notification.id || `ride-${index}`);
 
             return (
               <motion.div
-                key={notification._id}
+                key={itemKey}
                 className="featured-ride-card"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.25, delay: index * 0.08 }}
+                transition={{ duration: 0.25, delay: index * 0.05 }}
               >
                 {/* Header: Time + Hot badge */}
                 <div className="featured-card-top">
@@ -673,25 +726,85 @@ const FeaturedRidesSection = ({
                 <button
                   type="button"
                   className="featured-card-submit-btn"
-                  onClick={() => {
-                    if (!user) {
-                      if (onRequireAuth) onRequireAuth();
-                      return;
-                    }
-                    if (onRegisterClick) {
-                      onRegisterClick();
-                    } else if (onViewAllClick) {
-                      onViewAllClick();
-                    }
-                  }}
+                  disabled={acceptingId === itemKey}
+                  onClick={() => handleRegisterOrAccept(notification)}
                 >
-                  <span>ĐĂNG KÝ CHỞ CUỐC XE</span>
-                  <span className="featured-btn-arrow">›</span>
+                  {acceptingId === itemKey ? (
+                    <span>ĐANG XỬ LÝ...</span>
+                  ) : (
+                    <>
+                      <span>ĐĂNG KÝ CHỞ CUỐC XE</span>
+                      <span className="featured-btn-arrow">›</span>
+                    </>
+                  )}
                 </button>
               </motion.div>
             );
           })}
         </div>
+      </AnimatePresence>
+
+      {/* Error Popup Modal */}
+      <AnimatePresence>
+        {showErrorPopup && (
+          <motion.div
+            className="error-popup-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <motion.div
+              className="error-popup-content"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '16px',
+                textAlign: 'center',
+                maxWidth: '340px',
+                width: '90%',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+              }}
+            >
+              <div style={{ fontSize: '42px', marginBottom: '10px' }}>⚠️</div>
+              <h3 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '18px', fontWeight: 800 }}>Rất tiếc!</h3>
+              <p style={{ color: '#334155', marginBottom: '20px', lineHeight: '1.5', fontSize: '14px' }}>
+                {errorMessage}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowErrorPopup(false)}
+                style={{
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  width: '100%',
+                  fontWeight: 800,
+                  fontSize: '15px',
+                  cursor: 'pointer'
+                }}
+              >
+                ĐÃ HIỂU
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
