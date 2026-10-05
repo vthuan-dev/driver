@@ -25,19 +25,19 @@
 
 /* Fake Notifications Section */
 .fake-notifications-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.5s ease-out;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px 14px;
+  margin: 14px 14px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .section-header h3 {
@@ -232,10 +232,10 @@
 
 /* Timeline: pickup -> dropoff */
 .ride-timeline {
-  background: #fffdf2;
-  border: 1px solid #f5efd6;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 14px 14px 14px 16px;
+  padding: 12px 14px;
   position: relative;
 }
 
