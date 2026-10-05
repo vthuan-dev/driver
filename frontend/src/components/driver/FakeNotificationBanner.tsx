@@ -285,30 +285,36 @@ const FakeNotificationBanner = ({
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25, delay: index * 0.08 }}
             >
-              {/* Row 1: Time on left, Price on right */}
+              {/* Row 1: Time */}
               <div className="ride-card-header">
                 <span className="ride-time-wrap">
                   <span className="ride-time-icon">🕐</span>
                   <span className="ride-time-text">{formatRideDate(notification)}</span>
                 </span>
+                <span className="ride-latest-badge" style={{ fontSize: '11px', padding: '3px 8px', fontWeight: 700 }}>
+                  ⚡ Cuốc hot
+                </span>
+              </div>
+
+              {/* Row 2: Car type + Route on left, Price on right (moved down & shifted left) */}
+              <div className="ride-summary-row">
+                <div className="ride-summary-container">
+                  <div className="ride-cartype">
+                    🚗 Có tài xế bắn cuốc {notification.carType} chỗ
+                  </div>
+                  <div className="ride-summary-route">
+                    <span className="ride-pin ride-pin-start">📍</span>
+                    <span className="ride-summary-point ride-point-start">{notification.startPoint}</span>
+                    <span className="ride-summary-arrow">→</span>
+                    <span className="ride-pin ride-pin-end">📍</span>
+                    <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
+                  </div>
+                </div>
+
                 <span className="ride-price-block">
                   <span className="ride-price">{Number(notification.price).toLocaleString('vi-VN')}đ</span>
                   <span className="ride-price-label">Giá chuyến</span>
                 </span>
-              </div>
-
-              {/* Row 2: Car type + Route */}
-              <div className="ride-summary-container">
-                <div className="ride-cartype">
-                  🚗 Có tài xế bắn cuốc {notification.carType} chỗ
-                </div>
-                <div className="ride-summary-route">
-                  <span className="ride-pin ride-pin-start">📍</span>
-                  <span className="ride-summary-point ride-point-start">{notification.startPoint}</span>
-                  <span className="ride-summary-arrow">→</span>
-                  <span className="ride-pin ride-pin-end">📍</span>
-                  <span className="ride-summary-point ride-point-end">{notification.endPoint}</span>
-                </div>
               </div>
 
               {/* Row 3: Timeline Route Box (Điểm đón -> Điểm đến) */}
