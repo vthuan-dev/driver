@@ -8,6 +8,7 @@ import AdminLogin from './components/admin/Login'
 import AdminDashboard from './components/admin/Dashboard'
 import DriverDashboard from './components/driver/DriverDashboard'
 import FakeNotificationBanner from './components/driver/FakeNotificationBanner'
+import FeaturedRidesSection from './components/driver/FeaturedRidesSection'
 import AppPricingModal from './components/driver/AppPricingModal'
 import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
@@ -1692,7 +1693,10 @@ function MainApp() {
           <div className="action-grid-row">
             <div
               className="action-card action-card--active-green"
-              onClick={() => setActiveNavTab('rides')}
+              onClick={() => {
+                setActiveNavTab('rides');
+                setRidesSubFilter('all');
+              }}
             >
               <div className="action-card__icon-wrap">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -1837,8 +1841,8 @@ function MainApp() {
             ))}
           </div>
 
-          {/* Featured Ride Section: Cuốc xe mới nhất with Google Maps route */}
-          <FakeNotificationBanner
+          {/* Featured Ride Section: Cuốc xe mới nhất with Google Maps route matching Homepage */}
+          <FeaturedRidesSection
             user={user}
             region={activeRequestRegion}
             onRequireAuth={() => {
@@ -1853,7 +1857,10 @@ function MainApp() {
                 openModal();
               }
             }}
-            onViewAllClick={() => setActiveNavTab('rides')}
+            onViewAllClick={() => {
+              setActiveNavTab('rides');
+              setRidesSubFilter('all');
+            }}
           />
         </div>
       )}
@@ -1950,6 +1957,26 @@ function MainApp() {
               <span>⚡ Cuốc gấp</span>
             </button>
           </div>
+
+          {/* Show cuốc ảo when in 'Tìm cuốc xe' (ridesSubFilter === 'all') */}
+          {ridesSubFilter === 'all' && !ridesSearchQuery.trim() && (
+            <FakeNotificationBanner
+              user={user}
+              region={activeRequestRegion}
+              onRequireAuth={() => {
+                setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+                setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+                setShowErrorPopup(true);
+              }}
+              onRegisterClick={() => {
+                if (!user) {
+                  setAuthModal('register');
+                } else {
+                  openModal();
+                }
+              }}
+            />
+          )}
 
           {/* Modern Ride Cards List matching Image 2 */}
           <div className="modern-rides-list">
