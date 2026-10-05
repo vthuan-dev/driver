@@ -16,7 +16,7 @@ type Props = {
   onViewAllClick?: () => void;
 };
 
-const getPlaceImage = (point: string = '', detail: string = '', customImage?: string) => {
+export const getPlaceImage = (point: string = '', detail: string = '', customImage?: string) => {
   if (customImage) return customImage;
   const text = (point + ' ' + detail).toLowerCase();
   if (text.includes('bắc giang')) return '/images/landmark_bac_giang.jpg';

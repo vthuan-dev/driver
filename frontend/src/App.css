@@ -2061,8 +2061,8 @@
   background: #ffffff;
   border-radius: 20px;
   padding: 16px;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid #10b981;
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.06);
 }
 
 .mrc-top-row {

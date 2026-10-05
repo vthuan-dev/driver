@@ -13,6 +13,7 @@ import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
 import DriverIncomePage from './components/driver/DriverIncomePage'
 import { AppTourCard, TourCurvedArrow } from './components/driver/AppTourGuide'
+import { getPlaceImage } from './components/driver/FeaturedRidesSection'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -208,21 +209,19 @@ function maskPhoneStrict(phone: string): string {
   return phone
 }
 
-function maskPhoneLast5(phone: string): string {
-  if (!phone) return ''
-  const clean = phone.replace(/\s+/g, '')
-  if (clean.length > 5) {
-    return clean.slice(0, clean.length - 5) + '*****'
-  }
-  return '*****'
-}
-
 const sampleFallbackRides: Array<{
   _id: string;
   name: string;
   phone: string;
   startPoint: string;
   endPoint: string;
+  startDetail?: string;
+  endDetail?: string;
+  displayTime?: string;
+  displayDate?: string;
+  badgeIcon?: string;
+  badgeText?: string;
+  category?: string;
   price: number;
   carType: string;
   tripType: string;
@@ -232,14 +231,39 @@ const sampleFallbackRides: Array<{
 }> = [
   // Miền Bắc
   {
+    _id: 'sample-north-0',
+    name: 'Nguyễn Văn Minh',
+    phone: '0978665544',
+    startPoint: 'Thái Nguyên',
+    endPoint: 'Hà Nội',
+    startDetail: 'TP. Thái Nguyên, Thái Nguyên',
+    endDetail: 'Sảnh T2 Sân bay Nội Bài, Hà Nội',
+    displayTime: '16:00',
+    price: 600000,
+    carType: '4',
+    tripType: 'one-way',
+    category: 'Khách du lịch',
+    badgeIcon: '⚡',
+    badgeText: 'Cuốc hot',
+    note: 'Cao tốc HN - TN, đúng giờ bay',
+    createdAt: new Date().toISOString(),
+    region: 'north'
+  },
+  {
     _id: 'sample-north-1',
     name: 'Hà Văn Huy',
     phone: '0913488386',
     startPoint: 'Hà Nội (Mỹ Đình)',
     endPoint: 'Hà Nam (Phủ Lý)',
+    startDetail: 'Bến xe Mỹ Đình, Nam Từ Liêm',
+    endDetail: 'Thành phố Phủ Lý, Hà Nam',
+    displayTime: '08:00',
     price: 1100000,
     carType: '4',
     tripType: 'round',
+    category: 'Khách công tác',
+    badgeIcon: '⚡',
+    badgeText: 'MỚI',
     note: 'Đi 2 chiều Hà Nội - Hà Nam, xe 4 chỗ sạch sẽ, đón 8h sáng',
     createdAt: new Date().toISOString(),
     region: 'north'
@@ -1155,7 +1179,7 @@ function MainApp() {
 
   const [ridesSearchQuery, setRidesSearchQuery] = useState('');
   const [ridesSubFilter, setRidesSubFilter] = useState<'all' | '4' | '7' | '16' | 'urgent'>('all');
-  const [copiedPhoneId, setCopiedPhoneId] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -1186,111 +1210,163 @@ function MainApp() {
     return (first + last).toUpperCase() || 'TX'
   }
 
-  const renderModernRideCard = (req: any) => (
-    <div key={req._id} className="modern-ride-card">
-      {/* Top Row: MỚI badge, Customer Name, Time badge, Menu */}
-      <div className="mrc-top-row">
-        <div className="mrc-caller-wrap">
-          <span className="mrc-badge-new">⚡ MỚI</span>
-          <span className="mrc-caller-name">{req.name || 'Khách hàng'}</span>
-        </div>
-        <div className="mrc-time-wrap">
-          <span className="mrc-time-badge">🕐 Vừa xong</span>
-          <span className="mrc-menu-btn">⋮</span>
-        </div>
-      </div>
+  const renderModernRideCard = (req: any) => {
+    const rawDate = req.displayDate ? new Date(req.displayDate) : (req.createdAt ? new Date(req.createdAt) : new Date());
+    const validDate = isNaN(rawDate.getTime()) ? new Date() : rawDate;
+    const weekday = validDate.toLocaleDateString('vi-VN', { weekday: 'long' });
+    const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const dateStr = validDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = req.displayTime || validDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const timeString = `${timeStr} · ${weekdayCap}, ${dateStr}`;
 
-      {/* Phone row with copy button */}
-      <div className="mrc-phone-row">
-        <span className="mrc-phone-icon">📞</span>
-        <span
-          className="mrc-phone-num"
-          style={{ cursor: user ? 'default' : 'pointer' }}
-          title={user ? undefined : 'Đăng nhập để xem đầy đủ số điện thoại'}
-          onClick={(e) => {
-            if (!user) {
-              e.stopPropagation();
-              setAuthModal('login');
-            }
+    const carType = req.carType || (req.note?.includes('7') ? '7' : (req.note?.includes('16') ? '16' : '4'));
+    const startPointName = req.startPoint || 'Điểm đón';
+    const endPointName = req.endPoint || 'Điểm đến';
+    const startDetailText = req.startDetail || req.startPoint || 'Điểm đón';
+    const endDetailText = req.endDetail || req.endPoint || 'Điểm đến';
+    const itemKey = String(req._id || req.id || `mrc-${Math.random()}`);
+
+    return (
+      <div key={itemKey} className="featured-ride-card modern-ride-card">
+        {/* Header: Time + Hot badge */}
+        <div className="featured-card-top">
+          <div className="featured-time-pill">
+            <span className="featured-time-icon">🕐</span>
+            <span className="featured-time-text">{timeString}</span>
+          </div>
+          <div className="featured-hot-pill">
+            <span className="featured-hot-icon">{req.badgeIcon || '⚡'}</span>
+            <span className="featured-hot-text">{req.badgeText || 'Cuốc hot'}</span>
+          </div>
+        </div>
+
+        {/* Car type & Price */}
+        <div className="featured-card-middle">
+          <div className="featured-card-cartype">
+            <span className="featured-car-emoji">🚗</span>
+            <span className="featured-car-name">Có tài xế bắn cuốc {carType} chỗ</span>
+          </div>
+          <div className="featured-card-price-wrap">
+            <div className="featured-card-price">{Number(req.price || 0).toLocaleString('vi-VN')}đ</div>
+            <div className="featured-card-price-sub">Giá chuyến</div>
+          </div>
+        </div>
+
+        {/* Route Points */}
+        <div className="featured-card-route">
+          <span className="route-pin-icon route-pin-icon--green">📍</span>
+          <span className="route-loc-name route-loc-name--start">{startPointName}</span>
+          <span className="route-arrow-icon">→</span>
+          <span className="route-pin-icon route-pin-icon--red">📍</span>
+          <span className="route-loc-name route-loc-name--end">{endPointName}</span>
+        </div>
+
+        {/* Dynamic Google Maps Route View */}
+        <div
+          className="featured-map-view"
+          title="Nhấn để mở chỉ đường trên Google Maps"
+          onClick={() => {
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(startDetailText + ', Việt Nam')}&destination=${encodeURIComponent(endDetailText + ', Việt Nam')}`;
+            window.open(url, '_blank');
           }}
         >
-          {user ? req.phone : maskPhoneLast5(req.phone)}
-        </span>
+          <div className="featured-map-bg">
+            <iframe
+              title={`Bản đồ ${startPointName} đến ${endPointName}`}
+              src={`https://maps.google.com/maps?saddr=${encodeURIComponent(startDetailText + ', Việt Nam')}&daddr=${encodeURIComponent(endDetailText + ', Việt Nam')}&output=embed`}
+              className="featured-map-iframe"
+              loading="lazy"
+            />
+          </div>
+
+          <div className="featured-map-expand-badge">
+            <span>🗺️ Google Maps</span>
+            <span style={{ fontSize: '11px', fontWeight: 800 }}>↗</span>
+          </div>
+
+          {/* Start Point Marker Card */}
+          <div className="featured-map-marker featured-map-marker--start">
+            {getPlaceImage(startPointName, startDetailText) ? (
+              <img
+                src={getPlaceImage(startPointName, startDetailText)!}
+                alt={startDetailText}
+                className="marker-img"
+                onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <div className="marker-img-placeholder marker-img-placeholder--start">
+                <span>📍</span>
+              </div>
+            )}
+            <div className="marker-content">
+              <span className="marker-badge marker-badge--start">Điểm đón</span>
+              <div className="marker-address">{startDetailText}</div>
+            </div>
+          </div>
+
+          {/* End Point Marker Card */}
+          <div className="featured-map-marker featured-map-marker--end">
+            {getPlaceImage(endPointName, endDetailText) ? (
+              <img
+                src={getPlaceImage(endPointName, endDetailText)!}
+                alt={endDetailText}
+                className="marker-img"
+                onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              <div className="marker-img-placeholder marker-img-placeholder--end">
+                <span>🏁</span>
+              </div>
+            )}
+            <div className="marker-content">
+              <span className="marker-badge marker-badge--end">Điểm đến</span>
+              <div className="marker-address">{endDetailText}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Specs row */}
+        <div className="featured-card-specs">
+          <div className="spec-tag">
+            <span className="spec-icon">🚗</span>
+            <span>{carType} chỗ</span>
+          </div>
+          <div className="spec-tag">
+            <span className="spec-icon">👥</span>
+            <span>{req.category || 'Khách du lịch'}</span>
+          </div>
+          <div className="spec-tag spec-tag--note">
+            <span className="spec-icon">💼</span>
+            <span className="spec-text">Yêu cầu: {req.note || 'Đưa đón tận nơi'}</span>
+          </div>
+          <div className="spec-tag-menu">⋮</div>
+        </div>
+
+        {/* Big Action Button */}
         <button
           type="button"
-          className="mrc-copy-btn"
-          title={user ? "Sao chép số điện thoại" : "Đăng nhập để xem số điện thoại"}
-          onClick={(e) => {
-            e.stopPropagation();
+          className="featured-card-submit-btn"
+          onClick={() => {
             if (!user) {
-              setAuthModal('login');
+              setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
+              setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
+              setShowErrorPopup(true);
               return;
             }
-            navigator.clipboard.writeText(req.phone);
-            setCopiedPhoneId(req._id);
-            setTimeout(() => setCopiedPhoneId(null), 2000);
+            if (req.phone) {
+              setCallSheet({ phone: req.phone });
+            } else {
+              setErrorMessage('Đã có tài xế nhận cuốc xe này trước bạn 1 giây!');
+              setShowErrorPopup(true);
+            }
           }}
         >
-          {copiedPhoneId === req._id ? '✓' : '📄'}
+          <span>ĐĂNG KÝ CHỞ CUỐC XE</span>
+          <span className="featured-btn-arrow">›</span>
         </button>
       </div>
-
-      {/* Middle Grid: Left Route Points, Right Mint Price Card */}
-      <div className="mrc-middle-grid">
-        <div className="mrc-route-track">
-          <div className="mrc-point-row">
-            <span className="mrc-point-dot mrc-point-dot--green" />
-            <div className="mrc-point-text-wrap">
-              <span className="mrc-point-title">{req.startPoint}</span>
-              <span className="mrc-point-sub">Điểm đi</span>
-            </div>
-          </div>
-          <div className="mrc-route-divider" />
-          <div className="mrc-point-row">
-            <span className="mrc-point-dot mrc-point-dot--red" />
-            <div className="mrc-point-text-wrap">
-              <span className="mrc-point-title">{req.endPoint}</span>
-              <span className="mrc-point-sub">Điểm đến</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mrc-price-card">
-          <div className="mrc-price-label">👛 Giá chuyến</div>
-          <div className="mrc-price-amount">
-            {Number(req.price).toLocaleString('vi-VN')}đ
-          </div>
-        </div>
-      </div>
-
-      {/* Note Box */}
-      <div className="mrc-note-box">
-        <span className="mrc-note-icon">📄</span>
-        <span className="mrc-note-text">
-          <strong>Ghi chú: </strong>
-          {req.note || 'Khách đặt xe đi trong ngày, cần xe sạch sẽ, tài xế đúng giờ.'}
-        </span>
-      </div>
-
-      {/* Action Button: NHẬN CUỐC XE NGAY */}
-      <button
-        type="button"
-        className="mrc-call-btn"
-        onClick={() => {
-          if (!user) {
-            setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
-            setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');
-            setShowErrorPopup(true);
-            return;
-          }
-          setCallSheet({ phone: req.phone });
-        }}
-      >
-        <span>📞 NHẬN CUỐC XE NGAY</span>
-        <span style={{ fontSize: '16px', fontWeight: 900 }}>›</span>
-      </button>
-    </div>
-  );
+    );
+  };
 
   // Load drivers from API
   useEffect(() => {
