@@ -16,114 +16,6 @@ type Props = {
   onViewAllClick?: () => void;
 };
 
-// Default featured fake rides matching the user's reference exactly
-const defaultRidesByRegion: Record<string, any[]> = {
-  north: [
-    {
-      _id: 'default-featured-north-1',
-      carType: '4',
-      price: 2800000,
-      startPoint: 'Phú Thọ',
-      endPoint: 'Lào Cai',
-      startDetail: 'Thành phố Việt Trì (Phú Thọ)',
-      startArea: 'Thành phố Việt Trì, Phú Thọ',
-      endDetail: 'Thị trấn du lịch Sa Pa (Lào Cai)',
-      endArea: 'Sa Pa, Lào Cai',
-      displayTime: '09:00',
-      displayDate: '2026-07-10',
-      note: 'Khách đi nghỉ dưỡng yêu cầu chạy thẳng tuyến cao tốc Nội Bài – Lào Cai, xe đời mới êm ái, tài xế không hút thuốc.'
-    },
-    {
-      _id: 'default-featured-north-2',
-      carType: '4',
-      price: 360000,
-      startPoint: 'Hà Nội',
-      endPoint: 'Bắc Ninh',
-      startDetail: 'Bến xe Gia Lâm (Hà Nội)',
-      startArea: 'Long Biên, Hà Nội',
-      endDetail: 'TP. Từ Sơn (Bắc Ninh)',
-      endArea: 'Từ Sơn, Bắc Ninh',
-      displayTime: '09:30',
-      displayDate: '2026-07-10',
-      note: 'Khách đi công tác mang theo 1 vali nhỏ.'
-    },
-    {
-      _id: 'default-featured-north-3',
-      carType: '7',
-      price: 4200000,
-      startPoint: 'Bắc Giang',
-      endPoint: 'Cao Bằng',
-      startDetail: 'TP. Bắc Giang',
-      startArea: 'TP. Bắc Giang',
-      endDetail: 'Thác Bản Giốc (Trùng Khánh, Cao Bằng)',
-      endArea: 'Trùng Khánh, Cao Bằng',
-      displayTime: '04:00',
-      displayDate: '2026-10-05',
-      note: 'Gia đình đi du lịch vùng cao cuối tuần.'
-    }
-  ],
-  central: [
-    {
-      _id: 'default-featured-central-1',
-      carType: '7',
-      price: 2800000,
-      startPoint: 'Đà Nẵng',
-      endPoint: 'Quy Nhơn',
-      startDetail: 'Sân bay Đà Nẵng',
-      startArea: 'Hải Châu, Đà Nẵng',
-      endDetail: 'Kỳ Co – Eo Gió (Quy Nhơn)',
-      endArea: 'Quy Nhơn, Bình Định',
-      displayTime: '07:30',
-      displayDate: '2026-10-05',
-      note: 'Đi công tác & du lịch kết hợp.'
-    },
-    {
-      _id: 'default-featured-central-2',
-      carType: '4',
-      price: 450000,
-      startPoint: 'Đà Nẵng',
-      endPoint: 'Hội An',
-      startDetail: 'Cầu Rồng, Đà Nẵng',
-      startArea: 'Sơn Trà, Đà Nẵng',
-      endDetail: 'Phố cổ Hội An',
-      endArea: 'Hội An, Quảng Nam',
-      displayTime: '08:15',
-      displayDate: '2026-10-05',
-      note: 'Đoàn 2 khách du lịch nước ngoài.'
-    }
-  ],
-  south: [
-    {
-      _id: 'default-featured-south-1',
-      carType: '7',
-      price: 1800000,
-      startPoint: 'TP. Hồ Chí Minh',
-      endPoint: 'Vũng Tàu',
-      startDetail: 'Quận 1, TP. HCM',
-      startArea: 'Quận 1, TP. Hồ Chí Minh',
-      endDetail: 'Bãi Sau, TP. Vũng Tàu',
-      endArea: 'Bãi Sau, TP. Vũng Tàu',
-      displayTime: '06:00',
-      displayDate: '2026-10-05',
-      note: 'Đưa đón tận nơi, xe êm ái.'
-    },
-    {
-      _id: 'default-featured-south-2',
-      carType: '4',
-      price: 650000,
-      startPoint: 'TP. Hồ Chí Minh',
-      endPoint: 'Bình Dương',
-      startDetail: 'Sân bay Tân Sơn Nhất',
-      startArea: 'Tân Bình, TP. HCM',
-      endDetail: 'TP. Thủ Dầu Một',
-      endArea: 'Thủ Dầu Một, Bình Dương',
-      displayTime: '07:45',
-      displayDate: '2026-10-05',
-      note: 'Chuyên gia nước ngoài đi công tác KCN.'
-    }
-  ]
-};
-
 const FakeNotificationBanner = ({
   user,
   region = 'north',
@@ -142,11 +34,10 @@ const FakeNotificationBanner = ({
     try {
       setLoadingNotifications(true);
       const response = await driverFakeNotificationsAPI.getFakeNotifications(currentRegion, true);
-      const newNotifications = response.data.data || [];
+      const newNotifications = response.data?.data || [];
+      setFakeNotifications(newNotifications);
 
       if (newNotifications.length > 0) {
-        setFakeNotifications(newNotifications);
-
         // Bắn thông báo đẩy ra Desktop / Mobile nếu có quyền
         if ('Notification' in window && Notification.permission === 'granted') {
           const notif = newNotifications[0];
@@ -167,7 +58,7 @@ const FakeNotificationBanner = ({
 
       let min = 15;
       let max = 30;
-      if (response.data.settings) {
+      if (response.data?.settings) {
         min = response.data.settings.minInterval || 15;
         max = response.data.settings.maxInterval || 30;
       }
@@ -198,18 +89,13 @@ const FakeNotificationBanner = ({
   const handleAcceptFakeNotification = async (notificationId: string) => {
     try {
       setAcceptingNotificationId(notificationId);
-      if (!String(notificationId).startsWith('default-')) {
-        await driverFakeNotificationsAPI.acceptFakeNotification(notificationId);
-      } else {
-        await new Promise((r) => setTimeout(r, 500));
-        throw new Error('Đã có tài xế nhận cuốc, vui lòng đợi cuốc tiếp theo');
-      }
+      await driverFakeNotificationsAPI.acceptFakeNotification(notificationId);
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Đã có tài xế nhận cuốc, vui lòng đợi cuốc tiếp theo';
       setErrorMessage(message);
       setShowErrorPopup(true);
       setTimeout(() => {
-        setFakeNotifications((prev) => prev.filter((n) => n._id !== notificationId));
+        setFakeNotifications((prev) => prev.filter((n) => n._id !== notificationId && n.id !== notificationId));
         setShowErrorPopup(false);
       }, 3000);
     } finally {
@@ -222,7 +108,7 @@ const FakeNotificationBanner = ({
       if (onRequireAuth) onRequireAuth();
       return;
     }
-    handleAcceptFakeNotification(notification._id);
+    handleAcceptFakeNotification(notification._id || notification.id);
   };
 
   const formatRideDate = (notification: any) => {
@@ -234,12 +120,12 @@ const FakeNotificationBanner = ({
     return `${time} · ${weekdayCap}, ${dateStr}`;
   };
 
-  // Merge database fake notifications with default mock rides so the list is NEVER empty
-  const baseRides = defaultRidesByRegion[region] || defaultRidesByRegion.north;
-  const fullList = fakeNotifications.length > 0
-    ? [...fakeNotifications, ...baseRides.filter((b) => !fakeNotifications.some((f) => f.startPoint === b.startPoint && f.endPoint === b.endPoint))]
-    : baseRides;
-  const displayList = limit ? fullList.slice(0, limit) : fullList;
+  // Chỉ hiển thị tối đa 1 thẻ cuốc xe ảo duy nhất từ backend (khớp #root > div > div > div.fake-notifications-section > div.fake-notifications-list > div:nth-child(1))
+  const displayList = (limit ? fakeNotifications.slice(0, limit) : fakeNotifications).slice(0, 1);
+
+  if (displayList.length === 0) {
+    return null;
+  }
 
   return (
     <div className="fake-notifications-section">
