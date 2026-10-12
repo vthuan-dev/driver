@@ -3023,11 +3023,10 @@ function MainApp() {
       <AnimatePresence>
         {showPayment && (
           <div className="modal" role="dialog" aria-modal="true">
-            <motion.div className="modal__backdrop" onClick={() => setShowPayment(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div className="modal__backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
             <motion.div className="modal__panel" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
               <div className="modal__header">
                 <div className="modal__title">Phí vào nhóm 200.000đ</div>
-                <button className="modal__close" onClick={() => setShowPayment(false)} aria-label="Đóng">×</button>
               </div>
               <div style={{ padding: '8px 16px', overflowY: 'auto', flex: 1, maxHeight: 'calc(90vh - 60px)', WebkitOverflowScrolling: 'touch' }}>
                 <p style={{ marginTop: 0 }}>Vui lòng chuyển khoản 200.000đ theo QR bên dưới để hoàn tất đăng ký.</p>
@@ -3040,8 +3039,43 @@ function MainApp() {
                     style={{ width: '100%', maxWidth: 360, borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,.08)' }}
                   />
                 </div>
-                <div style={{ marginTop: 12, fontSize: 13, color: '#444' }}>Nội dung chuyển khoản: <strong>Phi tham gia nhom</strong></div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 16, marginBottom: 16 }}>
+                
+                {/* Alert thông báo hoàn tất chuyển khoản theo Ảnh 1 */}
+                <div
+                  style={{
+                    marginTop: 14,
+                    background: '#fef2f2',
+                    border: '1px solid #fee2e2',
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      minWidth: 22,
+                      borderRadius: '50%',
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 13,
+                      fontWeight: 800,
+                    }}
+                  >
+                    !
+                  </div>
+                  <div style={{ color: '#b91c1c', fontSize: 13.5, fontWeight: 600, lineHeight: 1.35 }}>
+                    Vui lòng hoàn tất chuyển khoản để tiếp tục đăng ký.
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 14, marginBottom: 16 }}>
                   <button
                     className="submit"
                     onClick={async () => {
@@ -3068,11 +3102,20 @@ function MainApp() {
                         setLoading(false)
                       }
                     }}
-                    style={{ flex: 1 }}
+                    style={{
+                      width: '100%',
+                      background: '#38a169',
+                      borderRadius: 14,
+                      padding: '14px 16px',
+                      fontSize: 15,
+                      fontWeight: 700,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      opacity: loading ? 0.7 : 1,
+                    }}
+                    disabled={loading}
                   >
-                    Tôi đã chuyển 200k - Tiếp tục
+                    {loading ? 'ĐANG XỬ LÝ...' : 'Tôi đã chuyển 200k - Tiếp tục'}
                   </button>
-                  <button className="sheet__cancel" onClick={() => setShowPayment(false)} style={{ flex: 1 }}>Để sau</button>
                 </div>
               </div>
             </motion.div>
