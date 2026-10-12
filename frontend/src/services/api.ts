@@ -35,10 +35,11 @@ api.interceptors.response.use(
 
 // ─── Auth API ──────────────────────────────────────────────────────────────────
 export const authAPI = {
-  register:   (userData: any)    => api.post('/auth/register', userData),
-  login:      (credentials: any) => api.post('/auth/login', credentials),
-  adminLogin: (credentials: any) => api.post('/auth/admin/login', credentials),
-  getMe:      ()                 => api.get('/auth/me'),
+  register:    (userData: any)    => api.post('/auth/register', userData),
+  login:       (credentials: any) => api.post('/auth/login', credentials),
+  adminLogin:  (credentials: any) => api.post('/auth/admin/login', credentials),
+  getMe:       ()                 => api.get('/auth/me'),
+  checkStatus: (phone: string)    => api.get(`/auth/status/${phone}`),
 };
 
 // ─── Users API ─────────────────────────────────────────────────────────────────

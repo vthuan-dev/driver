@@ -13,6 +13,8 @@ import DownloadAppPage from './components/driver/DownloadAppPage'
 import LoginWelcomeModal from './components/driver/LoginWelcomeModal'
 import DriverIncomePage from './components/driver/DriverIncomePage'
 import { AppTourCard, TourCurvedArrow } from './components/driver/AppTourGuide'
+import PendingApprovalModal from './components/auth/PendingApprovalModal'
+import UnpaidAccountModal from './components/auth/UnpaidAccountModal'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -1120,6 +1122,8 @@ function MainApp() {
     south: ''
   })
   const [showPayment, setShowPayment] = useState(false)
+  const [showPendingApprovalModal, setShowPendingApprovalModal] = useState(false)
+  const [showUnpaidModal, setShowUnpaidModal] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
@@ -2858,6 +2862,30 @@ function MainApp() {
                     return;
                   }
 
+                  // Kiểm tra số điện thoại xem đã từng đăng ký chưa
+                  const cleanPhone = authForm.phone.trim();
+                  setLoading(true);
+                  try {
+                    const statusRes = await authAPI.checkStatus(cleanPhone);
+                    if (statusRes.data?.status === 'pending') {
+                      // Tài khoản đã đăng ký nhưng chưa duyệt / chưa đóng phí -> Hiện Ảnh 3
+                      setLoading(false);
+                      setAuthModal(null);
+                      setShowUnpaidModal(true);
+                      return;
+                    } else if (statusRes.data?.status === 'approved') {
+                      setLoading(false);
+                      alert('Số điện thoại này đã được kích hoạt tài khoản. Vui lòng đăng nhập.');
+                      setAuthModal('login');
+                      return;
+                    }
+                  } catch (err: any) {
+                    // Nếu 404 (chưa đăng ký) hoặc lỗi khác, tiếp tục luồng chuyển khoản bình thường
+                    console.log('Check status response:', err.response?.status);
+                  } finally {
+                    setLoading(false);
+                  }
+
                   // Show payment modal before actual registration
                   setPendingRegister({
                     name: authForm.name,
@@ -3084,20 +3112,26 @@ function MainApp() {
                       try {
                         await authAPI.register(pendingRegister)
                         localStorage.setItem('driver_registered', '1')
-                        setShowSuccess(true)
-                        setErrorMessage('Đăng ký thành công! Tài khoản của bạn đang chờ admin phê duyệt. Bạn sẽ nhận được thông báo khi được duyệt.')
-                        setShowError(true)
-                        setTimeout(() => { setShowSuccess(false); setShowError(false) }, 5000)
                         setAuthModal(null)
                         setShowPayment(false)
                         setPendingRegister(null)
+                        setShowPendingApprovalModal(true)
                       } catch (error: any) {
                         let errorMsg = 'Có lỗi xảy ra'
                         if (error.response?.data?.message) errorMsg = error.response.data.message
                         else if (error.message) errorMsg = error.message
-                        setErrorMessage(errorMsg)
-                        setShowError(true)
-                        setTimeout(() => setShowError(false), 5000)
+
+                        // Nếu tài khoản đã được đăng ký trước đó (chưa đóng phí mà đăng ký lại) -> Hiện Modal Ảnh 3
+                        if (errorMsg.includes('đã được đăng ký')) {
+                          setShowPayment(false)
+                          setPendingRegister(null)
+                          setAuthModal(null)
+                          setShowUnpaidModal(true)
+                        } else {
+                          setErrorMessage(errorMsg)
+                          setShowError(true)
+                          setTimeout(() => setShowError(false), 5000)
+                        }
                       } finally {
                         setLoading(false)
                       }
@@ -3195,6 +3229,18 @@ function MainApp() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Modal Duyệt tài khoản (Ảnh 2) */}
+      <PendingApprovalModal
+        isOpen={showPendingApprovalModal}
+        onClose={() => setShowPendingApprovalModal(false)}
+      />
+
+      {/* Modal Chưa đóng phí (Ảnh 3) */}
+      <UnpaidAccountModal
+        isOpen={showUnpaidModal}
+        onClose={() => setShowUnpaidModal(false)}
+      />
 
     </div>
   )
