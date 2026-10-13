@@ -15,6 +15,7 @@ import DriverIncomePage from './components/driver/DriverIncomePage'
 import { AppTourCard, TourCurvedArrow } from './components/driver/AppTourGuide'
 import PendingApprovalModal from './components/auth/PendingApprovalModal'
 import UnpaidAccountModal from './components/auth/UnpaidAccountModal'
+import WithdrawModal from './components/driver/WithdrawModal'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -1124,6 +1125,7 @@ function MainApp() {
   const [showPayment, setShowPayment] = useState(false)
   const [showPendingApprovalModal, setShowPendingApprovalModal] = useState(false)
   const [showUnpaidModal, setShowUnpaidModal] = useState(false)
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
@@ -2483,53 +2485,32 @@ function MainApp() {
               </div>
             </div>
 
-            {user?.status === 'approved' && (
+            {user && (
               <>
                 <button
                   type="button"
                   className="modern-call-driver-btn"
-                  style={{ marginBottom: 10, background: '#0f172a' }}
-                  onClick={() => setShowDriverDashboard(true)}
+                  style={{ marginBottom: 12, background: '#059669', fontWeight: 700 }}
+                  onClick={() => setShowWithdrawModal(true)}
                 >
-                  📊 Xem Dashboard quản lý chi tiết
+                  💳 Rút tiền
                 </button>
                 <button
                   type="button"
                   className="modern-call-driver-btn"
-                  style={{ marginBottom: 10, background: '#00b14f' }}
-                  onClick={() => setActiveNavTab('income')}
-                >
-                  💵 Báo cáo thu nhập tài xế
-                </button>
-                <button
-                  type="button"
-                  className="modern-call-driver-btn"
-                  style={{ marginBottom: 10, background: '#2563eb' }}
+                  style={{ background: '#ef4444', fontWeight: 700 }}
                   onClick={() => {
-                    setShowPricingModal(true);
+                    localStorage.removeItem('driver_user');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('driver_registered');
+                    setUser(null);
+                    setShowDriverDashboard(false);
+                    setActiveNavTab('home');
                   }}
                 >
-                  📱 Tải ứng dụng APK di động
+                  🚪 Đăng xuất tài khoản
                 </button>
               </>
-            )}
-
-            {user && (
-              <button
-                type="button"
-                className="modern-call-driver-btn"
-                style={{ background: '#ef4444' }}
-                onClick={() => {
-                  localStorage.removeItem('driver_user');
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('driver_registered');
-                  setUser(null);
-                  setShowDriverDashboard(false);
-                  setActiveNavTab('home');
-                }}
-              >
-                🚪 Đăng xuất tài khoản
-              </button>
             )}
 
             {!user && (
@@ -3235,10 +3216,22 @@ function MainApp() {
         onClose={() => setShowPendingApprovalModal(false)}
       />
 
-      {/* Modal Chưa đóng phí (Ảnh 3) */}
+      {/* Modal Chưa đóng phí (Ảnh 1 & Ảnh 2) kèm mã QR */}
       <UnpaidAccountModal
         isOpen={showUnpaidModal}
         onClose={() => setShowUnpaidModal(false)}
+        bankConfig={bankConfig}
+        onPaymentSuccess={() => {
+          setShowUnpaidModal(false);
+          setShowPendingApprovalModal(true);
+        }}
+      />
+
+      {/* Modal Rút tiền ký quỹ */}
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        bankConfig={bankConfig}
       />
 
     </div>

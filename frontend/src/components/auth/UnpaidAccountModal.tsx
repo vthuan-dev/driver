@@ -1,15 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UnpaidAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
+  bankConfig?: {
+    bankCode?: string;
+    bankName?: string;
+    accountNo?: string;
+    accountName?: string;
+  };
+  onPaymentSuccess?: () => void;
 }
 
 export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
   isOpen,
   onClose,
+  bankConfig = {},
+  onPaymentSuccess,
 }) => {
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const bankCode = bankConfig.bankCode || 'VIB';
+  const accountNo = bankConfig.accountNo || '092480168';
+  const accountName = bankConfig.accountName || 'HOANG MANH DUY';
+  const amount = '200.000đ';
+  const memo = 'Phi tham gia nhom';
+
+  const qrImageUrl =
+    bankConfig.bankCode && bankConfig.accountNo
+      ? `https://img.vietqr.io/image/${bankConfig.bankCode}-${bankConfig.accountNo}-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=${encodeURIComponent(
+          bankConfig.accountName || 'TEST'
+        )}`
+      : `https://img.vietqr.io/image/VIB-092480168-compact2.png?amount=200000&addInfo=Phi%20tham%20gia%20nhom&accountName=HOANG%20MANH%20DUY`;
+
+  const copyToClipboard = (text: string, fieldName: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopiedField(fieldName);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -50,10 +80,13 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
             style={{
               position: 'relative',
               width: '100%',
-              maxWidth: 390,
+              maxWidth: 410,
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
               background: '#ffffff',
               borderRadius: 28,
-              padding: '28px 22px 34px',
+              padding: '24px 20px 28px',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               textAlign: 'center',
               boxSizing: 'border-box',
@@ -66,8 +99,8 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
               aria-label="Đóng"
               style={{
                 position: 'absolute',
-                top: 16,
-                right: 16,
+                top: 14,
+                right: 14,
                 width: 34,
                 height: 34,
                 borderRadius: '50%',
@@ -80,7 +113,7 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
                 color: '#334155',
                 fontSize: 18,
                 fontWeight: 600,
-                transition: 'background 0.2s',
+                zIndex: 2,
               }}
             >
               ✕
@@ -92,13 +125,13 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 16,
-                marginTop: 6,
+                marginBottom: 12,
+                marginTop: 4,
               }}
             >
               <svg
-                width="240"
-                height="190"
+                width="220"
+                height="175"
                 viewBox="0 0 240 190"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -153,40 +186,29 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
 
                 {/* Stack of Golden Coins at Bottom-Left */}
                 <g transform="translate(62, 98)">
-                  {/* Coin 1 (Bottom) */}
                   <g transform="translate(0, 22)">
                     <ellipse cx="20" cy="8" rx="16" ry="6" fill="#b45309" />
                     <rect x="4" y="4" width="32" height="6" fill="#d97706" />
                     <ellipse cx="20" cy="4" rx="16" ry="6" fill="#f59e0b" />
                     <ellipse cx="20" cy="4" rx="13" ry="4.5" fill="#fbbf24" />
-                    <path d="M 18 4 L 22 4 M 20 2 L 20 6" stroke="#d97706" strokeWidth="1.2" strokeLinecap="round" />
                   </g>
-
-                  {/* Coin 2 (Middle) */}
                   <g transform="translate(0, 11)">
                     <ellipse cx="20" cy="8" rx="16" ry="6" fill="#b45309" />
                     <rect x="4" y="4" width="32" height="6" fill="#d97706" />
                     <ellipse cx="20" cy="4" rx="16" ry="6" fill="#f59e0b" />
                     <ellipse cx="20" cy="4" rx="13" ry="4.5" fill="#fbbf24" />
-                    <path d="M 18 4 L 22 4 M 20 2 L 20 6" stroke="#d97706" strokeWidth="1.2" strokeLinecap="round" />
                   </g>
-
-                  {/* Coin 3 (Top Left) */}
                   <g transform="translate(0, 0)">
                     <ellipse cx="20" cy="8" rx="16" ry="6" fill="#b45309" />
                     <rect x="4" y="4" width="32" height="6" fill="#d97706" />
                     <ellipse cx="20" cy="4" rx="16" ry="6" fill="#f59e0b" />
                     <ellipse cx="20" cy="4" rx="13" ry="4.5" fill="#fbbf24" />
-                    <path d="M 18 4 L 22 4 M 20 2 L 20 6" stroke="#d97706" strokeWidth="1.2" strokeLinecap="round" />
                   </g>
-
-                  {/* Coin 4 (Front Right slight overlap) */}
                   <g transform="translate(18, 12)">
                     <ellipse cx="14" cy="7" rx="13" ry="5.5" fill="#b45309" />
                     <rect x="1" y="3" width="26" height="5" fill="#d97706" />
                     <ellipse cx="14" cy="3" rx="13" ry="5.5" fill="#f59e0b" />
                     <ellipse cx="14" cy="3" rx="10.5" ry="4" fill="#fde047" />
-                    <path d="M 12 3 L 16 3 M 14 1.5 L 14 4.5" stroke="#d97706" strokeWidth="1" strokeLinecap="round" />
                   </g>
                 </g>
               </svg>
@@ -195,8 +217,8 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
             {/* Title: Tài khoản của bạn chưa đóng phí */}
             <h2
               style={{
-                margin: '0 0 12px',
-                fontSize: 22,
+                margin: '0 0 8px',
+                fontSize: 21,
                 fontWeight: 800,
                 color: '#111827',
                 lineHeight: 1.35,
@@ -210,12 +232,12 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
             {/* Description Text */}
             <p
               style={{
-                margin: 0,
-                fontSize: 15,
+                margin: '0 0 16px',
+                fontSize: 14.5,
                 color: '#475569',
-                lineHeight: 1.55,
+                lineHeight: 1.5,
                 fontWeight: 500,
-                padding: '0 6px',
+                padding: '0 4px',
               }}
             >
               Bạn vui lòng{' '}
@@ -224,6 +246,174 @@ export const UnpaidAccountModal: React.FC<UnpaidAccountModalProps> = ({
               </span>{' '}
               để được admin duyệt và kích hoạt tài khoản nhé!
             </p>
+
+            {/* ── QR PAYMENT SECTION ── */}
+            <div
+              style={{
+                background: '#fafafa',
+                border: '1px solid #f1f5f9',
+                borderRadius: 18,
+                padding: '14px 12px',
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>
+                Quét mã QR để chuyển khoản 200.000đ
+              </div>
+
+              {/* VietQR Image */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <img
+                  src={qrImageUrl}
+                  alt="VietQR Đóng phí thành viên"
+                  style={{
+                    width: '100%',
+                    maxWidth: 290,
+                    borderRadius: 14,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  }}
+                />
+              </div>
+
+              {/* Bank Details */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 12,
+                  padding: '10px 12px',
+                  fontSize: 13,
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Ngân hàng:</span>
+                  <strong style={{ color: '#0f172a' }}>{bankCode}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Số tài khoản:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <strong style={{ color: '#0f172a', letterSpacing: 0.5 }}>{accountNo}</strong>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(accountNo, 'accountNo')}
+                      style={{
+                        background: '#f1f5f9',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '2px 6px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        color: copiedField === 'accountNo' ? '#16a34a' : '#475569',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {copiedField === 'accountNo' ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Chủ tài khoản:</span>
+                  <strong style={{ color: '#0f172a' }}>{accountName}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Số tiền:</span>
+                  <strong style={{ color: '#dc2626', fontSize: 14 }}>{amount}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#64748b' }}>Nội dung:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <strong style={{ color: '#dc2626' }}>{memo}</strong>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(memo, 'memo')}
+                      style={{
+                        background: '#f1f5f9',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '2px 6px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        color: copiedField === 'memo' ? '#16a34a' : '#475569',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {copiedField === 'memo' ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Alert box */}
+              <div
+                style={{
+                  marginTop: 10,
+                  background: '#fef2f2',
+                  border: '1px solid #fee2e2',
+                  borderRadius: 10,
+                  padding: '8px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textAlign: 'left',
+                }}
+              >
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    minWidth: 18,
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 800,
+                  }}
+                >
+                  !
+                </div>
+                <div style={{ color: '#b91c1c', fontSize: 12.5, fontWeight: 600, lineHeight: 1.35 }}>
+                  Vui lòng hoàn tất chuyển khoản để tiếp tục kích hoạt tài khoản.
+                </div>
+              </div>
+            </div>
+
+            {/* Action Submit Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onPaymentSuccess) {
+                  onPaymentSuccess();
+                } else {
+                  onClose();
+                }
+              }}
+              style={{
+                width: '100%',
+                background: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 14,
+                padding: '14px 16px',
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
+                transition: 'all 0.2s',
+              }}
+            >
+              Tôi đã chuyển 200k - Tiếp tục
+            </button>
           </motion.div>
         </div>
       )}
