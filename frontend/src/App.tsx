@@ -2466,39 +2466,454 @@ function MainApp() {
         </div>
       )}
 
-      {/* ── Profile View ── */}
+      {/* ── Profile View: Thiết kế giao diện tài xế cao cấp & hiện đại ── */}
       {activeNavTab === 'profile' && (
-        <div className="rides-view-container" style={{ padding: '16px 12px 100px' }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-              <div className="profile-card-avatar" style={{ width: 56, height: 56, fontSize: 20 }}>
-                {toInitials(user?.name || user?.phone || 'TX')}
+        <div className="rides-view-container" style={{ padding: '16px 14px 110px', maxWidth: 480, margin: '0 auto' }}>
+          {/* Header Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, padding: '0 4px' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.4px' }}>
+                Hồ sơ đối tác
+              </h2>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                Quản lý tài khoản, ví ký quỹ & hỗ trợ 24/7
               </div>
-              <div>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>{user?.name || 'Tài xế'}</h3>
-                <div style={{ fontSize: 13, color: '#64748b' }}>{user?.phone ? maskPhoneStrict(user.phone) : 'Chưa đăng nhập'}</div>
-                <div style={{ marginTop: 4 }}>
-                  <span className="verified-driver-badge">
-                    <span>🛡️ {user?.status === 'approved' ? 'Tài xế đã duyệt' : (user ? 'Chờ duyệt' : 'Chưa đăng nhập')}</span>
+            </div>
+            {user && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)',
+                  }}
+                />
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#047857' }}>Trực tuyến</span>
+              </div>
+            )}
+          </div>
+
+          {/* Driver Identity Card: Thẻ danh thiếp đối tác */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #091f15 0%, #112d20 50%, #064e3b 100%)',
+              borderRadius: 22,
+              padding: '22px 18px',
+              color: '#ffffff',
+              boxShadow: '0 12px 28px -6px rgba(6, 78, 59, 0.35)',
+              position: 'relative',
+              overflow: 'hidden',
+              marginBottom: 16,
+              border: '1px solid rgba(52, 211, 153, 0.25)',
+            }}
+          >
+            {/* Ambient background decoration */}
+            <div
+              style={{
+                position: 'absolute',
+                top: -30,
+                right: -30,
+                width: 150,
+                height: 150,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(34, 197, 94, 0.28) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Top VIP Badge */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6, position: 'relative', zIndex: 1 }}>
+              <span
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  letterSpacing: 0.6,
+                  textTransform: 'uppercase',
+                  padding: '3px 9px',
+                  borderRadius: 12,
+                  background: 'rgba(251, 191, 36, 0.15)',
+                  color: '#fbbf24',
+                  border: '1px solid rgba(251, 191, 36, 0.35)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>🏆</span>
+                <span>Đối tác chính thức</span>
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, position: 'relative', zIndex: 1 }}>
+              <div
+                style={{
+                  position: 'relative',
+                  width: 66,
+                  height: 66,
+                  minWidth: 66,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #10b981, #047857)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  fontSize: 23,
+                  fontWeight: 800,
+                  boxShadow: '0 6px 16px rgba(16, 185, 129, 0.4)',
+                  border: '2.5px solid rgba(255, 255, 255, 0.25)',
+                }}
+              >
+                {toInitials(user?.name || user?.phone || 'TX')}
+                {/* Active online dot */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    right: 2,
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    background: '#22c55e',
+                    border: '2.5px solid #091f15',
+                  }}
+                />
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: 19,
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      letterSpacing: '-0.3px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {user?.name || 'Tài xế'}
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid rgba(34, 197, 94, 0.4)',
+                      color: '#4ade80',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <span>🛡️</span>
+                    <span>{user?.status === 'approved' ? 'Tài xế đã duyệt' : (user ? 'Chờ duyệt' : 'Chưa đăng nhập')}</span>
                   </span>
                 </div>
+
+                <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4, fontWeight: 500 }}>
+                  📱 {user?.phone ? maskPhoneStrict(user.phone) : 'Chưa đăng nhập'}
+                </div>
+
+                {user && (
+                  <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>🚗 {user.carType || 'Xe 4 chỗ'}</span>
+                    {user.carYear && <span>• Đời {user.carYear}</span>}
+                    <span>• Biển số đối tác</span>
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Quick Stats Grid inside card */}
+            {user && (
+              <div
+                style={{
+                  marginTop: 18,
+                  paddingTop: 14,
+                  borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 8,
+                  textAlign: 'center',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>Đánh giá</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#fbbf24', marginTop: 2 }}>5.0 ⭐</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>Nhận cuốc</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#4ade80', marginTop: 2 }}>100%</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>Hạng đối tác</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#ffffff', marginTop: 2 }}>VIP Pro</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Deposit / Wallet Card: Thẻ ví ký quỹ */}
+          {user && (
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: 20,
+                padding: '18px 18px',
+                marginBottom: 16,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Số dư ký quỹ hoạt động</span>
+                <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a' }} />
+                  Đang hoạt động
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>
+                  200.000<span style={{ fontSize: 17, fontWeight: 700, color: '#16a34a', marginLeft: 3 }}>đ</span>
+                </div>
+                <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>Hoàn lại 100%</span>
+              </div>
+
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14, lineHeight: 1.45 }}>
+                Khoản ký quỹ xác thực đối tác duy trì nhận cuốc không giới hạn. Được hoàn trả ngay khi gửi yêu cầu.
+              </div>
+
+              {/* Withdraw Button Primary Highlight */}
+              <button
+                type="button"
+                onClick={() => setShowWithdrawModal(true)}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 14,
+                  padding: '13px 16px',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.28)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+              >
+                <span>💳</span>
+                <span>Rút tiền ký quỹ</span>
+                <span style={{ fontSize: 12, opacity: 0.9, fontWeight: 500 }}>(Hoàn 200k trong 24h)</span>
+              </button>
+            </div>
+          )}
+
+          {/* Quick Action Tiles */}
+          {user && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 10,
+                marginBottom: 16,
+              }}
+            >
+              <div
+                onClick={() => {
+                  setActiveNavTab('rides');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                style={{
+                  background: '#ffffff',
+                  borderRadius: 16,
+                  padding: '14px',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  border: '1px solid #f1f5f9',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                  }}
+                >
+                  🚗
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Cuốc xe mới</div>
+                  <div style={{ fontSize: 11, color: '#64748b' }}>Nhận chuyến ngay</div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => {
+                  setActiveNavTab('messages');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                style={{
+                  background: '#ffffff',
+                  borderRadius: 16,
+                  padding: '14px',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  border: '1px solid #f1f5f9',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    background: '#fef3c7',
+                    color: '#d97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                  }}
+                >
+                  💬
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Hộp thư khách</div>
+                  <div style={{ fontSize: 11, color: '#64748b' }}>Trao đổi liên hệ</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action List Section: Danh sách chức năng dạng Card hiện đại */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 20,
+              padding: '6px 8px',
+              marginBottom: 16,
+              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
+              border: '1px solid #f1f5f9',
+            }}
+          >
             {user && (
               <>
-                <button
-                  type="button"
-                  className="modern-call-driver-btn"
-                  style={{ marginBottom: 12, background: '#059669', fontWeight: 700 }}
+                {/* Rút tiền item */}
+                <div
                   onClick={() => setShowWithdrawModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 12px',
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  💳 Rút tiền
-                </button>
-                <button
-                  type="button"
-                  className="modern-call-driver-btn"
-                  style={{ background: '#ef4444', fontWeight: 700 }}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        background: '#ecfdf5',
+                        color: '#059669',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                      }}
+                    >
+                      💳
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#0f172a' }}>Rút tiền ký quỹ</div>
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>Rút 200k ký quỹ và hủy tài khoản</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 18, color: '#94a3b8', fontWeight: 600 }}>›</span>
+                </div>
+
+                <div style={{ height: 1, background: '#f1f5f9', margin: '0 12px' }} />
+
+                {/* Hỗ trợ hotline item */}
+                <a
+                  href="tel:0904521297"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 12px',
+                    borderRadius: 14,
+                    textDecoration: 'none',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        background: '#eff6ff',
+                        color: '#2563eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                      }}
+                    >
+                      📞
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#0f172a' }}>Hỗ trợ tài xế 24/7</div>
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>Hotline Admin tiếp nhận xử lý nhanh</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 18, color: '#94a3b8', fontWeight: 600 }}>›</span>
+                </a>
+
+                <div style={{ height: 1, background: '#f1f5f9', margin: '0 12px' }} />
+
+                {/* Đăng xuất item */}
+                <div
                   onClick={() => {
                     localStorage.removeItem('driver_user');
                     localStorage.removeItem('token');
@@ -2507,25 +2922,58 @@ function MainApp() {
                     setShowDriverDashboard(false);
                     setActiveNavTab('home');
                   }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 12px',
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  🚪 Đăng xuất tài khoản
-                </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                      }}
+                    >
+                      🚪
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#dc2626' }}>Đăng xuất tài khoản</div>
+                      <div style={{ fontSize: 12, color: '#ef4444', marginTop: 1, opacity: 0.85 }}>Thoát phiên làm việc trên thiết bị này</div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 18, color: '#f87171', fontWeight: 600 }}>›</span>
+                </div>
               </>
             )}
 
             {!user && (
-              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+              <div style={{ display: 'flex', gap: 10, padding: '10px 8px' }}>
                 <button
                   type="button"
                   className="modern-call-driver-btn"
                   onClick={() => setAuthModal('login')}
+                  style={{ flex: 1, background: '#0f172a' }}
                 >
                   Đăng nhập
                 </button>
                 <button
                   type="button"
                   className="modern-call-driver-btn"
-                  style={{ background: '#3b82f6' }}
+                  style={{ flex: 1, background: '#16a34a' }}
                   onClick={() => setAuthModal('register')}
                 >
                   Đăng ký
@@ -2533,8 +2981,38 @@ function MainApp() {
               </div>
             )}
           </div>
+
+          {/* Partner Trust Banner */}
+          <div
+            style={{
+              background: '#f8fafc',
+              borderRadius: 16,
+              padding: '12px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              border: '1px dashed #cbd5e1',
+              marginBottom: 20,
+            }}
+          >
+            <span style={{ fontSize: 22 }}>🛡️</span>
+            <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45 }}>
+              <strong style={{ color: '#0f172a' }}>Cam kết đối tác:</strong> Hệ thống kết nối cuốc xe tự động 24/7. Khoản ký quỹ được bảo đảm hoàn tiền 100% khi ngừng hoạt động.
+            </div>
+          </div>
+
+          {/* App Footer Brand */}
+          <div style={{ textAlign: 'center', marginTop: 10, paddingBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5 }}>
+              DRIVER APP • KẾT NỐI TÀI XẾ VIỆT
+            </div>
+            <div style={{ fontSize: 11, color: '#cbd5e1', marginTop: 4 }}>
+              Phiên bản 2.5.0 • Hệ thống cuốc xe tự động
+            </div>
+          </div>
         </div>
       )}
+
 
       {/* ── Fixed 5-Item Bottom Navigation Bar (Home, Cuốc xe, Đăng chuyến, Thu nhập, Cá nhân) ── */}
       <nav className="bottom-nav-bar">
