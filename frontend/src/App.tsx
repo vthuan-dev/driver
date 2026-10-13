@@ -2200,11 +2200,10 @@ function MainApp() {
             ))}
           </div>
 
-          {/* Fake Notifications Section: hiển thị đúng 1 thẻ cuốc xe ảo matching #root > div > div > div.fake-notifications-section > div.fake-notifications-list > div:nth-child(1) */}
+          {/* Fake Notifications Section: hiển thị toàn bộ các cuốc xe ảo do admin thêm theo vùng miền */}
           <FakeNotificationBanner
             user={user}
             region={activeRequestRegion}
-            limit={1}
             onRequireAuth={() => {
               setErrorPopupTitle('Bạn cần đăng ký trước khi nhận cuốc');
               setErrorMessage('Vui lòng đăng ký hoặc đăng nhập để có thể nhận cuốc xe.');

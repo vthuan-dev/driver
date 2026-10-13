@@ -120,8 +120,8 @@ const FakeNotificationBanner = ({
     return `${time} · ${weekdayCap}, ${dateStr}`;
   };
 
-  // Chỉ hiển thị tối đa 1 thẻ cuốc xe ảo duy nhất từ backend (khớp #root > div > div > div.fake-notifications-section > div.fake-notifications-list > div:nth-child(1))
-  const displayList = (limit ? fakeNotifications.slice(0, limit) : fakeNotifications).slice(0, 1);
+  // Hiển thị đầy đủ số lượng cuốc xe ảo do admin tạo (render tương ứng số cuốc admin thêm)
+  const displayList = limit ? fakeNotifications.slice(0, limit) : fakeNotifications;
 
   if (displayList.length === 0) {
     return null;

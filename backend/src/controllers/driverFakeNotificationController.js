@@ -22,6 +22,7 @@ exports.getFakeNotifications = async (req, res) => {
         region,
         isActive: true
       },
+      order: [['createdAt', 'DESC']],
       attributes: { exclude: ['createdById'] }
     });
 
