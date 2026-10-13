@@ -1975,6 +1975,82 @@ function MainApp() {
             )}
           </div>
 
+          {/* App Download Banner with Tour Step 1 (Di chuyển lên ngay dưới thẻ đối tác) */}
+          <div className={`tour-banner-container ${tourStep === 1 ? 'tour-active' : ''}`}>
+            {tourStep === 1 && (
+              <>
+                <div
+                  className="tour-backdrop"
+                  onClick={handleCloseTour}
+                />
+                <div className="tour-step1-popup">
+                  <AppTourCard
+                    title="Nhấn vào đây để tải ứng dụng di động"
+                    description={
+                      <>
+                        Cài app để nhận thông báo{' '}
+                        <span className="tour-highlight-red">cuốc nổ tức thì</span>{' '}
+                        để không bỏ lỡ kèo thơm nào!
+                      </>
+                    }
+                    buttonText="Tiếp theo (1/2) ›"
+                    onNext={handleNextTourStep1}
+                    onClose={handleCloseTour}
+                  />
+                  <div className="tour-arrow-step1">
+                    <TourCurvedArrow />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div
+              className={`modern-download-banner ${tourStep === 1 ? 'tour-highlight-glow' : ''}`}
+              id="joyride-download-btn"
+              onClick={() => {
+                if (!user) {
+                  setAuthModal('login');
+                  return;
+                }
+                if (user.status !== 'approved') {
+                  setErrorPopupTitle('Thông báo');
+                  setErrorMessage('Tài khoản của bạn đang chờ phê duyệt.');
+                  setShowErrorPopup(true);
+                  return;
+                }
+                setShowPricingModal(true);
+                if (tourStep === 1) {
+                  setTourStep(2);
+                }
+              }}
+            >
+              <div className="download-banner__left">
+                <div className="download-app-icon-wrap">
+                  <img
+                    src="/images/driver-app-icon.png"
+                    alt="Driver App"
+                    className="download-app-icon-img"
+                  />
+                </div>
+                <div className="download-banner__text">
+                  <div className="download-banner__title">Tải ứng dụng di động</div>
+                  <div className="download-banner__sub">
+                    Cài app để nhận thông báo{' '}
+                    <span style={{ color: '#ffea79', fontWeight: 700 }}>cuốc nổ tức thì</span>{' '}
+                    để không bỏ lỡ kèo thơm nào!
+                  </div>
+                </div>
+              </div>
+              <button type="button" className="download-banner__btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Tải ngay</span>
+                <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
+              </button>
+            </div>
+          </div>
+
           {/* Quick Stats Row (3 Compact Cards: Thu nhập tháng, Cuốc xe đã nhận, Đánh giá) */}
           <div className="quick-stats-row">
             <div className="qs-card qs-card--income" onClick={() => user ? setActiveNavTab('income') : setAuthModal('login')} style={{ cursor: 'pointer' }}>
@@ -2111,80 +2187,6 @@ function MainApp() {
               </div>
               <div className="action-card__title">Đăng chuyến</div>
               <div className="action-card__sub">Tạo cuốc xe</div>
-            </div>
-          </div>
-
-          {/* App Download Banner with Tour Step 1 */}
-          <div className={`tour-banner-container ${tourStep === 1 ? 'tour-active' : ''}`}>
-            {tourStep === 1 && (
-              <>
-                <div
-                  className="tour-backdrop"
-                  onClick={handleCloseTour}
-                />
-                <div className="tour-step1-popup">
-                  <AppTourCard
-                    title="Nhấn vào đây để tải ứng dụng di động"
-                    description={
-                      <>
-                        Cài app để nhận thông báo{' '}
-                        <span className="tour-highlight-red">cuốc nổ tức thì</span>{' '}
-                        để không bỏ lỡ kèo thơm nào!
-                      </>
-                    }
-                    buttonText="Tiếp theo (1/2) ›"
-                    onNext={handleNextTourStep1}
-                    onClose={handleCloseTour}
-                  />
-                  <div className="tour-arrow-step1">
-                    <TourCurvedArrow />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div
-              className={`modern-download-banner ${tourStep === 1 ? 'tour-highlight-glow' : ''}`}
-              id="joyride-download-btn"
-              onClick={() => {
-                if (!user) {
-                  setAuthModal('login');
-                  return;
-                }
-                if (user.status !== 'approved') {
-                  setErrorPopupTitle('Thông báo');
-                  setErrorMessage('Tài khoản của bạn đang chờ phê duyệt.');
-                  setShowErrorPopup(true);
-                  return;
-                }
-                setShowPricingModal(true);
-                if (tourStep === 1) {
-                  setTourStep(2);
-                }
-              }}
-            >
-              <div className="download-banner__left">
-                <div className="download-phone-mockup">
-                  <div className="phone-screen-inner">
-                    <span>ĐC</span>
-                  </div>
-                </div>
-                <div className="download-banner__text">
-                  <div className="download-banner__title">Tải ứng dụng di động</div>
-                  <div className="download-banner__sub">
-                    Cài app để nhận thông báo{' '}
-                    <span style={{ color: '#ffea79', fontWeight: 700 }}>cuốc nổ tức thì</span>{' '}
-                    để không bỏ lỡ kèo thơm nào!
-                  </div>
-                </div>
-              </div>
-              <button type="button" className="download-banner__btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                <span>Tải ngay</span>
-                <span style={{ fontSize: '14px', fontWeight: 'bold' }}>›</span>
-              </button>
             </div>
           </div>
 
