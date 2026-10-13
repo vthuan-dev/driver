@@ -2890,6 +2890,19 @@ function MainApp() {
                 setLoading(true)
                 try {
                   if (authModal === 'login') {
+                    // Kiểm tra trạng thái tài khoản: nếu chưa đóng phí (pending) -> Hiện ngay Modal Chưa đóng phí kèm QR
+                    try {
+                      const checkRes = await authAPI.checkStatus(authForm.phone.trim());
+                      if (checkRes.data?.status === 'pending') {
+                        setLoading(false);
+                        setAuthModal(null);
+                        setShowUnpaidModal(true);
+                        return;
+                      }
+                    } catch (e) {
+                      // Bỏ qua lỗi checkStatus và tiếp tục đăng nhập bình thường
+                    }
+
                     console.log('Attempting login...');
                     const response = await authAPI.login({
                       phone: authForm.phone,
@@ -2934,8 +2947,10 @@ function MainApp() {
 
                   // Handle specific error cases
                   if (error.response?.status === 403) {
-                    if (error.response?.data?.message?.includes('phê duyệt')) {
-                      errorMsg = 'Tài khoản đang chờ admin phê duyệt. Vui lòng thử lại sau.';
+                    if (error.response?.data?.message?.includes('phê duyệt') || error.response?.data?.status === 'pending') {
+                      setAuthModal(null);
+                      setShowUnpaidModal(true);
+                      return;
                     } else {
                       errorMsg = 'Tài khoản chưa được phê duyệt. Vui lòng liên hệ admin.';
                     }
