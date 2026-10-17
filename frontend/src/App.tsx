@@ -16,6 +16,7 @@ import { AppTourCard, TourCurvedArrow } from './components/driver/AppTourGuide'
 import PendingApprovalModal from './components/auth/PendingApprovalModal'
 import UnpaidAccountModal from './components/auth/UnpaidAccountModal'
 import WithdrawModal from './components/driver/WithdrawModal'
+import { DriverGuideModal } from './components/driver/DriverGuideModal'
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error?: Error }> {
@@ -1126,6 +1127,7 @@ function MainApp() {
   const [showPendingApprovalModal, setShowPendingApprovalModal] = useState(false)
   const [showUnpaidModal, setShowUnpaidModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [showGuideModal, setShowGuideModal] = useState(false)
   const [pendingRegister, setPendingRegister] = useState<{ name: string; phone: string; password: string; carType: string; carYear: string } | null>(null)
   const [bankConfig, setBankConfig] = useState<{ bankCode?: string; bankName?: string; accountNo?: string; accountName?: string }>({});
   const [activeNavTab, setActiveNavTab] = useState<'home' | 'rides' | 'income' | 'profile' | 'messages'>('home');
@@ -3008,8 +3010,43 @@ function MainApp() {
             <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', letterSpacing: 0.5 }}>
               DRIVER APP • KẾT NỐI TÀI XẾ VIỆT
             </div>
-            <div style={{ fontSize: 11, color: '#cbd5e1', marginTop: 4 }}>
-              Phiên bản 2.5.0 • Hệ thống cuốc xe tự động
+            <div style={{ fontSize: 11, color: '#cbd5e1', marginTop: 4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <span>Phiên bản 2.5.0 • Hệ thống cuốc xe tự động</span>
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(true)}
+                title="Hướng dẫn sử dụng app"
+                aria-label="Hướng dẫn sử dụng app"
+                style={{
+                  width: 17,
+                  height: 17,
+                  minWidth: 17,
+                  borderRadius: '50%',
+                  background: '#334155',
+                  color: '#ffffff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  lineHeight: 1,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#00b14f';
+                  e.currentTarget.style.transform = 'scale(1.15)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = '#334155';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                ?
+              </button>
             </div>
           </div>
         </div>
@@ -3727,6 +3764,12 @@ function MainApp() {
         isOpen={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
         bankConfig={bankConfig}
+      />
+
+      {/* Modal Hướng dẫn sử dụng App chia sẻ cuốc xe */}
+      <DriverGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
       />
 
     </div>
