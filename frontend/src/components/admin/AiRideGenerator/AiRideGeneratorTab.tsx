@@ -522,44 +522,24 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
             <span className="ai-step-num">1</span>
             <span>Thêm ô nhập lệnh AI trong trang Admin</span>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#64748b' }}>Nguồn xử lý:</span>
-            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 20, padding: 2 }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Nguồn xử lý:</span>
+            <div className="ai-source-switcher">
               <button
                 type="button"
+                className={`ai-source-pill ${aiMode === 'groq' ? 'active groq' : ''}`}
                 onClick={() => setAiMode('groq')}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: 18,
-                  border: 'none',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: aiMode === 'groq' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'transparent',
-                  color: aiMode === 'groq' ? '#ffffff' : '#64748b',
-                  boxShadow: aiMode === 'groq' ? '0 2px 6px rgba(99,102,241,0.3)' : 'none',
-                  transition: 'all 0.2s'
-                }}
               >
-                ⚡ Groq Cloud LPU
+                <span>⚡</span>
+                <span>Groq Cloud LPU</span>
               </button>
               <button
                 type="button"
+                className={`ai-source-pill ${aiMode === 'local' ? 'active local' : ''}`}
                 onClick={() => setAiMode('local')}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: 18,
-                  border: 'none',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: aiMode === 'local' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
-                  color: aiMode === 'local' ? '#ffffff' : '#64748b',
-                  boxShadow: aiMode === 'local' ? '0 2px 6px rgba(16,185,129,0.3)' : 'none',
-                  transition: 'all 0.2s'
-                }}
               >
-                🧠 Engine Nội bộ
+                <span>🧠</span>
+                <span>Engine Nội bộ</span>
               </button>
             </div>
           </div>
@@ -567,6 +547,25 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
 
         {/* Textarea nhập câu lệnh */}
         <div className="ai-prompt-box">
+          <div className="ai-prompt-header-bar">
+            <span>✨ Nhập yêu cầu cuốc xe (Số lượng, khu vực, khoảng giá, loại xe...)</span>
+            {prompt && (
+              <button
+                type="button"
+                onClick={() => setPrompt('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}
+              >
+                ✕ Xóa nội dung
+              </button>
+            )}
+          </div>
           <textarea
             className="ai-prompt-textarea"
             rows={3}
@@ -574,76 +573,96 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Ví dụ: Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ."
           />
+          <div className="ai-prompt-footer-bar">
+            <span>💡 Mẹo: Có thể nhập tự do mọi cung đường và khoảng giá mong muốn</span>
+            <span>{prompt.length} ký tự</span>
+          </div>
         </div>
 
         {/* Nút gợi ý nhanh */}
         <div className="ai-suggestions-row">
-          <span className="ai-suggestions-label">Gợi ý lệnh nhanh:</span>
+          <span className="ai-suggestions-label">
+            <span>🎯</span> Gợi ý lệnh nhanh:
+          </span>
           <button
             type="button"
             className="ai-suggestion-chip"
             onClick={() => setPrompt('Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.')}
           >
-            🌟 Thành phố lớn (3–5 triệu, xe 7 chỗ)
+            <span>🌟</span> Thành phố lớn (3–5 triệu, xe 7 chỗ)
           </button>
           <button
             type="button"
             className="ai-suggestion-chip"
             onClick={() => setPrompt('Tạo 15 cuốc xe đón tại Miền Bắc đi các tỉnh, giá 1–2 triệu, xe 4 chỗ.')}
           >
-            🚗 Miền Bắc (1–2 triệu, xe 4 chỗ)
+            <span>🚗</span> Miền Bắc (1–2 triệu, xe 4 chỗ)
           </button>
           <button
             type="button"
             className="ai-suggestion-chip"
             onClick={() => setPrompt('Tạo 15 cuốc xe liên tỉnh Miền Nam xuất phát từ TP.HCM, giá 2–4 triệu, xe 7 chỗ.')}
           >
-            🌴 Miền Nam (2–4 triệu, từ TP.HCM)
+            <span>🌴</span> Miền Nam (2–4 triệu, từ TP.HCM)
           </button>
           <button
             type="button"
             className="ai-suggestion-chip"
             onClick={() => setPrompt('Tạo 10 cuốc xe đưa đón sân bay và khu du lịch, giá 800k–1.5 triệu, xe 5–7 chỗ.')}
           >
-            ✈️ Đưa đón Sân bay / Du lịch
+            <span>✈️</span> Đưa đón Sân bay / Du lịch
           </button>
         </div>
 
-        {/* Tùy chọn điểm đến */}
-        <div className="ai-config-row">
-          <div className="ai-config-item">
-            <span className="ai-config-label">Nơi xuất bản cuốc xe:</span>
-            <div className="ai-target-radio-group">
-              <label className="ai-radio-label">
-                <input
-                  type="radio"
-                  name="targetDestination"
-                  checked={targetDestination === 'requests'}
-                  onChange={() => setTargetDestination('requests')}
-                />
-                <span>📋 Tab Cuốc xe (Yêu cầu chờ ghép)</span>
-              </label>
-              <label className="ai-radio-label">
-                <input
-                  type="radio"
-                  name="targetDestination"
-                  checked={targetDestination === 'fake_notifications'}
-                  onChange={() => setTargetDestination('fake_notifications')}
-                />
-                <span>📢 Thông báo nổ cuốc trang chủ</span>
-              </label>
-              <label className="ai-radio-label">
-                <input
-                  type="radio"
-                  name="targetDestination"
-                  checked={targetDestination === 'both'}
-                  onChange={() => setTargetDestination('both')}
-                />
-                <span>⚡ Xuất bản cả 2 nơi</span>
-              </label>
+        {/* Tùy chọn điểm đến xuất bản dạng 3 thẻ trực quan */}
+        <div className="ai-config-section">
+          <span className="ai-config-label">
+            📍 Chọn nơi xuất bản cuốc xe lên ứng dụng:
+          </span>
+          <div className="ai-target-cards-grid">
+            <div
+              className={`ai-target-card ${targetDestination === 'requests' ? 'selected' : ''}`}
+              onClick={() => setTargetDestination('requests')}
+            >
+              <div className="ai-target-card-radio">
+                {targetDestination === 'requests' && <div className="ai-target-card-radio-dot" />}
+              </div>
+              <div className="ai-target-card-text">
+                <div className="ai-target-card-title">📋 Tab Cuốc xe</div>
+                <div className="ai-target-card-desc">Danh sách yêu cầu chờ tài xế nhận & ghép cuốc</div>
+              </div>
+            </div>
+
+            <div
+              className={`ai-target-card ${targetDestination === 'fake_notifications' ? 'selected' : ''}`}
+              onClick={() => setTargetDestination('fake_notifications')}
+            >
+              <div className="ai-target-card-radio">
+                {targetDestination === 'fake_notifications' && <div className="ai-target-card-radio-dot" />}
+              </div>
+              <div className="ai-target-card-text">
+                <div className="ai-target-card-title">📢 Thông báo ảo</div>
+                <div className="ai-target-card-desc">Hiển thị popup nổ cuốc tạo sôi động trang chủ</div>
+              </div>
+            </div>
+
+            <div
+              className={`ai-target-card ${targetDestination === 'both' ? 'selected' : ''}`}
+              onClick={() => setTargetDestination('both')}
+            >
+              <div className="ai-target-card-radio">
+                {targetDestination === 'both' && <div className="ai-target-card-radio-dot" />}
+              </div>
+              <div className="ai-target-card-text">
+                <div className="ai-target-card-title">⚡ Xuất bản cả 2 nơi</div>
+                <div className="ai-target-card-desc">Tự động đồng bộ vừa nổ chuông vừa vào tab cuốc xe</div>
+              </div>
             </div>
           </div>
+        </div>
 
+        {/* Thanh hành động chính */}
+        <div className="ai-action-bar">
           <button
             type="button"
             className="ai-action-btn primary"
@@ -653,12 +672,12 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
             {isGenerating ? (
               <>
                 <span className="ai-spinner"></span>
-                <span>{aiMode === 'groq' ? '⚡ Groq AI đang suy luận...' : 'Đang phân tích & tạo cuốc...'}</span>
+                <span>{aiMode === 'groq' ? '⚡ Groq LPU đang suy luận & kiểm tra...' : 'Đang phân tích & lọc trùng...'}</span>
               </>
             ) : (
               <>
                 <span>{aiMode === 'groq' ? '⚡' : '✨'}</span>
-                <span>{aiMode === 'groq' ? 'Groq LPU Tạo cuốc xe' : 'AI Phân tích & Tạo cuốc'}</span>
+                <span>{aiMode === 'groq' ? 'Groq LPU Tạo cuốc xe ngay' : 'AI Phân tích & Tạo cuốc ngay'}</span>
               </>
             )}
           </button>
