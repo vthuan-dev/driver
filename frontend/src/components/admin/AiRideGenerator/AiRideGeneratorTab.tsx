@@ -756,7 +756,13 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
           <div className="ai-card-title-row">
             <div className="ai-step-indicator">
               <span className="ai-step-num">2</span>
-              <span>AI tạo và kiểm tra cuốc xe ({generatedRides.length} chuyến)</span>
+              <span>
+                {targetDestination === 'fake_notifications'
+                  ? `AI tạo và kiểm tra thông báo ảo (${generatedRides.length} thông báo)`
+                  : targetDestination === 'both'
+                  ? `AI tạo và kiểm tra cuốc & thông báo đồng bộ (${generatedRides.length} chuyến)`
+                  : `AI tạo và kiểm tra cuốc xe (${generatedRides.length} chuyến)`}
+              </span>
             </div>
             <div className="ai-validation-badges">
               {generationSource && (
@@ -772,8 +778,12 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
 
           <div className="ai-summary-bar">
             <div className="ai-summary-item">
-              <span className="ai-summary-label">Tổng số cuốc:</span>
-              <span className="ai-summary-val">{generatedRides.length} chuyến</span>
+              <span className="ai-summary-label">
+                {targetDestination === 'fake_notifications' ? 'Tổng thông báo:' : 'Tổng số cuốc:'}
+              </span>
+              <span className="ai-summary-val">
+                {generatedRides.length} {targetDestination === 'fake_notifications' ? 'thông báo' : 'chuyến'}
+              </span>
             </div>
             <div className="ai-summary-item">
               <span className="ai-summary-label">Tổng giá trị:</span>
@@ -786,7 +796,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
             <div className="ai-summary-item">
               <span className="ai-summary-label">Hợp lệ:</span>
               <span className="ai-summary-val" style={{ color: '#10b981' }}>
-                {generatedRides.filter(r => r.isValid).length}/{generatedRides.length} cuốc
+                {generatedRides.filter(r => r.isValid).length}/{generatedRides.length} {targetDestination === 'fake_notifications' ? 'thông báo' : 'cuốc'}
               </span>
             </div>
           </div>
@@ -897,7 +907,19 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
               <span>Duyệt và đăng lên website</span>
             </div>
             <p className="ai-publish-desc">
-              Nhấn <strong>"Xác nhận đăng"</strong>, hệ thống sẽ lưu {generatedRides.length} cuốc xe vào cơ sở dữ liệu và hiển thị ngay lập tức lên ứng dụng tài xế!
+              {targetDestination === 'fake_notifications' ? (
+                <>
+                  Nhấn <strong>"Xác nhận đăng"</strong>, hệ thống sẽ lưu {generatedRides.length} thông báo ảo vào cơ sở dữ liệu và hiển thị ngay lập tức lên popup / banner trang chủ của ứng dụng tài xế!
+                </>
+              ) : targetDestination === 'both' ? (
+                <>
+                  Nhấn <strong>"Xác nhận đăng"</strong>, hệ thống sẽ đồng bộ lưu {generatedRides.length} cuốc xe vừa vào danh sách nhận cuốc, vừa nổ thông báo trang chủ!
+                </>
+              ) : (
+                <>
+                  Nhấn <strong>"Xác nhận đăng"</strong>, hệ thống sẽ lưu {generatedRides.length} cuốc xe vào cơ sở dữ liệu và hiển thị ngay lập tức lên danh sách chờ nhận cuốc của tài xế!
+                </>
+              )}
             </p>
           </div>
 
