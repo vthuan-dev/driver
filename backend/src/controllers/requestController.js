@@ -1,4 +1,5 @@
 const { WaitingRequest, User, FakeNotification } = require('../models');
+const { detectRegionFromPlace } = require('../utils/geoUtils');
 
 const createRequest = async (req, res) => {
   try {
@@ -331,17 +332,27 @@ const createBulkRequests = async (req, res) => {
 
     // 1. Tạo vào WaitingRequest nếu target là 'requests' hoặc 'both'
     if (target === 'requests' || target === 'both') {
-      const waitingData = requests.map(r => ({
-        name: r.name?.trim() || 'Khách đặt xe',
-        phone: r.phone?.trim() || '0988888888',
-        startPoint: r.startPoint?.trim() || 'Hà Nội',
-        endPoint: r.endPoint?.trim() || 'Hải Phòng',
-        price: parseInt(r.price) || 500000,
-        note: r.note?.trim() || '',
-        region: ['north', 'central', 'south'].includes(r.region) ? r.region : 'north',
-        status: 'waiting',
-        userId: req.user ? req.user.id : null
-      }));
+      const waitingData = requests.map(r => {
+        const startPt = r.startPoint?.trim() || 'Hà Nội';
+        const endPt = r.endPoint?.trim() || 'Hải Phòng';
+        const detected = detectRegionFromPlace(startPt, endPt);
+        let finalRegion = ['north', 'central', 'south'].includes(r.region) ? r.region : detected;
+        if (finalRegion === 'north' && detected !== 'north') {
+          finalRegion = detected;
+        }
+
+        return {
+          name: r.name?.trim() || 'Khách đặt xe',
+          phone: r.phone?.trim() || '0988888888',
+          startPoint: startPt,
+          endPoint: endPt,
+          price: parseInt(r.price) || 500000,
+          note: r.note?.trim() || '',
+          region: finalRegion,
+          status: 'waiting',
+          userId: req.user ? req.user.id : null
+        };
+      });
       createdWaiting = await WaitingRequest.bulkCreate(waitingData);
     }
 
@@ -378,8 +389,14 @@ const createBulkRequests = async (req, res) => {
           }
         }
 
+        const detected = detectRegionFromPlace(startPt, endPt);
+        let finalRegion = ['north', 'central', 'south'].includes(r.region) ? r.region : detected;
+        if (finalRegion === 'north' && detected !== 'north') {
+          finalRegion = detected;
+        }
+
         return {
-          region: ['north', 'central', 'south'].includes(r.region) ? r.region : 'north',
+          region: finalRegion,
           startPoint: startPt,
           endPoint: endPt,
           startArea,

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { requestsAPI, aiAPI } from '../../../services/adminApi';
+import { detectRegionFromPlace, type Region } from '../../../utils/geoUtils';
 import './AiRideGenerator.css';
 
-type Region = 'north' | 'central' | 'south';
 type CarType = '4' | '7' | '16';
 
 export interface AiGeneratedRide {
@@ -18,32 +18,6 @@ export interface AiGeneratedRide {
   isValid: boolean;
   validationError?: string;
 }
-
-// Danh mục dữ liệu địa lý phong phú (dùng cho Engine Nội bộ & Fallback)
-const MAJOR_CITIES: Record<Region, string[]> = {
-  north: ['Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Bắc Ninh', 'Hải Dương'],
-  central: ['Đà Nẵng', 'Huế', 'Nha Trang', 'Quy Nhơn', 'Vinh'],
-  south: ['TP. Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Cần Thơ', 'Vũng Tàu']
-};
-
-const PROVINCES_BY_REGION: Record<Region, string[]> = {
-  north: [
-    'Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Lào Cai', 'Ninh Bình',
-    'Nam Định', 'Thái Bình', 'Hải Dương', 'Hưng Yên', 'Vĩnh Phúc',
-    'Bắc Ninh', 'Bắc Giang', 'Phú Thọ', 'Hòa Bình', 'Sơn La',
-    'Lạng Sơn', 'Thái Nguyên', 'Tuyên Quang', 'Yên Bái', 'Hà Giang'
-  ],
-  central: [
-    'Đà Nẵng', 'Thừa Thiên - Huế', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định',
-    'Khánh Hòa', 'Ninh Thuận', 'Bình Thuận', 'Thanh Hóa', 'Nghệ An',
-    'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị', 'Lâm Đồng', 'Đắk Lắk', 'Gia Lai'
-  ],
-  south: [
-    'TP. Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Bà Rịa - Vũng Tàu', 'Tây Ninh',
-    'Long An', 'Tiền Giang', 'Bến Tre', 'Cần Thơ', 'Vĩnh Long',
-    'An Giang', 'Kiên Giang', 'Đồng Tháp', 'Sóc Trăng', 'Bạc Liêu', 'Cà Mau'
-  ]
-};
 
 const VIETNAMESE_NAMES = [
   'Nguyễn Văn Hùng', 'Trần Đình Trọng', 'Lê Hoàng Nam', 'Phạm Minh Tuấn', 'Vũ Quốc Bảo',
@@ -63,14 +37,107 @@ const TRIP_NOTES = [
   'Khách quen uy tín, trả tiền mặt khi xong chuyến'
 ];
 
-const detectRegionFromPlace = (place: string): Region => {
-  for (const [r, provs] of Object.entries(PROVINCES_BY_REGION)) {
-    if (provs.some(p => place.toLowerCase().includes(p.toLowerCase()))) {
-      return r as Region;
-    }
-  }
-  return 'north';
+// Danh mục dữ liệu địa lý phong phú theo vùng miền (dùng cho Engine Nội bộ)
+const SAMPLE_CITIES_BY_REGION: Record<Region, string[]> = {
+  north: [
+    'Sân bay Nội Bài, Hà Nội',
+    'Bãi Cháy, Hạ Long, Quảng Ninh',
+    'Trung tâm TP. Hải Phòng',
+    'TP. Bắc Ninh',
+    'Sa Pa, Lào Cai',
+    'Tam Chúc, Hà Nam',
+    'Tràng An, Ninh Bình',
+    'TP. Hải Dương'
+  ],
+  central: [
+    'Sân bay Đà Nẵng',
+    'Bà Nà Hills, Đà Nẵng',
+    'TP. Huế, Thừa Thiên - Huế',
+    'Sân bay Cam Ranh, Nha Trang',
+    'TP. Quy Nhơn, Bình Định',
+    'Đà Lạt, Lâm Đồng',
+    'TP. Vinh, Nghệ An',
+    'Sầm Sơn, Thanh Hóa'
+  ],
+  south: [
+    'Sân bay Tân Sơn Nhất, TP.HCM',
+    'Quận 1, TP. Hồ Chí Minh',
+    'TP. Vũng Tàu, BR-VT',
+    'TP. Thủ Dầu Một, Bình Dương',
+    'TP. Biên Hòa, Đồng Nai',
+    'Bến xe Cần Thơ',
+    'Đảo Phú Quốc, Kiên Giang',
+    'TP. Mỹ Tho, Tiền Giang'
+  ]
 };
+
+// Hàm trích xuất thông số chuẩn xác từ câu lệnh prompt
+export function parsePromptParameters(promptText: string) {
+  const text = promptText.toLowerCase();
+
+  // 1. Trích xuất số lượng:
+  let count = 20;
+  const countActionMatch = text.match(/(?:tạo|sinh|làm|thêm|đăng|bắn)\s*(\d+)\b/i);
+  const countNounMatch = text.match(/(\d+)\s*(?:thông báo|cuốc|chuyến|lệnh|đơn|tin|bản tin|item)\b/i);
+
+  if (countActionMatch) {
+    count = parseInt(countActionMatch[1]);
+  } else if (countNounMatch) {
+    count = parseInt(countNounMatch[1]);
+  }
+  count = Math.max(1, Math.min(50, count));
+
+  // 2. Trích xuất giá (đơn lẻ hoặc khoảng giá):
+  let minPrice = 1000000;
+  let maxPrice = 3500000;
+  let singlePrice: number | null = null;
+
+  const singlePriceMatch = text.match(/giá\s*(\d+(?:[.,]\d+)?)\s*(triệu|tr|m)\b/);
+  const priceRangeMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:[-–—toàn]|đến)\s*(\d+(?:[.,]\d+)?)\s*(triệu|tr|m)/);
+
+  if (singlePriceMatch) {
+    singlePrice = parseFloat(singlePriceMatch[1].replace(',', '.')) * 1000000;
+    minPrice = singlePrice;
+    maxPrice = singlePrice;
+  } else if (priceRangeMatch) {
+    const p1 = parseFloat(priceRangeMatch[1].replace(',', '.'));
+    const p2 = parseFloat(priceRangeMatch[2].replace(',', '.'));
+    minPrice = Math.min(p1, p2) * 1000000;
+    maxPrice = Math.max(p1, p2) * 1000000;
+  } else if (text.includes('3–5 triệu') || text.includes('3-5 triệu') || text.includes('3-5tr')) {
+    minPrice = 3000000;
+    maxPrice = 5000000;
+  } else if (text.includes('1–2 triệu') || text.includes('1-2 triệu') || text.includes('1-2tr')) {
+    minPrice = 1000000;
+    maxPrice = 2000000;
+  } else if (text.includes('2–4 triệu') || text.includes('2-4 triệu') || text.includes('2-4tr')) {
+    minPrice = 2000000;
+    maxPrice = 4000000;
+  } else if (text.includes('300k') || text.includes('500k')) {
+    minPrice = 350000;
+    maxPrice = 850000;
+  }
+
+  // 3. Loại xe:
+  let preferredCarType: CarType = '4';
+  if (text.includes('5–7 chỗ') || text.includes('5-7 chỗ') || text.includes('7 chỗ') || text.includes('7c')) {
+    preferredCarType = '7';
+  } else if (text.includes('16 chỗ') || text.includes('16c')) {
+    preferredCarType = '16';
+  }
+
+  // 4. Vùng miền:
+  let selectedRegions: Region[] = ['north', 'central', 'south'];
+  if (text.includes('miền bắc') || text.includes('bắc bộ')) {
+    selectedRegions = ['north'];
+  } else if (text.includes('miền trung') || text.includes('trung bộ')) {
+    selectedRegions = ['central'];
+  } else if (text.includes('miền nam') || text.includes('nam bộ')) {
+    selectedRegions = ['south'];
+  }
+
+  return { count, minPrice, maxPrice, singlePrice, preferredCarType, selectedRegions };
+}
 
 const generateRandomPhone = (): string => {
   const prefixes = ['090', '091', '098', '097', '096', '086', '088', '038', '039', '077'];
@@ -196,96 +263,34 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
   };
 
   // ── Engine Nội Bộ (Offline Fallback) ──
-  const runLocalEngine = (requestedCount = 20): AiGeneratedRide[] => {
-    const text = prompt.toLowerCase();
+  const runLocalEngine = (requestedCount?: number): AiGeneratedRide[] => {
+    const params = parsePromptParameters(prompt);
+    const count = requestedCount !== undefined ? requestedCount : params.count;
+    const { minPrice, maxPrice, preferredCarType, selectedRegions } = params;
 
-    // 1. Số lượng cuốc
-    let count = requestedCount;
-    const countMatch = text.match(/(\d+)\s*(cuốc|chuyến|xe|lệnh|c)/);
-    if (countMatch) {
-      count = parseInt(countMatch[1]);
-    }
-    if (count < 1) count = 5;
-    if (count > 50) count = 50;
-
-    // 2. Khoảng giá
-    let minPrice = 1000000;
-    let maxPrice = 3500000;
-
-    const priceRangeMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:[-–—toàn]|đến)\s*(\d+(?:[.,]\d+)?)\s*(triệu|tr|m)/);
-    if (priceRangeMatch) {
-      const p1 = parseFloat(priceRangeMatch[1].replace(',', '.'));
-      const p2 = parseFloat(priceRangeMatch[2].replace(',', '.'));
-      minPrice = Math.min(p1, p2) * 1000000;
-      maxPrice = Math.max(p1, p2) * 1000000;
-    } else if (text.includes('3–5 triệu') || text.includes('3-5 triệu') || text.includes('3-5tr')) {
-      minPrice = 3000000;
-      maxPrice = 5000000;
-    } else if (text.includes('1–2 triệu') || text.includes('1-2 triệu') || text.includes('1-2tr')) {
-      minPrice = 1000000;
-      maxPrice = 2000000;
-    } else if (text.includes('2–4 triệu') || text.includes('2-4 triệu') || text.includes('2-4tr')) {
-      minPrice = 2000000;
-      maxPrice = 4000000;
-    } else if (text.includes('300k') || text.includes('500k')) {
-      minPrice = 350000;
-      maxPrice = 850000;
-    }
-
-    // 3. Loại xe
-    let preferredCarType: CarType = '4';
-    if (text.includes('5–7 chỗ') || text.includes('5-7 chỗ') || text.includes('7 chỗ') || text.includes('7c')) {
-      preferredCarType = '7';
-    } else if (text.includes('16 chỗ') || text.includes('16c')) {
-      preferredCarType = '16';
-    }
-
-    // 4. Vùng miền hoặc Thành phố lớn
-    const isMajorCitiesOnly = text.includes('thành phố lớn') || text.includes('tp lớn') || text.includes('trung tâm');
-    let selectedRegions: Region[] = ['north', 'central', 'south'];
-
-    if (text.includes('miền bắc') || text.includes('bắc bộ')) {
-      selectedRegions = ['north'];
-    } else if (text.includes('miền trung') || text.includes('trung bộ')) {
-      selectedRegions = ['central'];
-    } else if (text.includes('miền nam') || text.includes('nam bộ')) {
-      selectedRegions = ['south'];
-    }
-
-    // 5. Thuật toán sinh danh sách & Chống trùng tuyến
+    // Thuật toán sinh danh sách & Chống trùng tuyến
     const rides: AiGeneratedRide[] = [];
     const usedRoutes = new Set<string>();
 
     for (let i = 0; i < count; i++) {
       const region = selectedRegions[Math.floor(Math.random() * selectedRegions.length)];
-      const provinces = PROVINCES_BY_REGION[region];
-      const hubs = MAJOR_CITIES[region];
+      const cities = SAMPLE_CITIES_BY_REGION[region];
 
-      let start = '';
-      let end = '';
+      let start = cities[Math.floor(Math.random() * cities.length)];
+      let end = cities[Math.floor(Math.random() * cities.length)];
       let attempts = 0;
 
-      while (attempts < 20) {
+      while (attempts < 20 && (end === start || usedRoutes.has(`${start}__${end}`))) {
         attempts++;
-        if (isMajorCitiesOnly && Math.random() > 0.3) {
-          start = hubs[Math.floor(Math.random() * hubs.length)];
-        } else {
-          start = provinces[Math.floor(Math.random() * provinces.length)];
-        }
-
-        end = provinces[Math.floor(Math.random() * provinces.length)];
-
-        if (start !== end && !usedRoutes.has(`${start}__${end}`)) {
-          usedRoutes.add(`${start}__${end}`);
-          break;
-        }
+        end = cities[Math.floor(Math.random() * cities.length)];
       }
 
       if (start === end) {
-        end = provinces[(provinces.indexOf(start) + 1) % provinces.length];
+        end = cities[(cities.indexOf(start) + 1) % cities.length];
       }
+      usedRoutes.add(`${start}__${end}`);
 
-      const rawPrice = minPrice + Math.random() * (maxPrice - minPrice);
+      const rawPrice = minPrice === maxPrice ? minPrice : (minPrice + Math.random() * (maxPrice - minPrice));
       const price = Math.round(rawPrice / 50000) * 50000;
 
       let carType: CarType = preferredCarType;
@@ -297,6 +302,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
       const phone = generateRandomPhone();
       const noteTemplate = TRIP_NOTES[Math.floor(Math.random() * TRIP_NOTES.length)];
       const note = `Xe ${carType} chỗ · ${noteTemplate}`;
+      const detectedRegion = detectRegionFromPlace(start, end);
       const isValid = Boolean(start && end && price > 0 && name && phone);
 
       rides.push({
@@ -307,7 +313,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
         endPoint: end,
         price,
         carType,
-        region: detectRegionFromPlace(start),
+        region: detectedRegion,
         note,
         isValid,
       });
@@ -321,9 +327,8 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
     setIsGenerating(true);
     setAlertMsg(null);
 
-    // Trích xuất số lượng dự kiến từ prompt
-    const countMatch = prompt.match(/(\d+)\s*(cuốc|chuyến|xe|lệnh|c)/i);
-    const requestedCount = countMatch ? Math.min(50, Math.max(1, parseInt(countMatch[1]))) : 20;
+    // Trích xuất số lượng và thông số chuẩn xác từ prompt
+    const { count: requestedCount } = parsePromptParameters(prompt);
 
     // Chế độ 1: Groq Cloud LPU AI
     if (aiMode === 'groq') {
@@ -342,17 +347,24 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
             if (cStr.includes('7') || cStr.includes('5')) carTypeVal = '7';
             else if (cStr.includes('16')) carTypeVal = '16';
 
+            const startPoint = (r.startPoint || 'Hà Nội').trim();
+            const endPoint = (r.endPoint || 'Hải Phòng').trim();
+            const detectedRegion = detectRegionFromPlace(startPoint, endPoint);
+            const regionVal: Region = (r.region && ['north', 'central', 'south'].includes(r.region))
+              ? (r.region as Region)
+              : detectedRegion;
+
             return {
               id: `groq-ride-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
               name: r.name || 'Khách đặt xe',
               phone: r.phone || generateRandomPhone(),
-              startPoint: r.startPoint || 'Hà Nội',
-              endPoint: r.endPoint || 'Hải Phòng',
+              startPoint,
+              endPoint,
               price: Number(r.price) || 1200000,
               carType: carTypeVal,
-              region: detectRegionFromPlace(r.startPoint || ''),
+              region: regionVal,
               note: r.note || `Xe ${carTypeVal} chỗ · Đón đúng giờ`,
-              isValid: Boolean(r.startPoint && r.endPoint && Number(r.price) > 0),
+              isValid: Boolean(startPoint && endPoint && Number(r.price) > 0),
             };
           });
 
@@ -365,7 +377,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
           if (response.data.source === 'groq') {
             setAlertMsg({
               type: 'success',
-              text: `⚡ Groq AI (Model: ${response.data.model}) đã tạo và kiểm tra thành công ${mappedRides.length} cuốc xe siêu tốc! Dữ liệu đạt chuẩn 100%.`
+              text: `⚡ Groq AI (Model: ${response.data.model}) đã tạo và kiểm tra thành công ${mappedRides.length} chuyến xe siêu tốc! Dữ liệu đạt chuẩn 100%.`
             });
           } else {
             setAlertMsg({
@@ -409,7 +421,9 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
       if (r.id === id) {
         const updated = { ...r, [field]: value };
         if (field === 'startPoint') {
-          updated.region = detectRegionFromPlace(String(value));
+          updated.region = detectRegionFromPlace(String(value), updated.endPoint);
+        } else if (field === 'endPoint') {
+          updated.region = detectRegionFromPlace(updated.startPoint, String(value));
         }
         updated.isValid = Boolean(updated.startPoint && updated.endPoint && Number(updated.price) > 0);
         return updated;
@@ -806,14 +820,15 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
               <thead>
                 <tr>
                   <th style={{ width: 40 }}>STT</th>
-                  <th style={{ width: 140 }}>Khách hàng</th>
+                  <th style={{ width: 130 }}>Khách hàng</th>
                   <th style={{ width: 110 }}>Điện thoại</th>
                   <th>Điểm đón</th>
                   <th>Điểm đến</th>
-                  <th style={{ width: 90 }}>Loại xe</th>
-                  <th style={{ width: 120 }}>Giá cước (VNĐ)</th>
+                  <th style={{ width: 130 }}>Khu vực</th>
+                  <th style={{ width: 85 }}>Loại xe</th>
+                  <th style={{ width: 115 }}>Giá cước (VNĐ)</th>
                   <th>Ghi chú chuyến</th>
-                  <th style={{ width: 70, textAlign: 'center' }}>Xóa</th>
+                  <th style={{ width: 60, textAlign: 'center' }}>Xóa</th>
                 </tr>
               </thead>
               <tbody>
@@ -851,6 +866,24 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
                         value={ride.endPoint}
                         onChange={(e) => handleUpdateRide(ride.id, 'endPoint', e.target.value)}
                       />
+                    </td>
+                    <td>
+                      <select
+                        className="ai-editable-cell"
+                        value={ride.region}
+                        onChange={(e) => handleUpdateRide(ride.id, 'region', e.target.value as Region)}
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          color: ride.region === 'north' ? '#0369a1' : ride.region === 'central' ? '#b45309' : '#15803d',
+                          background: ride.region === 'north' ? '#f0f9ff' : ride.region === 'central' ? '#fffbeb' : '#f0fdf4',
+                          border: `1px solid ${ride.region === 'north' ? '#bae6fd' : ride.region === 'central' ? '#fde68a' : '#bbf7d0'}`
+                        }}
+                      >
+                        <option value="north">🏔️ Miền Bắc</option>
+                        <option value="central">🌊 Miền Trung</option>
+                        <option value="south">🌴 Miền Nam</option>
+                      </select>
                     </td>
                     <td>
                       <select
