@@ -774,8 +774,8 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
                 {targetDestination === 'fake_notifications'
                   ? `AI tạo và kiểm tra thông báo ảo (${generatedRides.length} thông báo)`
                   : targetDestination === 'both'
-                  ? `AI tạo và kiểm tra cuốc & thông báo đồng bộ (${generatedRides.length} chuyến)`
-                  : `AI tạo và kiểm tra cuốc xe (${generatedRides.length} chuyến)`}
+                    ? `AI tạo và kiểm tra cuốc & thông báo đồng bộ (${generatedRides.length} chuyến)`
+                    : `AI tạo và kiểm tra cuốc xe (${generatedRides.length} chuyến)`}
               </span>
             </div>
             <div className="ai-validation-badges">

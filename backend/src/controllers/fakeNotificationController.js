@@ -16,6 +16,10 @@ exports.createTemplate = async (req, res) => {
       });
     }
 
+    const twoDaysLater = new Date();
+    twoDaysLater.setDate(twoDaysLater.getDate() + 2);
+    const defaultDate = twoDaysLater.toISOString().split('T')[0];
+
     // Create template
     const template = await FakeNotification.create({
       region,
@@ -25,8 +29,8 @@ exports.createTemplate = async (req, res) => {
       endArea: endArea || null,
       startDetail: startDetail || null,
       endDetail: endDetail || null,
-      displayTime,
-      displayDate: displayDate || null,
+      displayTime: displayTime || '08:00',
+      displayDate: displayDate || defaultDate,
       carType,
       price,
       isActive: isActive !== undefined ? isActive : true,

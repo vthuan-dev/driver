@@ -46,6 +46,12 @@ const provincesByRegion: Record<string, string[]> = {
   ]
 };
 
+const getTwoDaysLaterDate = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  return d.toISOString().split('T')[0];
+};
+
 const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
   const [formData, setFormData] = useState<FormData>({
     region: 'north',
@@ -56,7 +62,7 @@ const FakeNotificationForm = ({ template, onSubmit, onCancel }: Props) => {
     startDetail: '',
     endDetail: '',
     displayTime: '08:00',
-    displayDate: '',
+    displayDate: getTwoDaysLaterDate(),
     carType: '7',
     price: 0,
     isActive: true,

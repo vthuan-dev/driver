@@ -359,11 +359,15 @@ const createBulkRequests = async (req, res) => {
     // 2. Tạo vào FakeNotification nếu target là 'fake_notifications' hoặc 'both'
     if (target === 'fake_notifications' || target === 'both') {
       const now = new Date();
-      const defaultTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-      // Chuẩn ISO YYYY-MM-DD để hiển thị ngày không bao giờ bị Invalid Date
-      const defaultDate = now.toISOString().split('T')[0];
+      // Khách đặt trước 2 ngày: ngày khởi hành tự động lùi 2 ngày sau (YYYY-MM-DD)
+      const targetDateObj = new Date(now);
+      targetDateObj.setDate(targetDateObj.getDate() + 2);
+      const defaultDate = targetDateObj.toISOString().split('T')[0];
 
-      const fakeData = requests.map(r => {
+      // Dải giờ khởi hành thực tế cho các chuyến xe đường dài / liên tỉnh
+      const timeSlots = ['07:30', '08:00', '08:30', '09:00', '09:30', '13:00', '13:30', '14:00', '15:30', '16:00'];
+
+      const fakeData = requests.map((r, idx) => {
         let carType = '4';
         if (r.carType && ['4', '7', '16'].includes(String(r.carType))) {
           carType = String(r.carType);
@@ -380,13 +384,31 @@ const createBulkRequests = async (req, res) => {
         const startDetail = r.startDetail?.trim() || startPt;
         const endDetail = r.endDetail?.trim() || endPt;
 
-        // Chuẩn hóa displayDate nếu có dạng DD/MM/YYYY sang YYYY-MM-DD
-        let dispDate = r.displayDate || defaultDate;
+        // Trích xuất giờ đón hợp lý từ ghi chú nếu có (vd: đón lúc 8h, 8:30)
+        let departureTime = timeSlots[idx % timeSlots.length];
+        if (r.displayTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(r.displayTime)) {
+          departureTime = r.displayTime;
+        } else if (r.note) {
+          const matchTime = r.note.match(/(\d{1,2})[h:]([0-5][0-9])?/i);
+          if (matchTime) {
+            const h = parseInt(matchTime[1]);
+            const m = matchTime[2] || '00';
+            if (h >= 5 && h <= 23) {
+              departureTime = `${String(h).padStart(2, '0')}:${m}`;
+            }
+          }
+        }
+
+        // Chuẩn hóa displayDate: Nếu có truyền displayDate thì chuẩn hóa, nếu không mặc định 2 ngày sau
+        let dispDate = r.displayDate;
         if (dispDate && dispDate.includes('/')) {
           const parts = dispDate.split('/');
           if (parts.length === 3) {
             dispDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
           }
+        }
+        if (!dispDate) {
+          dispDate = defaultDate;
         }
 
         const detected = detectRegionFromPlace(startPt, endPt);
@@ -403,7 +425,7 @@ const createBulkRequests = async (req, res) => {
           endArea,
           startDetail,
           endDetail,
-          displayTime: r.displayTime || defaultTime,
+          displayTime: departureTime,
           displayDate: dispDate,
           carType,
           price: parseInt(r.price) || 500000,
