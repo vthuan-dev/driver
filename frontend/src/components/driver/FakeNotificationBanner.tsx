@@ -112,7 +112,23 @@ const FakeNotificationBanner = ({
   };
 
   const formatRideDate = (notification: any) => {
-    const d = notification.displayDate ? new Date(notification.displayDate) : new Date();
+    let d = new Date();
+    if (notification.displayDate) {
+      const rawDateStr = String(notification.displayDate).trim();
+      if (rawDateStr.includes('/')) {
+        const parts = rawDateStr.split('/');
+        if (parts.length === 3) {
+          d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+        } else {
+          d = new Date(rawDateStr);
+        }
+      } else {
+        d = new Date(rawDateStr);
+      }
+    }
+    if (isNaN(d.getTime())) {
+      d = new Date();
+    }
     const weekday = d.toLocaleDateString('vi-VN', { weekday: 'long' });
     const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
     const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });

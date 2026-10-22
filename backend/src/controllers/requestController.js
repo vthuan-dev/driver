@@ -349,7 +349,8 @@ const createBulkRequests = async (req, res) => {
     if (target === 'fake_notifications' || target === 'both') {
       const now = new Date();
       const defaultTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const defaultDate = now.toLocaleDateString('vi-VN');
+      // Chuẩn ISO YYYY-MM-DD để hiển thị ngày không bao giờ bị Invalid Date
+      const defaultDate = now.toISOString().split('T')[0];
 
       const fakeData = requests.map(r => {
         let carType = '4';
@@ -361,16 +362,32 @@ const createBulkRequests = async (req, res) => {
           carType = '16';
         }
 
+        const startPt = r.startPoint?.trim() || 'Hà Nội';
+        const endPt = r.endPoint?.trim() || 'Hải Phòng';
+        const startArea = r.startArea?.trim() || startPt.split(',')[0].trim();
+        const endArea = r.endArea?.trim() || endPt.split(',')[0].trim();
+        const startDetail = r.startDetail?.trim() || startPt;
+        const endDetail = r.endDetail?.trim() || endPt;
+
+        // Chuẩn hóa displayDate nếu có dạng DD/MM/YYYY sang YYYY-MM-DD
+        let dispDate = r.displayDate || defaultDate;
+        if (dispDate && dispDate.includes('/')) {
+          const parts = dispDate.split('/');
+          if (parts.length === 3) {
+            dispDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+
         return {
           region: ['north', 'central', 'south'].includes(r.region) ? r.region : 'north',
-          startPoint: r.startPoint?.trim() || 'Hà Nội',
-          endPoint: r.endPoint?.trim() || 'Hải Phòng',
-          startArea: r.startArea?.trim() || null,
-          endArea: r.endArea?.trim() || null,
-          startDetail: r.startDetail?.trim() || null,
-          endDetail: r.endDetail?.trim() || null,
+          startPoint: startPt,
+          endPoint: endPt,
+          startArea,
+          endArea,
+          startDetail,
+          endDetail,
           displayTime: r.displayTime || defaultTime,
-          displayDate: r.displayDate || defaultDate,
+          displayDate: dispDate,
           carType,
           price: parseInt(r.price) || 500000,
           note: r.note?.trim() || null,

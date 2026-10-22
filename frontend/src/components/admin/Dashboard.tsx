@@ -1304,9 +1304,13 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
 
           {activeTab === 'ai-generator' && (
             <AiRideGeneratorTab
-              onPublished={() => {
-                setActiveTab('requests');
-                loadRequests();
+              onPublished={(target) => {
+                if (target === 'fake_notifications') {
+                  setActiveTab('fake-notifications');
+                } else {
+                  setActiveTab('requests');
+                  loadRequests();
+                }
               }}
             />
           )}

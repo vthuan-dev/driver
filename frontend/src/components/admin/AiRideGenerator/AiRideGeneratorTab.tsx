@@ -79,11 +79,88 @@ const generateRandomPhone = (): string => {
   return `${prefix}${suffix}`;
 };
 
-export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onPublished }) => {
-  const [prompt, setPrompt] = useState<string>(
-    'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.'
-  );
+export const PROMPT_SUGGESTIONS: Record<'requests' | 'fake_notifications' | 'both', {
+  label: string;
+  defaultPrompt: string;
+  textareaHeader: string;
+  chips: { label: string; prompt: string }[];
+}> = {
+  requests: {
+    label: 'Tab Cuốc xe (Chờ nhận)',
+    defaultPrompt: 'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.',
+    textareaHeader: '✨ Nhập yêu cầu cuốc xe chờ ghép (Số lượng, khu vực, khoảng giá, loại xe...)',
+    chips: [
+      {
+        label: '🌟 Thành phố lớn (3–5 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.'
+      },
+      {
+        label: '🚗 Miền Bắc liên tỉnh (1–2 triệu, xe 4 chỗ)',
+        prompt: 'Tạo 15 cuốc xe đón tại Miền Bắc đi các tỉnh, giá 1–2 triệu, xe 4 chỗ.'
+      },
+      {
+        label: '🌴 Miền Nam xuất phát TP.HCM (2–4 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 15 cuốc xe liên tỉnh Miền Nam xuất phát từ TP.HCM, giá 2–4 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '✈️ Đưa đón Sân bay / Du lịch (800k–1.5tr)',
+        prompt: 'Tạo 10 cuốc xe đưa đón sân bay và khu du lịch, giá 800k–1.5 triệu, xe 5–7 chỗ.'
+      }
+    ]
+  },
+  fake_notifications: {
+    label: 'Thông báo ảo (Trang chủ)',
+    defaultPrompt: 'Tạo 10 thông báo nổ cuốc xe VIP trên trang chủ, giá 2–4 triệu, xe 7 chỗ.',
+    textareaHeader: '📢 Nhập yêu cầu thông báo nổ cuốc trang chủ (Tạo sôi động, giờ cao điểm, cuốc VIP...)',
+    chips: [
+      {
+        label: '🔥 Nổ cuốc Hot trang chủ (2–4 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 10 thông báo nổ cuốc xe VIP trên trang chủ, giá 2–4 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '⚡ Giờ cao điểm Sân bay (1–2.5 triệu, xe 4-7 chỗ)',
+        prompt: 'Tạo 8 thông báo nổ cuốc đón sân bay Nội Bài và Tân Sơn Nhất giờ cao điểm, giá 1–2.5 triệu, xe 4–7 chỗ.'
+      },
+      {
+        label: '🏖️ Tuyến du lịch nổi bật (1.5–3 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 10 thông báo nổ cuốc đi các điểm du lịch Hạ Long, Sapa, Vũng Tàu, Đà Lạt, giá 1.5–3 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '🚗 Cuốc liên tỉnh giá cao (3–5 triệu, TP lớn)',
+        prompt: 'Tạo 12 thông báo cuốc liên tỉnh giá cao 3–5 triệu xuất phát từ các thành phố lớn.'
+      }
+    ]
+  },
+  both: {
+    label: 'Xuất bản cả 2 nơi (Đồng bộ toàn app)',
+    defaultPrompt: 'Tạo 15 cuốc xe đồng bộ vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.',
+    textareaHeader: '⚡ Nhập yêu cầu cuốc xe xuất bản đồng thời (Vừa vào danh sách nhận cuốc vừa nổ chuông trang chủ...)',
+    chips: [
+      {
+        label: '⚡ Đồng bộ toàn hệ thống (2–4 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 15 cuốc xe đồng bộ vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '🌟 Tuyến vàng Hà Nội - Quảng Ninh (1.5–2.5tr)',
+        prompt: 'Tạo 10 cuốc xe tuyến Hà Nội đi Quảng Ninh, Hải Phòng, giá 1.5–2.5 triệu, xe 5–7 chỗ.'
+      },
+      {
+        label: '🌴 Tuyến vàng Sài Gòn - Vũng Tàu (1.5–2.5tr)',
+        prompt: 'Tạo 10 cuốc xe tuyến TP.HCM đi Vũng Tàu, Cần Thơ, giá 1.5–2.5 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '✈️ Đón trả Sân bay toàn quốc (800k–2tr)',
+        prompt: 'Tạo 10 cuốc xe đưa đón sân bay toàn quốc, giá 800k–2 triệu, xe 4–7 chỗ.'
+      }
+    ]
+  }
+};
+
+export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 'fake_notifications' | 'both') => void }> = ({ onPublished }) => {
   const [targetDestination, setTargetDestination] = useState<'requests' | 'fake_notifications' | 'both'>('requests');
+  const [prompt, setPrompt] = useState<string>(
+    PROMPT_SUGGESTIONS.requests.defaultPrompt
+  );
   const [aiMode, setAiMode] = useState<'groq' | 'local'>('groq');
   const [customApiKey, setCustomApiKey] = useState<string>('');
   const [showConfig, setShowConfig] = useState<boolean>(false);
@@ -93,6 +170,12 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [generatedRides, setGeneratedRides] = useState<AiGeneratedRide[]>([]);
   const [alertMsg, setAlertMsg] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+
+  // Hàm chuyển đổi nơi xuất bản và tự động cập nhật Prompt mẫu
+  const handleSelectTarget = (newTarget: 'requests' | 'fake_notifications' | 'both') => {
+    setTargetDestination(newTarget);
+    setPrompt(PROMPT_SUGGESTIONS[newTarget].defaultPrompt);
+  };
 
   useEffect(() => {
     const savedKey = localStorage.getItem('admin_groq_api_key');
@@ -383,7 +466,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
       setGeneratedRides([]);
 
       if (onPublished) {
-        onPublished();
+        onPublished(targetDestination);
       }
     } catch (err: any) {
       console.error('Error publishing rides:', err);
@@ -548,7 +631,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
         {/* Textarea nhập câu lệnh */}
         <div className="ai-prompt-box">
           <div className="ai-prompt-header-bar">
-            <span>✨ Nhập yêu cầu cuốc xe (Số lượng, khu vực, khoảng giá, loại xe...)</span>
+            <span>{PROMPT_SUGGESTIONS[targetDestination].textareaHeader}</span>
             {prompt && (
               <button
                 type="button"
@@ -571,7 +654,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
             rows={3}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ví dụ: Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ."
+            placeholder={PROMPT_SUGGESTIONS[targetDestination].defaultPrompt}
           />
           <div className="ai-prompt-footer-bar">
             <span>💡 Mẹo: Có thể nhập tự do mọi cung đường và khoảng giá mong muốn</span>
@@ -579,50 +662,33 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
           </div>
         </div>
 
-        {/* Nút gợi ý nhanh */}
+        {/* Nút gợi ý nhanh thay đổi tự động theo thẻ xuất bản */}
         <div className="ai-suggestions-row">
           <span className="ai-suggestions-label">
             <span>🎯</span> Gợi ý lệnh nhanh:
           </span>
-          <button
-            type="button"
-            className="ai-suggestion-chip"
-            onClick={() => setPrompt('Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.')}
-          >
-            <span>🌟</span> Thành phố lớn (3–5 triệu, xe 7 chỗ)
-          </button>
-          <button
-            type="button"
-            className="ai-suggestion-chip"
-            onClick={() => setPrompt('Tạo 15 cuốc xe đón tại Miền Bắc đi các tỉnh, giá 1–2 triệu, xe 4 chỗ.')}
-          >
-            <span>🚗</span> Miền Bắc (1–2 triệu, xe 4 chỗ)
-          </button>
-          <button
-            type="button"
-            className="ai-suggestion-chip"
-            onClick={() => setPrompt('Tạo 15 cuốc xe liên tỉnh Miền Nam xuất phát từ TP.HCM, giá 2–4 triệu, xe 7 chỗ.')}
-          >
-            <span>🌴</span> Miền Nam (2–4 triệu, từ TP.HCM)
-          </button>
-          <button
-            type="button"
-            className="ai-suggestion-chip"
-            onClick={() => setPrompt('Tạo 10 cuốc xe đưa đón sân bay và khu du lịch, giá 800k–1.5 triệu, xe 5–7 chỗ.')}
-          >
-            <span>✈️</span> Đưa đón Sân bay / Du lịch
-          </button>
+          {PROMPT_SUGGESTIONS[targetDestination].chips.map((c, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className="ai-suggestion-chip"
+              onClick={() => setPrompt(c.prompt)}
+              title={c.prompt}
+            >
+              {c.label}
+            </button>
+          ))}
         </div>
 
         {/* Tùy chọn điểm đến xuất bản dạng 3 thẻ trực quan */}
         <div className="ai-config-section">
           <span className="ai-config-label">
-            📍 Chọn nơi xuất bản cuốc xe lên ứng dụng:
+            📍 Chọn nơi xuất bản cuốc xe lên ứng dụng (Bấm để tự đổi Prompt gợi ý):
           </span>
           <div className="ai-target-cards-grid">
             <div
               className={`ai-target-card ${targetDestination === 'requests' ? 'selected' : ''}`}
-              onClick={() => setTargetDestination('requests')}
+              onClick={() => handleSelectTarget('requests')}
             >
               <div className="ai-target-card-radio">
                 {targetDestination === 'requests' && <div className="ai-target-card-radio-dot" />}
@@ -635,7 +701,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
 
             <div
               className={`ai-target-card ${targetDestination === 'fake_notifications' ? 'selected' : ''}`}
-              onClick={() => setTargetDestination('fake_notifications')}
+              onClick={() => handleSelectTarget('fake_notifications')}
             >
               <div className="ai-target-card-radio">
                 {targetDestination === 'fake_notifications' && <div className="ai-target-card-radio-dot" />}
@@ -648,7 +714,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
 
             <div
               className={`ai-target-card ${targetDestination === 'both' ? 'selected' : ''}`}
-              onClick={() => setTargetDestination('both')}
+              onClick={() => handleSelectTarget('both')}
             >
               <div className="ai-target-card-radio">
                 {targetDestination === 'both' && <div className="ai-target-card-radio-dot" />}
@@ -858,7 +924,11 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
               ) : (
                 <>
                   <span>🚀</span>
-                  <span>Xác nhận đăng ({generatedRides.length} cuốc xe)</span>
+                  <span>
+                    {targetDestination === 'fake_notifications' && `Xác nhận đăng (${generatedRides.length} thông báo ảo lên trang chủ)`}
+                    {targetDestination === 'requests' && `Xác nhận đăng (${generatedRides.length} cuốc xe vào danh sách chờ)`}
+                    {targetDestination === 'both' && `Xác nhận đăng (${generatedRides.length} cuốc xe lên cả 2 nơi)`}
+                  </span>
                 </>
               )}
             </button>
