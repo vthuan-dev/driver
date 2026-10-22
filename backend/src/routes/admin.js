@@ -27,6 +27,7 @@ router.put('/users/:id/income', adminAuthMiddleware, driverStatsController.setDr
 
 // Request management
 router.get('/requests', adminAuthMiddleware, requestController.getAllRequests);
+router.post('/requests/bulk', adminAuthMiddleware, requestController.createBulkRequests);
 router.put('/requests/:id', adminAuthMiddleware, requestController.updateRequest);
 router.delete('/requests/:id', adminAuthMiddleware, requestController.deleteRequest);
 

@@ -55,6 +55,8 @@ export const requestsAPI = {
     api.get('/admin/requests', { params }),
   updateRequest:  (id: string, status: string) => api.put(`/admin/requests/${id}`, { status }),
   deleteRequest:  (id: string)                 => api.delete(`/admin/requests/${id}`),
+  createBulkRequests: (data: { requests: any[]; target?: 'requests' | 'fake_notifications' | 'both' }) =>
+    api.post('/admin/requests/bulk', data),
 };
 
 // ─── Fake Notifications Management API ────────────────────────────────────────

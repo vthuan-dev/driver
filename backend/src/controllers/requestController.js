@@ -1,4 +1,4 @@
-const { WaitingRequest, User } = require('../models');
+const { WaitingRequest, User, FakeNotification } = require('../models');
 
 const createRequest = async (req, res) => {
   try {
@@ -319,8 +319,90 @@ const markReadByDriver = async (req, res) => {
   }
 };
 
+const createBulkRequests = async (req, res) => {
+  try {
+    const { requests, target = 'requests' } = req.body;
+    if (!Array.isArray(requests) || requests.length === 0) {
+      return res.status(400).json({ success: false, message: 'Danh sách cuốc xe không hợp lệ hoặc rỗng' });
+    }
+
+    let createdWaiting = [];
+    let createdFake = [];
+
+    // 1. Tạo vào WaitingRequest nếu target là 'requests' hoặc 'both'
+    if (target === 'requests' || target === 'both') {
+      const waitingData = requests.map(r => ({
+        name: r.name?.trim() || 'Khách đặt xe',
+        phone: r.phone?.trim() || '0988888888',
+        startPoint: r.startPoint?.trim() || 'Hà Nội',
+        endPoint: r.endPoint?.trim() || 'Hải Phòng',
+        price: parseInt(r.price) || 500000,
+        note: r.note?.trim() || '',
+        region: ['north', 'central', 'south'].includes(r.region) ? r.region : 'north',
+        status: 'waiting',
+        userId: req.user ? req.user.id : null
+      }));
+      createdWaiting = await WaitingRequest.bulkCreate(waitingData);
+    }
+
+    // 2. Tạo vào FakeNotification nếu target là 'fake_notifications' hoặc 'both'
+    if (target === 'fake_notifications' || target === 'both') {
+      const now = new Date();
+      const defaultTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const defaultDate = now.toLocaleDateString('vi-VN');
+
+      const fakeData = requests.map(r => {
+        let carType = '4';
+        if (r.carType && ['4', '7', '16'].includes(String(r.carType))) {
+          carType = String(r.carType);
+        } else if (r.note && (r.note.includes('7 chỗ') || r.note.includes('5-7 chỗ'))) {
+          carType = '7';
+        } else if (r.note && r.note.includes('16 chỗ')) {
+          carType = '16';
+        }
+
+        return {
+          region: ['north', 'central', 'south'].includes(r.region) ? r.region : 'north',
+          startPoint: r.startPoint?.trim() || 'Hà Nội',
+          endPoint: r.endPoint?.trim() || 'Hải Phòng',
+          startArea: r.startArea?.trim() || null,
+          endArea: r.endArea?.trim() || null,
+          startDetail: r.startDetail?.trim() || null,
+          endDetail: r.endDetail?.trim() || null,
+          displayTime: r.displayTime || defaultTime,
+          displayDate: r.displayDate || defaultDate,
+          carType,
+          price: parseInt(r.price) || 500000,
+          note: r.note?.trim() || null,
+          isActive: true,
+          createdById: req.user.id
+        };
+      });
+      createdFake = await FakeNotification.bulkCreate(fakeData);
+    }
+
+    const totalCreated = (target === 'both') 
+      ? (createdWaiting.length + createdFake.length)
+      : (createdWaiting.length || createdFake.length);
+
+    res.json({
+      success: true,
+      message: `Đã đăng thành công ${requests.length} cuốc xe lên hệ thống!`,
+      data: {
+        waitingCount: createdWaiting.length,
+        fakeCount: createdFake.length,
+        total: totalCreated
+      }
+    });
+  } catch (error) {
+    console.error('Error creating bulk requests:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi đăng cuốc hàng loạt: ' + error.message });
+  }
+};
+
 module.exports = {
   createRequest,
+  createBulkRequests,
   getMyRequests,
   getAllRequests,
   updateRequest,

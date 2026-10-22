@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usersAPI, requestsAPI, settingsAPI, adminAuthAPI } from '../../services/adminApi';
 import FakeNotificationsTab from './FakeNotifications/FakeNotificationsTab';
+import AiRideGeneratorTab from './AiRideGenerator/AiRideGeneratorTab';
 import './Dashboard.css';
 
 type User = {
@@ -36,7 +37,7 @@ type Request = {
 };
 
 const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'fake-notifications' | 'settings' | 'change-password'>('requests');
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'ai-generator' | 'fake-notifications' | 'settings' | 'change-password'>('requests');
   const [users, setUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
@@ -496,6 +497,19 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 <span>Yêu cầu chờ cuốc</span>
               </button>
               <button 
+                className={`tab ${activeTab === 'ai-generator' ? 'active' : ''}`}
+                onClick={() => setActiveTab('ai-generator')}
+                style={{
+                  background: activeTab === 'ai-generator' 
+                    ? 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))' 
+                    : undefined,
+                  borderColor: activeTab === 'ai-generator' ? '#8b5cf6' : undefined
+                }}
+              >
+                <span>🤖</span>
+                <span>AI Tạo cuốc xe</span>
+              </button>
+              <button 
                 className={`tab ${activeTab === 'fake-notifications' ? 'active' : ''}`}
                 onClick={() => setActiveTab('fake-notifications')}
               >
@@ -585,6 +599,19 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
               >
                 <span>📋</span>
                 <span>Yêu cầu chờ cuốc</span>
+              </button>
+              <button 
+                className={`mobile-tab ${activeTab === 'ai-generator' ? 'active' : ''}`}
+                onClick={() => setActiveTab('ai-generator')}
+                style={{
+                  background: activeTab === 'ai-generator' 
+                    ? 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))' 
+                    : undefined,
+                  borderColor: activeTab === 'ai-generator' ? '#8b5cf6' : undefined
+                }}
+              >
+                <span>🤖</span>
+                <span>AI Tạo cuốc</span>
               </button>
               <button 
                 className={`mobile-tab ${activeTab === 'fake-notifications' ? 'active' : ''}`}
@@ -1095,6 +1122,24 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                   >
                     Hoàn thành ({requestCounts.completed.toLocaleString('vi-VN')})
                   </button>
+                  <button
+                    className="filter-btn"
+                    onClick={() => setActiveTab('ai-generator')}
+                    style={{
+                      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 700,
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.35)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                    title="Mở công cụ AI tạo cuốc xe tự động"
+                  >
+                    <span>✨</span>
+                    <span>AI Tạo cuốc xe</span>
+                  </button>
                 </div>
               </div>
 
@@ -1255,6 +1300,15 @@ const Dashboard = ({ admin, onLogout }: { admin: any; onLogout: () => void }) =>
                 )}
               </div>
             </div>
+          )}
+
+          {activeTab === 'ai-generator' && (
+            <AiRideGeneratorTab
+              onPublished={() => {
+                setActiveTab('requests');
+                loadRequests();
+              }}
+            />
           )}
           </div>
         </div>
