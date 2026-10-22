@@ -80,4 +80,10 @@ export const settingsAPI = {
   updateSettings: (data: any) => api.put('/admin/settings', data),
 };
 
+// ─── AI Ride Generation API (Groq AI) ──────────────────────────────────────────
+export const aiAPI = {
+  generateRides: (data: { prompt: string; count?: number; customApiKey?: string }) =>
+    api.post('/admin/ai/generate-rides', data),
+};
+
 export default api;

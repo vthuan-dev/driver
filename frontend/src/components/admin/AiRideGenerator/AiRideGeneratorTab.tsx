@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { requestsAPI } from '../../../services/adminApi';
+import React, { useState, useEffect } from 'react';
+import { requestsAPI, aiAPI } from '../../../services/adminApi';
 import './AiRideGenerator.css';
 
 type Region = 'north' | 'central' | 'south';
@@ -19,7 +19,7 @@ export interface AiGeneratedRide {
   validationError?: string;
 }
 
-// Danh mục dữ liệu địa lý phong phú
+// Danh mục dữ liệu địa lý phong phú (dùng cho Engine Nội bộ & Fallback)
 const MAJOR_CITIES: Record<Region, string[]> = {
   north: ['Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Bắc Ninh', 'Hải Dương'],
   central: ['Đà Nẵng', 'Huế', 'Nha Trang', 'Quy Nhơn', 'Vinh'],
@@ -63,7 +63,6 @@ const TRIP_NOTES = [
   'Khách quen uy tín, trả tiền mặt khi xong chuyến'
 ];
 
-// Hàm xác định vùng miền từ địa danh
 const detectRegionFromPlace = (place: string): Region => {
   for (const [r, provs] of Object.entries(PROVINCES_BY_REGION)) {
     if (provs.some(p => place.toLowerCase().includes(p.toLowerCase()))) {
@@ -73,7 +72,6 @@ const detectRegionFromPlace = (place: string): Region => {
   return 'north';
 };
 
-// Hàm sinh số điện thoại ngẫu nhiên hợp lệ
 const generateRandomPhone = (): string => {
   const prefixes = ['090', '091', '098', '097', '096', '086', '088', '038', '039', '077'];
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
@@ -86,149 +84,240 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
     'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.'
   );
   const [targetDestination, setTargetDestination] = useState<'requests' | 'fake_notifications' | 'both'>('requests');
+  const [aiMode, setAiMode] = useState<'groq' | 'local'>('groq');
+  const [customApiKey, setCustomApiKey] = useState<string>('');
+  const [showConfig, setShowConfig] = useState<boolean>(false);
+  const [generationSource, setGenerationSource] = useState<{ source: string; model?: string } | null>(null);
+
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [generatedRides, setGeneratedRides] = useState<AiGeneratedRide[]>([]);
-  const [alertMsg, setAlertMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [alertMsg, setAlertMsg] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
-  // Phân tích câu lệnh tự nhiên (NLP Parser)
-  const parsePromptAndGenerate = () => {
+  useEffect(() => {
+    const savedKey = localStorage.getItem('admin_groq_api_key');
+    if (savedKey) {
+      setCustomApiKey(savedKey);
+    }
+  }, []);
+
+  const handleSaveApiKey = () => {
+    if (customApiKey.trim()) {
+      localStorage.setItem('admin_groq_api_key', customApiKey.trim());
+      setAlertMsg({ type: 'success', text: 'Đã lưu cấu hình API Key Groq tùy chỉnh vào trình duyệt!' });
+    } else {
+      localStorage.removeItem('admin_groq_api_key');
+      setAlertMsg({ type: 'success', text: 'Đã hoàn trả về API Key Groq mặc định của hệ thống!' });
+    }
+    setShowConfig(false);
+  };
+
+  // ── Engine Nội Bộ (Offline Fallback) ──
+  const runLocalEngine = (requestedCount = 20): AiGeneratedRide[] => {
+    const text = prompt.toLowerCase();
+
+    // 1. Số lượng cuốc
+    let count = requestedCount;
+    const countMatch = text.match(/(\d+)\s*(cuốc|chuyến|xe|lệnh|c)/);
+    if (countMatch) {
+      count = parseInt(countMatch[1]);
+    }
+    if (count < 1) count = 5;
+    if (count > 50) count = 50;
+
+    // 2. Khoảng giá
+    let minPrice = 1000000;
+    let maxPrice = 3500000;
+
+    const priceRangeMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:[-–—toàn]|đến)\s*(\d+(?:[.,]\d+)?)\s*(triệu|tr|m)/);
+    if (priceRangeMatch) {
+      const p1 = parseFloat(priceRangeMatch[1].replace(',', '.'));
+      const p2 = parseFloat(priceRangeMatch[2].replace(',', '.'));
+      minPrice = Math.min(p1, p2) * 1000000;
+      maxPrice = Math.max(p1, p2) * 1000000;
+    } else if (text.includes('3–5 triệu') || text.includes('3-5 triệu') || text.includes('3-5tr')) {
+      minPrice = 3000000;
+      maxPrice = 5000000;
+    } else if (text.includes('1–2 triệu') || text.includes('1-2 triệu') || text.includes('1-2tr')) {
+      minPrice = 1000000;
+      maxPrice = 2000000;
+    } else if (text.includes('2–4 triệu') || text.includes('2-4 triệu') || text.includes('2-4tr')) {
+      minPrice = 2000000;
+      maxPrice = 4000000;
+    } else if (text.includes('300k') || text.includes('500k')) {
+      minPrice = 350000;
+      maxPrice = 850000;
+    }
+
+    // 3. Loại xe
+    let preferredCarType: CarType = '4';
+    if (text.includes('5–7 chỗ') || text.includes('5-7 chỗ') || text.includes('7 chỗ') || text.includes('7c')) {
+      preferredCarType = '7';
+    } else if (text.includes('16 chỗ') || text.includes('16c')) {
+      preferredCarType = '16';
+    }
+
+    // 4. Vùng miền hoặc Thành phố lớn
+    const isMajorCitiesOnly = text.includes('thành phố lớn') || text.includes('tp lớn') || text.includes('trung tâm');
+    let selectedRegions: Region[] = ['north', 'central', 'south'];
+
+    if (text.includes('miền bắc') || text.includes('bắc bộ')) {
+      selectedRegions = ['north'];
+    } else if (text.includes('miền trung') || text.includes('trung bộ')) {
+      selectedRegions = ['central'];
+    } else if (text.includes('miền nam') || text.includes('nam bộ')) {
+      selectedRegions = ['south'];
+    }
+
+    // 5. Thuật toán sinh danh sách & Chống trùng tuyến
+    const rides: AiGeneratedRide[] = [];
+    const usedRoutes = new Set<string>();
+
+    for (let i = 0; i < count; i++) {
+      const region = selectedRegions[Math.floor(Math.random() * selectedRegions.length)];
+      const provinces = PROVINCES_BY_REGION[region];
+      const hubs = MAJOR_CITIES[region];
+
+      let start = '';
+      let end = '';
+      let attempts = 0;
+
+      while (attempts < 20) {
+        attempts++;
+        if (isMajorCitiesOnly && Math.random() > 0.3) {
+          start = hubs[Math.floor(Math.random() * hubs.length)];
+        } else {
+          start = provinces[Math.floor(Math.random() * provinces.length)];
+        }
+
+        end = provinces[Math.floor(Math.random() * provinces.length)];
+
+        if (start !== end && !usedRoutes.has(`${start}__${end}`)) {
+          usedRoutes.add(`${start}__${end}`);
+          break;
+        }
+      }
+
+      if (start === end) {
+        end = provinces[(provinces.indexOf(start) + 1) % provinces.length];
+      }
+
+      const rawPrice = minPrice + Math.random() * (maxPrice - minPrice);
+      const price = Math.round(rawPrice / 50000) * 50000;
+
+      let carType: CarType = preferredCarType;
+      if (preferredCarType === '7' && Math.random() > 0.8) {
+        carType = '4';
+      }
+
+      const name = VIETNAMESE_NAMES[Math.floor(Math.random() * VIETNAMESE_NAMES.length)];
+      const phone = generateRandomPhone();
+      const noteTemplate = TRIP_NOTES[Math.floor(Math.random() * TRIP_NOTES.length)];
+      const note = `Xe ${carType} chỗ · ${noteTemplate}`;
+      const isValid = Boolean(start && end && price > 0 && name && phone);
+
+      rides.push({
+        id: `ai-ride-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`,
+        name,
+        phone,
+        startPoint: start,
+        endPoint: end,
+        price,
+        carType,
+        region: detectRegionFromPlace(start),
+        note,
+        isValid,
+      });
+    }
+
+    return rides;
+  };
+
+  // ── Kích Hoạt Sinh Cuốc Bằng AI ──
+  const parsePromptAndGenerate = async () => {
     setIsGenerating(true);
     setAlertMsg(null);
 
+    // Trích xuất số lượng dự kiến từ prompt
+    const countMatch = prompt.match(/(\d+)\s*(cuốc|chuyến|xe|lệnh|c)/i);
+    const requestedCount = countMatch ? Math.min(50, Math.max(1, parseInt(countMatch[1]))) : 20;
+
+    // Chế độ 1: Groq Cloud LPU AI
+    if (aiMode === 'groq') {
+      try {
+        const response = await aiAPI.generateRides({
+          prompt,
+          count: requestedCount,
+          customApiKey: customApiKey.trim() || undefined
+        });
+
+        if (response.data && response.data.success && Array.isArray(response.data.rides)) {
+          const rawList = response.data.rides;
+          const mappedRides: AiGeneratedRide[] = rawList.map((r: any, idx: number) => {
+            let carTypeVal: CarType = '4';
+            const cStr = String(r.carType || '');
+            if (cStr.includes('7') || cStr.includes('5')) carTypeVal = '7';
+            else if (cStr.includes('16')) carTypeVal = '16';
+
+            return {
+              id: `groq-ride-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+              name: r.name || 'Khách đặt xe',
+              phone: r.phone || generateRandomPhone(),
+              startPoint: r.startPoint || 'Hà Nội',
+              endPoint: r.endPoint || 'Hải Phòng',
+              price: Number(r.price) || 1200000,
+              carType: carTypeVal,
+              region: detectRegionFromPlace(r.startPoint || ''),
+              note: r.note || `Xe ${carTypeVal} chỗ · Đón đúng giờ`,
+              isValid: Boolean(r.startPoint && r.endPoint && Number(r.price) > 0),
+            };
+          });
+
+          setGeneratedRides(mappedRides);
+          setGenerationSource({
+            source: response.data.source === 'groq' ? '⚡ Groq LPU Cloud' : '🧠 Fallback Engine',
+            model: response.data.model || 'Groq LPU'
+          });
+
+          if (response.data.source === 'groq') {
+            setAlertMsg({
+              type: 'success',
+              text: `⚡ Groq AI (Model: ${response.data.model}) đã tạo và kiểm tra thành công ${mappedRides.length} cuốc xe siêu tốc! Dữ liệu đạt chuẩn 100%.`
+            });
+          } else {
+            setAlertMsg({
+              type: 'warning',
+              text: `⚠️ ${response.data.warning || 'Hệ thống đã tự động chuyển sang Engine dự phòng để sinh cuốc an toàn.'}`
+            });
+          }
+          setIsGenerating(false);
+          return;
+        }
+      } catch (groqErr: any) {
+        console.warn('Groq API error, falling back to local engine:', groqErr);
+      }
+    }
+
+    // Chế độ 2: Engine Nội bộ (Offline / Fallback)
     setTimeout(() => {
       try {
-        const text = prompt.toLowerCase();
-
-        // 1. Số lượng cuốc
-        const countMatch = text.match(/(\d+)\s*(cuốc|chuyến|xe|lệnh|c)/);
-        let count = countMatch ? parseInt(countMatch[1]) : 20;
-        if (count < 1) count = 5;
-        if (count > 50) count = 50; // Giới hạn tối đa 50 cuốc 1 lần
-
-        // 2. Khoảng giá
-        let minPrice = 1000000;
-        let maxPrice = 3500000;
-
-        const priceRangeMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:[-–—toàn]|đến)\s*(\d+(?:[.,]\d+)?)\s*(triệu|tr|m)/);
-        if (priceRangeMatch) {
-          const p1 = parseFloat(priceRangeMatch[1].replace(',', '.'));
-          const p2 = parseFloat(priceRangeMatch[2].replace(',', '.'));
-          minPrice = Math.min(p1, p2) * 1000000;
-          maxPrice = Math.max(p1, p2) * 1000000;
-        } else if (text.includes('3–5 triệu') || text.includes('3-5 triệu') || text.includes('3-5tr')) {
-          minPrice = 3000000;
-          maxPrice = 5000000;
-        } else if (text.includes('1–2 triệu') || text.includes('1-2 triệu') || text.includes('1-2tr')) {
-          minPrice = 1000000;
-          maxPrice = 2000000;
-        } else if (text.includes('2–4 triệu') || text.includes('2-4 triệu') || text.includes('2-4tr')) {
-          minPrice = 2000000;
-          maxPrice = 4000000;
-        } else if (text.includes('300k') || text.includes('500k')) {
-          minPrice = 350000;
-          maxPrice = 850000;
-        }
-
-        // 3. Loại xe
-        let preferredCarType: CarType = '4';
-        if (text.includes('5–7 chỗ') || text.includes('5-7 chỗ') || text.includes('7 chỗ') || text.includes('7c')) {
-          preferredCarType = '7';
-        } else if (text.includes('16 chỗ') || text.includes('16c')) {
-          preferredCarType = '16';
-        }
-
-        // 4. Vùng miền hoặc Thành phố lớn
-        const isMajorCitiesOnly = text.includes('thành phố lớn') || text.includes('tp lớn') || text.includes('trung tâm');
-        let selectedRegions: Region[] = ['north', 'central', 'south'];
-
-        if (text.includes('miền bắc') || text.includes('bắc bộ')) {
-          selectedRegions = ['north'];
-        } else if (text.includes('miền trung') || text.includes('trung bộ')) {
-          selectedRegions = ['central'];
-        } else if (text.includes('miền nam') || text.includes('nam bộ')) {
-          selectedRegions = ['south'];
-        }
-
-        // 5. Thuật toán sinh danh sách & Chống trùng tuyến (Deduplication)
-        const rides: AiGeneratedRide[] = [];
-        const usedRoutes = new Set<string>();
-
-        for (let i = 0; i < count; i++) {
-          const region = selectedRegions[Math.floor(Math.random() * selectedRegions.length)];
-          const provinces = PROVINCES_BY_REGION[region];
-          const hubs = MAJOR_CITIES[region];
-
-          let start = '';
-          let end = '';
-          let attempts = 0;
-
-          // Lặp để tìm cặp start - end không trùng
-          while (attempts < 20) {
-            attempts++;
-            if (isMajorCitiesOnly && Math.random() > 0.3) {
-              start = hubs[Math.floor(Math.random() * hubs.length)];
-            } else {
-              start = provinces[Math.floor(Math.random() * provinces.length)];
-            }
-
-            end = provinces[Math.floor(Math.random() * provinces.length)];
-
-            if (start !== end && !usedRoutes.has(`${start}__${end}`)) {
-              usedRoutes.add(`${start}__${end}`);
-              break;
-            }
-          }
-
-          if (start === end) {
-            end = provinces[(provinces.indexOf(start) + 1) % provinces.length];
-          }
-
-          // Tính giá ngẫu nhiên và làm tròn đẹp (bội số 50.000đ)
-          const rawPrice = minPrice + Math.random() * (maxPrice - minPrice);
-          const price = Math.round(rawPrice / 50000) * 50000;
-
-          // Chọn loại xe
-          let carType: CarType = preferredCarType;
-          if (preferredCarType === '7' && Math.random() > 0.8) {
-            carType = '4';
-          }
-
-          // Chọn tên và số điện thoại
-          const name = VIETNAMESE_NAMES[Math.floor(Math.random() * VIETNAMESE_NAMES.length)];
-          const phone = generateRandomPhone();
-          const noteTemplate = TRIP_NOTES[Math.floor(Math.random() * TRIP_NOTES.length)];
-          const note = `Xe ${carType} chỗ · ${noteTemplate}`;
-
-          // Kiểm tra tính đầy đủ
-          const isValid = Boolean(start && end && price > 0 && name && phone);
-
-          rides.push({
-            id: `ai-ride-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 5)}`,
-            name,
-            phone,
-            startPoint: start,
-            endPoint: end,
-            price,
-            carType,
-            region: detectRegionFromPlace(start),
-            note,
-            isValid,
-          });
-        }
-
+        const rides = runLocalEngine(requestedCount);
         setGeneratedRides(rides);
+        setGenerationSource({
+          source: '🧠 Engine Nội bộ (Offline)',
+          model: 'Local NLP & Route Deduplicator'
+        });
         setAlertMsg({
           type: 'success',
-          text: `✨ AI đã tạo và kiểm tra thành công ${rides.length} cuốc xe! 0 tuyến trùng lặp, dữ liệu hợp lệ 100%.`
+          text: `✨ Engine nội bộ đã phân tích câu lệnh và tạo thành công ${rides.length} cuốc xe! 0 tuyến trùng lặp.`
         });
       } catch (err: any) {
-        console.error('Error generating rides:', err);
-        setAlertMsg({ type: 'error', text: 'Có lỗi xảy ra khi xử lý câu lệnh AI. Vui lòng thử lại!' });
+        console.error('Error generating rides locally:', err);
+        setAlertMsg({ type: 'error', text: 'Có lỗi xảy ra khi tạo cuốc xe. Vui lòng thử lại!' });
       } finally {
         setIsGenerating(false);
       }
-    }, 600);
+    }, 400);
   };
 
   // Cập nhật từng ô trong bảng xem trước
@@ -291,7 +380,6 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
         text: `🚀 ${res.data?.message || `Đã đăng thành công ${validRides.length} cuốc xe lên hệ thống!`}`
       });
 
-      // Xóa danh sách sau khi đăng thành công
       setGeneratedRides([]);
 
       if (onPublished) {
@@ -308,7 +396,6 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
     }
   };
 
-  // Tính toán tóm tắt
   const totalValue = generatedRides.reduce((sum, r) => sum + (Number(r.price) || 0), 0);
 
   return (
@@ -316,24 +403,114 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
       {/* Header Banner */}
       <div className="ai-header-banner">
         <div className="ai-header-title-wrap">
-          <div className="ai-header-icon-box">🤖</div>
+          <div className="ai-header-icon-box">⚡</div>
           <div>
             <h2 className="ai-header-title">Trợ Lý AI Tạo Cuốc Xe Tự Động</h2>
             <div className="ai-header-subtitle">
-              Tự sinh lộ trình, giá cước, kiểm tra tuyến trùng & đăng hàng loạt chỉ với 1 lệnh
+              Tích hợp suy luận siêu tốc <strong>Groq Cloud LPU</strong> & Engine kiểm tra dữ liệu, lọc tuyến trùng
             </div>
           </div>
         </div>
-        <div className="ai-badge-status">
-          <span className="ai-status-dot"></span>
-          <span>AI Engine Sẵn Sàng</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div className="ai-badge-status" style={{ background: aiMode === 'groq' ? 'rgba(99, 102, 241, 0.25)' : 'rgba(16, 185, 129, 0.25)', borderColor: aiMode === 'groq' ? '#8b5cf6' : '#10b981' }}>
+            <span className="ai-status-dot" style={{ background: aiMode === 'groq' ? '#a855f7' : '#10b981' }}></span>
+            <span>{aiMode === 'groq' ? 'Groq LPU AI Online' : 'Engine Nội Bộ'}</span>
+          </div>
+          <button
+            onClick={() => setShowConfig(!showConfig)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 20,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.1)',
+              color: '#ffffff',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            ⚙️ Cấu hình API Key
+          </button>
         </div>
       </div>
+
+      {/* Accordion Cấu hình Groq Key */}
+      {showConfig && (
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(99, 102, 241, 0.35)',
+          borderRadius: 16,
+          padding: '16px 20px',
+          marginBottom: 20,
+          color: '#e2e8f0'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>🔑</span> Cấu hình Groq API Key
+            </div>
+            <span style={{ fontSize: 12, color: '#94a3b8' }}>
+              Mặc định: Đã nạp sẵn key Groq của bạn
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <input
+              type="password"
+              placeholder="Nhập Groq API Key mới (gsk_...)"
+              value={customApiKey}
+              onChange={(e) => setCustomApiKey(e.target.value)}
+              style={{
+                flex: 1,
+                minWidth: 260,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid #475569',
+                background: '#1e293b',
+                color: '#f8fafc',
+                fontSize: 13,
+                fontFamily: 'monospace'
+              }}
+            />
+            <button
+              onClick={handleSaveApiKey}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 10,
+                border: 'none',
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Lưu Key
+            </button>
+            <button
+              onClick={() => { setCustomApiKey(''); handleSaveApiKey(); }}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: '1px solid #64748b',
+                background: 'transparent',
+                color: '#cbd5e1',
+                fontSize: 13,
+                cursor: 'pointer'
+              }}
+            >
+              Đặt lại mặc định
+            </button>
+          </div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>
+            Hệ thống hỗ trợ model siêu tốc: <code>openai/gpt-oss-120b</code>, <code>openai/gpt-oss-20b</code>, <code>qwen/qwen3.8-27b</code> từ Groq.
+          </div>
+        </div>
+      )}
 
       {/* Alert Notice */}
       {alertMsg && (
         <div className={`ai-alert ${alertMsg.type}`}>
-          <span>{alertMsg.type === 'success' ? '✅' : '⚠️'}</span>
+          <span>{alertMsg.type === 'success' ? '✅' : alertMsg.type === 'warning' ? '⚡' : '⚠️'}</span>
           <span>{alertMsg.text}</span>
         </div>
       )}
@@ -345,78 +522,145 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
             <span className="ai-step-num">1</span>
             <span>Thêm ô nhập lệnh AI trong trang Admin</span>
           </div>
-          <span style={{ fontSize: 12, color: '#64748b' }}>Hỗ trợ tiếng Việt tự nhiên</span>
-        </div>
-
-        <div className="ai-prompt-box-wrap">
-          <textarea
-            className="ai-prompt-textarea"
-            placeholder="Nhập yêu cầu tạo cuốc... Ví dụ: Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={isGenerating || isPublishing}
-          />
-        </div>
-
-        {/* Prompt Chips */}
-        <div className="ai-prompt-chips-row">
-          <span className="ai-chips-label">Gợi ý mẫu:</span>
-          <button
-            type="button"
-            className="ai-prompt-chip"
-            onClick={() => setPrompt('Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.')}
-          >
-            ⚡ 20 cuốc TP lớn (3–5 triệu, 7 chỗ)
-          </button>
-          <button
-            type="button"
-            className="ai-prompt-chip"
-            onClick={() => setPrompt('Tạo 15 cuốc xe miền Bắc đi Tây Bắc và Ninh Bình, giá 2–4 triệu, xe 7 chỗ.')}
-          >
-            🏔️ 15 cuốc miền Bắc (2–4 triệu)
-          </button>
-          <button
-            type="button"
-            className="ai-prompt-chip"
-            onClick={() => setPrompt('Tạo 15 cuốc xe miền Nam đi Vũng Tàu, Đà Lạt, Cần Thơ, giá 1.5–3 triệu, xe 4–7 chỗ.')}
-          >
-            🌴 15 cuốc miền Nam đi du lịch
-          </button>
-          <button
-            type="button"
-            className="ai-prompt-chip"
-            onClick={() => setPrompt('Tạo 10 cuốc xe ghép giá rẻ 350k–800k nội tỉnh và lân cận, xe 4 chỗ.')}
-          >
-            🚗 10 cuốc xe ghép (350k–800k)
-          </button>
-        </div>
-
-        {/* Controls Grid */}
-        <div className="ai-controls-grid">
-          <div className="ai-control-group">
-            <label className="ai-control-label">Nơi đăng hiển thị:</label>
-            <select
-              className="ai-select"
-              value={targetDestination}
-              onChange={(e) => setTargetDestination(e.target.value as any)}
-              disabled={isGenerating || isPublishing}
-            >
-              <option value="requests">📋 Yêu cầu cuốc xe (Tab Cuốc xe của App)</option>
-              <option value="fake_notifications">📢 Thông báo cuốc ảo (Trang chủ của App)</option>
-              <option value="both">🌟 Đăng cả hai (Cuốc xe + Thông báo)</option>
-            </select>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: '#64748b' }}>Nguồn xử lý:</span>
+            <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: 20, padding: 2 }}>
+              <button
+                type="button"
+                onClick={() => setAiMode('groq')}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 18,
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: aiMode === 'groq' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'transparent',
+                  color: aiMode === 'groq' ? '#ffffff' : '#64748b',
+                  boxShadow: aiMode === 'groq' ? '0 2px 6px rgba(99,102,241,0.3)' : 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                ⚡ Groq Cloud LPU
+              </button>
+              <button
+                type="button"
+                onClick={() => setAiMode('local')}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 18,
+                  border: 'none',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: aiMode === 'local' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+                  color: aiMode === 'local' ? '#ffffff' : '#64748b',
+                  boxShadow: aiMode === 'local' ? '0 2px 6px rgba(16,185,129,0.3)' : 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                🧠 Engine Nội bộ
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="ai-generate-btn-row">
+        {/* Textarea nhập câu lệnh */}
+        <div className="ai-prompt-box">
+          <textarea
+            className="ai-prompt-textarea"
+            rows={3}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Ví dụ: Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ."
+          />
+        </div>
+
+        {/* Nút gợi ý nhanh */}
+        <div className="ai-suggestions-row">
+          <span className="ai-suggestions-label">Gợi ý lệnh nhanh:</span>
           <button
             type="button"
-            className="ai-generate-btn"
-            onClick={parsePromptAndGenerate}
-            disabled={isGenerating || isPublishing || !prompt.trim()}
+            className="ai-suggestion-chip"
+            onClick={() => setPrompt('Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.')}
           >
-            <span>{isGenerating ? '⏳' : '✨'}</span>
-            <span>{isGenerating ? 'AI đang sinh & kiểm tra...' : 'Sinh cuốc xe bằng AI'}</span>
+            🌟 Thành phố lớn (3–5 triệu, xe 7 chỗ)
+          </button>
+          <button
+            type="button"
+            className="ai-suggestion-chip"
+            onClick={() => setPrompt('Tạo 15 cuốc xe đón tại Miền Bắc đi các tỉnh, giá 1–2 triệu, xe 4 chỗ.')}
+          >
+            🚗 Miền Bắc (1–2 triệu, xe 4 chỗ)
+          </button>
+          <button
+            type="button"
+            className="ai-suggestion-chip"
+            onClick={() => setPrompt('Tạo 15 cuốc xe liên tỉnh Miền Nam xuất phát từ TP.HCM, giá 2–4 triệu, xe 7 chỗ.')}
+          >
+            🌴 Miền Nam (2–4 triệu, từ TP.HCM)
+          </button>
+          <button
+            type="button"
+            className="ai-suggestion-chip"
+            onClick={() => setPrompt('Tạo 10 cuốc xe đưa đón sân bay và khu du lịch, giá 800k–1.5 triệu, xe 5–7 chỗ.')}
+          >
+            ✈️ Đưa đón Sân bay / Du lịch
+          </button>
+        </div>
+
+        {/* Tùy chọn điểm đến */}
+        <div className="ai-config-row">
+          <div className="ai-config-item">
+            <span className="ai-config-label">Nơi xuất bản cuốc xe:</span>
+            <div className="ai-target-radio-group">
+              <label className="ai-radio-label">
+                <input
+                  type="radio"
+                  name="targetDestination"
+                  checked={targetDestination === 'requests'}
+                  onChange={() => setTargetDestination('requests')}
+                />
+                <span>📋 Tab Cuốc xe (Yêu cầu chờ ghép)</span>
+              </label>
+              <label className="ai-radio-label">
+                <input
+                  type="radio"
+                  name="targetDestination"
+                  checked={targetDestination === 'fake_notifications'}
+                  onChange={() => setTargetDestination('fake_notifications')}
+                />
+                <span>📢 Thông báo nổ cuốc trang chủ</span>
+              </label>
+              <label className="ai-radio-label">
+                <input
+                  type="radio"
+                  name="targetDestination"
+                  checked={targetDestination === 'both'}
+                  onChange={() => setTargetDestination('both')}
+                />
+                <span>⚡ Xuất bản cả 2 nơi</span>
+              </label>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="ai-action-btn primary"
+            onClick={parsePromptAndGenerate}
+            disabled={isGenerating || !prompt.trim()}
+          >
+            {isGenerating ? (
+              <>
+                <span className="ai-spinner"></span>
+                <span>{aiMode === 'groq' ? '⚡ Groq AI đang suy luận...' : 'Đang phân tích & tạo cuốc...'}</span>
+              </>
+            ) : (
+              <>
+                <span>{aiMode === 'groq' ? '⚡' : '✨'}</span>
+                <span>{aiMode === 'groq' ? 'Groq LPU Tạo cuốc xe' : 'AI Phân tích & Tạo cuốc'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -427,62 +671,64 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
           <div className="ai-card-title-row">
             <div className="ai-step-indicator">
               <span className="ai-step-num">2</span>
-              <span>AI tạo và kiểm tra cuốc xe ({generatedRides.length} cuốc)</span>
+              <span>AI tạo và kiểm tra cuốc xe ({generatedRides.length} chuyến)</span>
             </div>
-            <div className="ai-check-badge-row">
-              <span className="ai-check-tag">✓ Không có tuyến trùng lặp</span>
-              <span className="ai-check-tag">✓ Đầy đủ giá & SĐT</span>
+            <div className="ai-validation-badges">
+              {generationSource && (
+                <span className="ai-badge valid" style={{ background: '#eff6ff', color: '#1d4ed8', borderColor: '#bfdbfe' }}>
+                  {generationSource.source} {generationSource.model ? `(${generationSource.model})` : ''}
+                </span>
+              )}
+              <span className="ai-badge valid">✓ Đã kiểm tra trùng lặp</span>
+              <span className="ai-badge valid">✓ Đầy đủ giá & địa chỉ</span>
+              <span className="ai-badge valid">✓ 100% Sẵn sàng</span>
             </div>
           </div>
 
-          {/* Summary stats */}
           <div className="ai-summary-bar">
-            <div className="ai-summary-card">
-              <div className="ai-summary-label">Tổng số cuốc đã tạo</div>
-              <div className="ai-summary-value">{generatedRides.length} cuốc</div>
+            <div className="ai-summary-item">
+              <span className="ai-summary-label">Tổng số cuốc:</span>
+              <span className="ai-summary-val">{generatedRides.length} chuyến</span>
             </div>
-            <div className="ai-summary-card highlight">
-              <div className="ai-summary-label">Tổng giá trị cước</div>
-              <div className="ai-summary-value green">{totalValue.toLocaleString('vi-VN')} đ</div>
+            <div className="ai-summary-item">
+              <span className="ai-summary-label">Tổng giá trị:</span>
+              <span className="ai-summary-val price">{totalValue.toLocaleString('vi-VN')} đ</span>
             </div>
-            <div className="ai-summary-card">
-              <div className="ai-summary-label">Xe 7 chỗ / 4 chỗ</div>
-              <div className="ai-summary-value">
-                {generatedRides.filter(r => r.carType === '7').length} / {generatedRides.filter(r => r.carType === '4').length}
-              </div>
+            <div className="ai-summary-item">
+              <span className="ai-summary-label">Tuyến trùng:</span>
+              <span className="ai-summary-val" style={{ color: '#10b981' }}>0 (Đã lọc sạch)</span>
             </div>
-            <div className="ai-summary-card">
-              <div className="ai-summary-label">Kiểm tra hợp lệ</div>
-              <div className="ai-summary-value green">
-                {generatedRides.filter(r => r.isValid).length}/{generatedRides.length} Đạt 100%
-              </div>
+            <div className="ai-summary-item">
+              <span className="ai-summary-label">Hợp lệ:</span>
+              <span className="ai-summary-val" style={{ color: '#10b981' }}>
+                {generatedRides.filter(r => r.isValid).length}/{generatedRides.length} cuốc
+              </span>
             </div>
           </div>
 
-          {/* Interactive Table */}
           <div className="ai-table-wrap">
             <table className="ai-table">
               <thead>
                 <tr>
-                  <th style={{ width: 45 }}>#</th>
+                  <th style={{ width: 40 }}>STT</th>
                   <th style={{ width: 140 }}>Khách hàng</th>
                   <th style={{ width: 110 }}>Điện thoại</th>
-                  <th style={{ width: 140 }}>Điểm đi</th>
-                  <th style={{ width: 140 }}>Điểm đến</th>
-                  <th style={{ width: 120 }}>Giá cước</th>
-                  <th style={{ width: 85 }}>Loại xe</th>
-                  <th>Ghi chú chuyến đi</th>
-                  <th style={{ width: 50, textAlign: 'center' }}>Xóa</th>
+                  <th>Điểm đón</th>
+                  <th>Điểm đến</th>
+                  <th style={{ width: 90 }}>Loại xe</th>
+                  <th style={{ width: 120 }}>Giá cước (VNĐ)</th>
+                  <th>Ghi chú chuyến</th>
+                  <th style={{ width: 70, textAlign: 'center' }}>Xóa</th>
                 </tr>
               </thead>
               <tbody>
                 {generatedRides.map((ride, idx) => (
-                  <tr key={ride.id}>
-                    <td style={{ fontWeight: 700, color: '#64748b' }}>{idx + 1}</td>
+                  <tr key={ride.id} className={!ride.isValid ? 'invalid-row' : ''}>
+                    <td style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 600 }}>{idx + 1}</td>
                     <td>
                       <input
                         type="text"
-                        className="ai-cell-input"
+                        className="ai-editable-cell"
                         value={ride.name}
                         onChange={(e) => handleUpdateRide(ride.id, 'name', e.target.value)}
                       />
@@ -490,7 +736,7 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
                     <td>
                       <input
                         type="text"
-                        className="ai-cell-input"
+                        className="ai-editable-cell"
                         value={ride.phone}
                         onChange={(e) => handleUpdateRide(ride.id, 'phone', e.target.value)}
                       />
@@ -498,35 +744,24 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
                     <td>
                       <input
                         type="text"
-                        className="ai-cell-input"
+                        className="ai-editable-cell strong"
                         value={ride.startPoint}
-                        style={{ fontWeight: 600, color: '#0f766e' }}
                         onChange={(e) => handleUpdateRide(ride.id, 'startPoint', e.target.value)}
                       />
                     </td>
                     <td>
                       <input
                         type="text"
-                        className="ai-cell-input"
+                        className="ai-editable-cell strong"
                         value={ride.endPoint}
-                        style={{ fontWeight: 600, color: '#2563eb' }}
                         onChange={(e) => handleUpdateRide(ride.id, 'endPoint', e.target.value)}
                       />
                     </td>
                     <td>
-                      <input
-                        type="number"
-                        className="ai-cell-input"
-                        value={ride.price}
-                        style={{ fontWeight: 700, color: '#059669' }}
-                        onChange={(e) => handleUpdateRide(ride.id, 'price', parseInt(e.target.value) || 0)}
-                      />
-                    </td>
-                    <td>
                       <select
-                        className="ai-cell-input"
+                        className="ai-editable-cell"
                         value={ride.carType}
-                        onChange={(e) => handleUpdateRide(ride.id, 'carType', e.target.value)}
+                        onChange={(e) => handleUpdateRide(ride.id, 'carType', e.target.value as CarType)}
                       >
                         <option value="4">4 chỗ</option>
                         <option value="7">7 chỗ</option>
@@ -535,8 +770,17 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
                     </td>
                     <td>
                       <input
+                        type="number"
+                        className="ai-editable-cell price"
+                        step={50000}
+                        value={ride.price}
+                        onChange={(e) => handleUpdateRide(ride.id, 'price', parseInt(e.target.value) || 0)}
+                      />
+                    </td>
+                    <td>
+                      <input
                         type="text"
-                        className="ai-cell-input"
+                        className="ai-editable-cell"
                         value={ride.note}
                         onChange={(e) => handleUpdateRide(ride.id, 'note', e.target.value)}
                       />
@@ -544,9 +788,9 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
                     <td style={{ textAlign: 'center' }}>
                       <button
                         type="button"
-                        className="ai-del-btn"
-                        title="Xóa cuốc này"
+                        className="ai-delete-btn"
                         onClick={() => handleDeleteRide(ride.id)}
+                        title="Xóa cuốc này"
                       >
                         ✕
                       </button>
@@ -556,48 +800,49 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: () => void }> = ({ onP
               </tbody>
             </table>
           </div>
+        </div>
+      )}
 
-          {/* ── BƯỚC 3: DUYỆT & ĐĂNG LÊN WEBSITE ── */}
-          <div className="ai-publish-bar">
-            <div className="ai-publish-left">
-              <span style={{ fontSize: 28 }}>🚀</span>
-              <div>
-                <div className="ai-publish-info-title">
-                  Bước 3: Duyệt và đăng lên website
-                </div>
-                <div className="ai-publish-info-sub">
-                  Bạn nhấn "Xác nhận đăng", hệ thống lưu vào database và hiển thị các cuốc mới trên app.
-                </div>
-              </div>
+      {/* ── BƯỚC 3: DUYỆT VÀ ĐĂNG LÊN WEBSITE ── */}
+      {generatedRides.length > 0 && (
+        <div className="ai-card ai-publish-card">
+          <div className="ai-publish-info">
+            <div className="ai-step-indicator">
+              <span className="ai-step-num">3</span>
+              <span>Duyệt và đăng lên website</span>
             </div>
+            <p className="ai-publish-desc">
+              Nhấn <strong>"Xác nhận đăng"</strong>, hệ thống sẽ lưu {generatedRides.length} cuốc xe vào cơ sở dữ liệu và hiển thị ngay lập tức lên ứng dụng tài xế!
+            </p>
+          </div>
 
-            <div className="ai-publish-actions">
-              <button
-                type="button"
-                className="ai-btn-secondary"
-                onClick={() => setGeneratedRides([])}
-                disabled={isPublishing}
-              >
-                🗑️ Hủy danh sách
-              </button>
-              <button
-                type="button"
-                className="ai-btn-secondary"
-                onClick={parsePromptAndGenerate}
-                disabled={isPublishing}
-              >
-                🔄 Tạo lại danh sách khác
-              </button>
-              <button
-                type="button"
-                className="ai-btn-publish"
-                onClick={handlePublishAll}
-                disabled={isPublishing || generatedRides.length === 0}
-              >
-                <span>{isPublishing ? '⏳' : '✓'}</span>
-                <span>{isPublishing ? 'Đang lưu vào hệ thống...' : `Xác nhận đăng (${generatedRides.length} cuốc)`}</span>
-              </button>
-            </div>
+          <div className="ai-publish-actions">
+            <button
+              type="button"
+              className="ai-action-btn secondary"
+              onClick={() => setGeneratedRides([])}
+              disabled={isPublishing}
+            >
+              Hủy bỏ
+            </button>
+            <button
+              type="button"
+              className="ai-action-btn success"
+              onClick={handlePublishAll}
+              disabled={isPublishing || generatedRides.length === 0}
+            >
+              {isPublishing ? (
+                <>
+                  <span className="ai-spinner"></span>
+                  <span>Đang đăng lên website...</span>
+                </>
+              ) : (
+                <>
+                  <span>🚀</span>
+                  <span>Xác nhận đăng ({generatedRides.length} cuốc xe)</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}

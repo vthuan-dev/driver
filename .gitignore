@@ -33,3 +33,5 @@ logo.png
 banner-ctm.png
 startapp.png
 backend/scratch_remote_deploy*.sh
+.env
+backend/.env

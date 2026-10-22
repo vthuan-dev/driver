@@ -4,6 +4,7 @@ module.exports = {
   JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-here',
   PORT: process.env.PORT || 5000,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
-  TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || ''
+  TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || '',
+  GROQ_API_KEY: process.env.GROQ_API_KEY || ''
 };
 

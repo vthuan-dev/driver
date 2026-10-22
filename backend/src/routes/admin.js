@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 const userController = require('../controllers/userController');
 const requestController = require('../controllers/requestController');
 const driverStatsController = require('../controllers/driverStatsController');
+const aiController = require('../controllers/aiController');
 
 // Admin authentication
 router.post('/login', authController.adminLogin);
@@ -30,5 +31,8 @@ router.get('/requests', adminAuthMiddleware, requestController.getAllRequests);
 router.post('/requests/bulk', adminAuthMiddleware, requestController.createBulkRequests);
 router.put('/requests/:id', adminAuthMiddleware, requestController.updateRequest);
 router.delete('/requests/:id', adminAuthMiddleware, requestController.deleteRequest);
+
+// AI Ride Generation with Groq
+router.post('/ai/generate-rides', adminAuthMiddleware, aiController.generateRides);
 
 module.exports = router;
