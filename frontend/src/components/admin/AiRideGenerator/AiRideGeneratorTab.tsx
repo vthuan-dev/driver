@@ -20,54 +20,203 @@ export interface AiGeneratedRide {
 }
 
 const VIETNAMESE_NAMES = [
-  'Nguyễn Văn Hùng', 'Trần Đình Trọng', 'Lê Hoàng Nam', 'Phạm Minh Tuấn', 'Vũ Quốc Bảo',
-  'Đỗ Ngọc Chung', 'Hoàng Văn Duy', 'Bùi Đức Thắng', 'Đặng Anh Khoa', 'Ngô Quang Vinh',
-  'Nguyễn Thu Trang', 'Trần Thị Mai', 'Lê Quỳnh Nga', 'Phạm Thùy Linh', 'Vũ Thị Hạnh',
-  'Đinh Văn Long', 'Phan Thanh Hải', 'Dương Minh Trí', 'Hà Văn Huy', 'Trương Quốc Đạt'
+  'Anh Quốc Tuấn', 'Chị Minh Thư', 'Bác sĩ Hoàng Nam', 'Kỹ sư Trọng Dũng', 'Chị Thu Trang',
+  'Cô Bích Liên', 'Đoàn anh Phong (4 người)', 'Chú Năm Cần Thơ', 'Anh Hải Đăng', 'Gia đình chị Hạnh',
+  'Cty TNHH Tiến Phát', 'Anh Đình Trọng', 'Chị Ngọc Mai', 'Bác Hùng Việt Trì', 'Anh Minh Quân',
+  'Chị Phương Thảo', 'Anh Quang Huy', 'Chị Diệu Linh', 'Anh Tấn Phát', 'Chị Kim Ngân',
+  'Đoàn anh Long đi golf', 'Cô Thu Hà', 'Anh Bảo Duy', 'Chị Khánh Huyền', 'Chú Sáu Sài Gòn',
+  'Bác sĩ Thanh Hải', 'Chị Quỳnh Nga', 'Anh Hữu Nghĩa', 'Chị Yến Nhi', 'Anh Hoàng Bách',
+  'Chị Mỹ Duyên', 'Anh Văn Lâm', 'Chị Ánh Tuyết', 'Anh Đăng Khoa', 'Chị Tuyết Mai',
+  'Anh Thành Đạt', 'Chị Hoài An', 'Chú Ba Bình Dương', 'Anh Trí Dũng', 'Chị Cẩm Vân',
+  'Anh Tuấn Kiệt', 'Chị Bích Trâm', 'Anh Duy Mạnh', 'Chị Thùy Dung', 'Bác Đức Minh',
+  'Anh Thái Sơn', 'Chị Kim Oanh', 'Anh Hoàng Long', 'Chị Ngọc Ánh', 'Anh Gia Huy',
+  'Chị Diễm My', 'Anh Tiến Đạt', 'Chị Thanh Trúc', 'Anh Trung Kiên', 'Chị Kiều Oanh',
+  'Anh Hữu Thắng', 'Chị Minh Châu', 'Anh Khắc Tiệp', 'Chị Hồng Nhung', 'Anh Nhật Minh',
+  'Chị Lan Hương', 'Anh Phúc Hưng', 'Chị Bích Hợp', 'Chú Bảy Vũng Tàu', 'Anh Xuân Trường',
+  'Chị Mai Phương', 'Anh Công Phượng', 'Chị Cát Tường', 'Anh Đức Phúc', 'Chị Bảo Ngọc',
+  'Anh Duy Tân', 'Chị Ngọc Trâm', 'Bác Vĩnh Phú', 'Anh Hạo Nam', 'Chị Thục Quyên',
+  'Đoàn cty Hanwha', 'Chị Quế Chi', 'Anh Thanh Tùng', 'Chị Ngọc Diệp', 'Anh Anh Khoa'
 ];
 
 const TRIP_NOTES = [
-  'Cần xe mới sạch sẽ, không mùi, đón đúng giờ',
-  'Bao xe đi công tác 2 chiều trong ngày',
-  'Xe đón cả gia đình 4 người lớn 2 trẻ em, có 2 vali',
-  'Khách đi khám bệnh về quê, lái xe cẩn thận',
-  'Đón sáng mai lúc 7h30 tại sảnh chung cư',
-  'Xe 7 chỗ rộng rãi, có chỗ để nhiều hành lý',
-  'Cần xe gấp, đón trong vòng 45 phút',
-  'Khách quen uy tín, trả tiền mặt khi xong chuyến'
+  'Đón đúng giờ sảnh A, khách có 2 vali to và 1 xe đẩy em bé',
+  'Cần xe sạch sẽ không mùi máy lạnh, phụ nữ mang thai dễ say xe',
+  'Khách đi công tác KCN, yêu cầu xuất hóa đơn VAT điện tử sau chuyến đi',
+  'Đón sáng sớm 4h30 về quê ăn cưới, tài xế lái cẩn thận an toàn',
+  'Khách đi đánh golf, mang theo 2 bộ gậy cồng kềnh cần cốp xe rộng',
+  'Đưa đón người lớn tuổi đi khám bệnh ở bệnh viện TW, lái xe êm ái',
+  'Đón sân bay chuyến bay đêm hạ cánh lúc 23h30, hỗ trợ bê hành lý',
+  'Bao xe 2 chiều trong ngày, đón 7h sáng và đợi chiều về lại',
+  'Khách gia đình có 4 người lớn và 2 trẻ em, cần xe 7 chỗ rộng rãi',
+  'Đón khẩn cấp trong vòng 30 phút, đi công việc gấp',
+  'Khách có mang theo 1 bé cún nhỏ đã để trong lồng chuyên dụng sạch sẽ',
+  'Chuyến du lịch gia đình cuối tuần, tài xế thân thiện vui vẻ nhiệt tình',
+  'Khách đi lễ chùa đầu tháng, cần dừng 2 điểm trên cung đường',
+  'Khách chuyên gia nước ngoài, tài xế lịch sự, xe đời mới sạch đẹp',
+  'Đón tại chung cư sảnh tòa S2, khi đến gọi trước 10 phút để khách xuống',
+  'Chuyến công tác các tỉnh Đông Bắc, đường đèo dốc cần lái xe kinh nghiệm',
+  'Khách đón người nhà mới xuất viện, cần xe êm, không phanh gấp',
+  'Xe phục vụ đám hỏi, yêu cầu xe màu trắng hoặc bạc sạch bóng',
+  'Khách mang theo thùng hải sản ướp lạnh đóng xốp kín không rỉ nước',
+  'Đi sân bay đúng giờ check-in quốc tế, không được trễ giờ',
+  'Đón khách VIP đối tác tập đoàn, tài xế ăn mặc chỉn chu gọn gàng',
+  'Chuyến nghỉ dưỡng resort biển, tài xế biết đường tắt tránh kẹt xe',
+  'Khách thanh toán chuyển khoản ngân hàng ngay khi kết thúc hành trình',
+  'Cần tài xế không hút thuốc lá, xe thơm tho tinh dầu tự nhiên',
+  'Xe 16 chỗ đón đoàn đi teambuilding công ty, cốp để nhiều đồ',
+  'Đón lúc 5h sáng để kịp ngắm bình minh và săn mây',
+  'Khách đi viếng đám tang người thân ở quê, tài xế điềm đạm chu đáo',
+  'Bao xe đi tour miền Tây sông nước 2 ngày 1 đêm, phụ cấp ăn ngủ tài xế riêng',
+  'Đón khách tại cổng ga tàu hỏa, có biển đón tên khách',
+  'Cần xe gầm cao máy khỏe đi cung đường đồi núi',
+  'Khách đi ký hợp đồng kinh tế quan trọng, cần đến trước 9h sáng',
+  'Khách mang theo 4 kiện hành lý to du học, cần xe 7 chỗ cốp phẳng',
+  'Đón tại bến phà, khi đến nơi tài xế bấm còi hoặc gọi điện thoại',
+  'Chuyến về thăm quê cha mẹ già, có ghé mua quà dọc đường 15 phút',
+  'Khách quen thường xuyên đi tuyến này, chạy đúng tốc độ quy định',
+  'Cần xe có cổng sạc điện thoại và kết nối bluetooth nghe nhạc nhẹ',
+  'Đưa đón sếp tổng đi họp chi nhánh tỉnh, xe chạy êm ru không giằng xóc',
+  'Khách đi ăn cưới nhà trai, xe hoa chạy trước xe này chạy sau hộ tống',
+  'Khách du lịch tự túc, nhờ tài xế tư vấn quán ăn ngon đặc sản địa phương',
+  'Chuyến bay bị delay 40 phút, tài xế theo dõi lịch trình máy bay để đón'
 ];
 
-// Danh mục dữ liệu địa lý phong phú theo vùng miền (dùng cho Engine Nội bộ)
+// Danh mục dữ liệu địa lý phong phú toàn diện theo vùng miền (120+ địa danh thực tế)
 const SAMPLE_CITIES_BY_REGION: Record<Region, string[]> = {
   north: [
     'Sân bay Nội Bài, Hà Nội',
+    'Cảng tàu Tuần Châu, Hạ Long, Quảng Ninh',
     'Bãi Cháy, Hạ Long, Quảng Ninh',
-    'Trung tâm TP. Hải Phòng',
-    'TP. Bắc Ninh',
-    'Sa Pa, Lào Cai',
-    'Tam Chúc, Hà Nam',
-    'Tràng An, Ninh Bình',
-    'TP. Hải Dương'
+    'Đảo Cát Bà, Hải Phòng',
+    'Sân bay Cát Bi, Hải Phòng',
+    'KCN VSIP, Bắc Ninh',
+    'KCN Quế Võ, Bắc Ninh',
+    'KCN Yên Phong, Bắc Ninh',
+    'KCN Đình Trám, Việt Yên, Bắc Giang',
+    'KCN Điềm Thụy, Thái Nguyên',
+    'KCN Phố Nối A, Hưng Yên',
+    'KCN Tràng Duệ, Hải Phòng',
+    'Thị xã Sa Pa, Lào Cai',
+    'Cáp treo Fansipan, Sa Pa',
+    'Đèo Ô Quy Hồ, Lai Châu',
+    'Bản Lác, Mai Châu, Hòa Bình',
+    'Rừng thông Bản Áng, Mộc Châu, Sơn La',
+    'Thị trấn Tà Xùa, Bắc Yên, Sơn La',
+    'Khu du lịch Tràng An, Ninh Bình',
+    'Chùa Bái Đính, Gia Viễn, Ninh Bình',
+    'Chùa Tam Chúc, Kim Bảng, Hà Nam',
+    'Thị trấn Tam Đảo, Vĩnh Phúc',
+    'Đền Hùng, TP. Việt Trì, Phú Thọ',
+    'Thác Bản Giốc, Trùng Khánh, Cao Bằng',
+    'Hồ Ba Bể, Bắc Kạn',
+    'Cửa khẩu Hữu Nghị, Lạng Sơn',
+    'Thung lũng Mù Cang Chải, Yên Bái',
+    'Phố cổ Đồng Văn, Hà Giang',
+    'Bệnh viện Bạch Mai, Giải Phóng, Hà Nội',
+    'Bệnh viện Hữu nghị Việt Đức, Hoàn Kiếm, Hà Nội',
+    'Bệnh viện K Tân Triều, Thanh Trì, Hà Nội',
+    'KĐT Ocean Park, Gia Lâm, Hà Nội',
+    'KĐT Ecopark, Văn Giang, Hưng Yên',
+    'Bến xe Mỹ Đình, Nam Từ Liêm, Hà Nội',
+    'Bến xe Giáp Bát, Hoàng Mai, Hà Nội',
+    'TP. Bắc Giang, Tỉnh Bắc Giang',
+    'TP. Lạng Sơn, Tỉnh Lạng Sơn',
+    'TP. Thái Bình, Tỉnh Thái Bình',
+    'TP. Nam Định, Tỉnh Nam Định',
+    'TP. Hải Dương, Tỉnh Hải Dương',
+    'Sân bay Vân Đồn, Quảng Ninh'
   ],
   central: [
-    'Sân bay Đà Nẵng',
-    'Bà Nà Hills, Đà Nẵng',
-    'TP. Huế, Thừa Thiên - Huế',
-    'Sân bay Cam Ranh, Nha Trang',
-    'TP. Quy Nhơn, Bình Định',
-    'Đà Lạt, Lâm Đồng',
-    'TP. Vinh, Nghệ An',
-    'Sầm Sơn, Thanh Hóa'
+    'Sân bay Quốc tế Đà Nẵng',
+    'Bà Nà Hills, Hòa Vang, Đà Nẵng',
+    'Bán đảo Sơn Trà, Đà Nẵng',
+    'Bãi biển Mỹ Khê, Ngũ Hành Sơn, Đà Nẵng',
+    'Phố cổ Hội An, Quảng Nam',
+    'Sân bay Chu Lai, Núi Thành, Quảng Nam',
+    'Đại Nội Huế, TP. Huế',
+    'Lăng Cô, Phú Lộc, Thừa Thiên Huế',
+    'Đèo Hải Vân, Đà Nẵng - Huế',
+    'Vườn quốc gia Phong Nha - Kẻ Bàng, Quảng Bình',
+    'Động Thiên Đường, Bố Trạch, Quảng Bình',
+    'Ga Đồng Hới, Quảng Bình',
+    'Cửa khẩu Lao Bảo, Quảng Trị',
+    'Bãi biển Cửa Lò, Nghệ An',
+    'Quảng trường Hồ Chí Minh, TP. Vinh, Nghệ An',
+    'TP. Hà Tĩnh, Tỉnh Hà Tĩnh',
+    'KCN Formosa, Kỳ Anh, Hà Tĩnh',
+    'Bãi biển Sầm Sơn, Thanh Hóa',
+    'KCN Nghi Sơn, Tĩnh Gia, Thanh Hóa',
+    'KCN Dung Quất, Bình Sơn, Quảng Ngãi',
+    'Eo Gió - Kỳ Co, Nhơn Lý, Quy Nhơn, Bình Định',
+    'Sân bay Phù Cát, An Nhơn, Bình Định',
+    'Tháp Nghinh Phong, TP. Tuy Hòa, Phú Yên',
+    'Gành Đá Đĩa, An Ninh Đông, Tuy An, Phú Yên',
+    'Sân bay Cam Ranh, Khánh Hòa',
+    'Đường Trần Phú, TP. Nha Trang, Khánh Hòa',
+    'Vinpearl Harbour, Đảo Hòn Tre, Nha Trang',
+    'Vịnh Vĩnh Hy, Ninh Hải, Ninh Thuận',
+    'Tháp Chàm Po Klong Garai, Phan Rang, Ninh Thuận',
+    'Bãi biển Mũi Né, Phan Thiết, Bình Thuận',
+    'Đồi cát Bàu Trắng, Bắc Bình, Bình Thuận',
+    'Hồ Xuân Hương, TP. Đà Lạt, Lâm Đồng',
+    'Hồ Tuyền Lâm, Đà Lạt, Lâm Đồng',
+    'Sân bay Liên Khương, Đức Trọng, Lâm Đồng',
+    'Thác Dambri, TP. Bảo Lộc, Lâm Đồng',
+    'Thị trấn Măng Đen, Kon Plông, Kon Tum',
+    'Biển Hồ T\'Nưng, TP. Pleiku, Gia Lai',
+    'Thác Dray Nur, Krông Ana, Đắk Lắk',
+    'Buôn Đôn, Buôn Ma Thuột, Đắk Lắk',
+    'Hồ Tà Đùng, Đắk Glong, Đắk Nông'
   ],
   south: [
-    'Sân bay Tân Sơn Nhất, TP.HCM',
-    'Quận 1, TP. Hồ Chí Minh',
-    'TP. Vũng Tàu, BR-VT',
-    'TP. Thủ Dầu Một, Bình Dương',
-    'TP. Biên Hòa, Đồng Nai',
-    'Bến xe Cần Thơ',
-    'Đảo Phú Quốc, Kiên Giang',
-    'TP. Mỹ Tho, Tiền Giang'
+    'Sân bay Tân Sơn Nhất, TP. Hồ Chí Minh',
+    'Bến xe Miền Tây, Bình Tân, TP. Hồ Chí Minh',
+    'Bến xe Miền Đông mới, TP. Thủ Đức, TP.HCM',
+    'Quận 1 (Chợ Bến Thành), TP. Hồ Chí Minh',
+    'KĐT Phú Mỹ Hưng, Quận 7, TP. Hồ Chí Minh',
+    'KĐT Vinhomes Grand Park, TP. Thủ Đức, TP.HCM',
+    'Bệnh viện Chợ Rẫy, Quận 5, TP. Hồ Chí Minh',
+    'Bệnh viện Từ Dũ, Quận 1, TP. Hồ Chí Minh',
+    'Bệnh viện ĐH Y Dược, Quận 5, TP. Hồ Chí Minh',
+    'Bệnh viện Ung Bướu CS2, TP. Thủ Đức, TP.HCM',
+    'KCN VSIP 1, Thuận An, Bình Dương',
+    'KCN VSIP 2, Thủ Dầu Một, Bình Dương',
+    'KCN Sóng Thần, Dĩ An, Bình Dương',
+    'KCN Bàu Bàng, Bến Cát, Bình Dương',
+    'KCN Amata, TP. Biên Hòa, Đồng Nai',
+    'KCN Nhơn Trạch, Đồng Nai',
+    'Khu vực Sân bay Long Thành, Đồng Nai',
+    'Bãi Sau, TP. Vũng Tàu, BR-VT',
+    'Hồ Tràm, Xuyên Mộc, BR-VT',
+    'Long Hải, Long Điền, BR-VT',
+    'Cảng tàu Côn Đảo, BR-VT',
+    'KDL Núi Bà Đen, TP. Tây Ninh',
+    'Tòa Thánh Tây Ninh, Hòa Thành, Tây Ninh',
+    'Cửa khẩu Mộc Bài, Bến Cầu, Tây Ninh',
+    'Bến Ninh Kiều, Ninh Kiều, Cần Thơ',
+    'Chợ nổi Cái Răng, Cần Thơ',
+    'Sân bay Quốc tế Cần Thơ',
+    'Bến tàu Rạch Giá, Kiên Giang',
+    'Sân bay Quốc tế Phú Quốc, Kiên Giang',
+    'Grand World Phú Quốc, Kiên Giang',
+    'Thị trấn Hoàng Hôn Sunset Town, An Thới, Phú Quốc',
+    'Hà Tiên, Kiên Giang',
+    'Rừng tràm Trà Sư, Tịnh Biên, An Giang',
+    'Miếu Bà Chúa Xứ Núi Sam, Châu Đốc, An Giang',
+    'TP. Long Xuyên, Tỉnh An Giang',
+    'Cồn Thới Sơn, TP. Mỹ Tho, Tiền Giang',
+    'Chợ nổi Cái Bè, Tiền Giang',
+    'Làng hoa Sa Đéc, Đồng Tháp',
+    'Vườn quốc gia Tràm Chim, Tam Nông, Đồng Tháp',
+    'KCN Đức Hòa, Bến Lức, Long An',
+    'TP. Tân An, Long An',
+    'TP. Bến Tre (Khu du lịch sinh thái dừa), Bến Tre',
+    'TP. Trà Vinh, Tỉnh Trà Vinh',
+    'Chùa Dơi, TP. Sóc Trăng',
+    'Nhà thờ Tắc Sậy (Cha Diệp), Giá Rai, Bạc Liêu',
+    'Cánh đồng quạt gió Bạc Liêu',
+    'Đất Mũi, Ngọc Hiển, Cà Mau',
+    'KCN Trà Nóc, Bình Thủy, Cần Thơ'
   ]
 };
 
@@ -154,70 +303,78 @@ export const PROMPT_SUGGESTIONS: Record<'requests' | 'fake_notifications' | 'bot
 }> = {
   requests: {
     label: 'Tab Cuốc xe (Chờ nhận)',
-    defaultPrompt: 'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.',
+    defaultPrompt: 'Tạo 20 cuốc xe liên tỉnh đa dạng khắp các tỉnh thành Việt Nam, giá 3–5 triệu, xe 5–7 chỗ.',
     textareaHeader: '✨ Nhập yêu cầu cuốc xe chờ ghép (Số lượng, khu vực, khoảng giá, loại xe...)',
     chips: [
       {
-        label: '🌟 Thành phố lớn (3–5 triệu, xe 7 chỗ)',
-        prompt: 'Tạo 20 cuốc xe từ các thành phố lớn, giá 3–5 triệu, xe 5–7 chỗ.'
+        label: '🌟 Đa dạng 63 tỉnh thành (3–5 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 20 cuốc xe liên tỉnh đa dạng khắp các tỉnh thành Việt Nam, giá 3–5 triệu, xe 5–7 chỗ.'
       },
       {
-        label: '🚗 Miền Bắc liên tỉnh (1–2 triệu, xe 4 chỗ)',
-        prompt: 'Tạo 15 cuốc xe đón tại Miền Bắc đi các tỉnh, giá 1–2 triệu, xe 4 chỗ.'
+        label: '🏭 Chuyên gia KCN liên tỉnh (1.5–2.8 triệu)',
+        prompt: 'Tạo 15 cuốc xe đưa đón chuyên gia, kỹ sư tới các KCN Bắc Ninh, Hải Phòng, Bình Dương, Đồng Nai, giá 1.5–2.8 triệu, xe 7 chỗ.'
       },
       {
-        label: '🌴 Miền Nam xuất phát TP.HCM (2–4 triệu, xe 7 chỗ)',
-        prompt: 'Tạo 15 cuốc xe liên tỉnh Miền Nam xuất phát từ TP.HCM, giá 2–4 triệu, xe 7 chỗ.'
+        label: '🏥 Đưa đón Khám bệnh viện TW (800k–1.8tr)',
+        prompt: 'Tạo 10 cuốc xe đưa đón bệnh nhân khám bệnh viện tuyến Trung ương về các tỉnh, giá 800k–1.8 triệu, xe 4–7 chỗ sạch sẽ.'
       },
       {
-        label: '✈️ Đưa đón Sân bay / Du lịch (800k–1.5tr)',
-        prompt: 'Tạo 10 cuốc xe đưa đón sân bay và khu du lịch, giá 800k–1.5 triệu, xe 5–7 chỗ.'
+        label: '🏔️ Tây Bắc / Đông Bắc săn mây (2–4 triệu)',
+        prompt: 'Tạo 12 cuốc xe du lịch vùng cao Sa Pa, Mộc Châu, Hà Giang, Cao Bằng, giá 2–4 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '🌾 Miền Tây sông nước miệt vườn (1.2–2.5tr)',
+        prompt: 'Tạo 10 cuốc xe về các tỉnh miền Tây sông nước Cần Thơ, An Giang, Bến Tre, Cà Mau, giá 1.2–2.5 triệu, xe 7 chỗ.'
+      },
+      {
+        label: '⛳ Sân Golf & Khách VIP (1.5–3.5 triệu)',
+        prompt: 'Tạo 10 cuốc xe đưa đón sân golf và khách VIP đối tác, giá 1.5–3.5 triệu, xe 7 chỗ rộng rãi.'
       }
     ]
   },
   fake_notifications: {
     label: 'Thông báo ảo (Trang chủ)',
-    defaultPrompt: 'Tạo 10 thông báo nổ cuốc xe VIP trên trang chủ, giá 2–4 triệu, xe 7 chỗ.',
+    defaultPrompt: 'Tạo 10 thông báo nổ cuốc xe VIP liên tỉnh khắp các miền trên trang chủ, giá 2–4 triệu, xe 7 chỗ.',
     textareaHeader: '📢 Nhập yêu cầu thông báo nổ cuốc trang chủ (Tạo sôi động, giờ cao điểm, cuốc VIP...)',
     chips: [
       {
-        label: '🔥 Nổ cuốc Hot trang chủ (2–4 triệu, xe 7 chỗ)',
-        prompt: 'Tạo 10 thông báo nổ cuốc xe VIP trên trang chủ, giá 2–4 triệu, xe 7 chỗ.'
+        label: '🔥 Nổ cuốc Hot toàn quốc (2–4 triệu, xe 7 chỗ)',
+        prompt: 'Tạo 10 thông báo nổ cuốc xe VIP liên tỉnh khắp các miền trên trang chủ, giá 2–4 triệu, xe 7 chỗ.'
       },
       {
-        label: '⚡ Giờ cao điểm Sân bay (1–2.5 triệu, xe 4-7 chỗ)',
-        prompt: 'Tạo 8 thông báo nổ cuốc đón sân bay Nội Bài và Tân Sơn Nhất giờ cao điểm, giá 1–2.5 triệu, xe 4–7 chỗ.'
+        label: '⚡ Giờ cao điểm Sân bay Quốc tế (1–2.5tr)',
+        prompt: 'Tạo 8 thông báo nổ cuốc đón các sân bay Nội Bài, Tân Sơn Nhất, Cam Ranh, Đà Nẵng giờ cao điểm, giá 1–2.5 triệu, xe 4–7 chỗ.'
       },
       {
-        label: '🏖️ Tuyến du lịch nổi bật (1.5–3 triệu, xe 7 chỗ)',
-        prompt: 'Tạo 10 thông báo nổ cuốc đi các điểm du lịch Hạ Long, Sapa, Vũng Tàu, Đà Lạt, giá 1.5–3 triệu, xe 7 chỗ.'
+        label: '🏖️ Resort biển & Danh thắng nổi bật (1.8–3.5tr)',
+        prompt: 'Tạo 10 thông báo nổ cuốc đi các điểm du lịch Hạ Long, Cát Bà, Vũng Tàu, Hồ Tràm, Đà Lạt, Phú Quốc, giá 1.8–3.5 triệu, xe 7 chỗ.'
       },
       {
-        label: '🚗 Cuốc liên tỉnh giá cao (3–5 triệu, TP lớn)',
-        prompt: 'Tạo 12 thông báo cuốc liên tỉnh giá cao 3–5 triệu xuất phát từ các thành phố lớn.'
+        label: '🏭 KCN & Công tác đối tác (1.5–3 triệu)',
+        prompt: 'Tạo 10 thông báo nổ cuốc đi công tác các khu công nghiệp và dự án tỉnh, giá 1.5–3 triệu, xe 7 chỗ.'
       }
     ]
   },
   both: {
     label: 'Xuất bản cả 2 nơi (Đồng bộ toàn app)',
-    defaultPrompt: 'Tạo 15 cuốc xe đồng bộ vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.',
+    defaultPrompt: 'Tạo 15 cuốc xe đồng bộ đa dạng các tỉnh thành vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.',
     textareaHeader: '⚡ Nhập yêu cầu cuốc xe xuất bản đồng thời (Vừa vào danh sách nhận cuốc vừa nổ chuông trang chủ...)',
     chips: [
       {
         label: '⚡ Đồng bộ toàn hệ thống (2–4 triệu, xe 7 chỗ)',
-        prompt: 'Tạo 15 cuốc xe đồng bộ vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.'
+        prompt: 'Tạo 15 cuốc xe đồng bộ đa dạng các tỉnh thành vừa nổ thông báo trang chủ vừa vào danh sách nhận cuốc, giá 2–4 triệu, xe 7 chỗ.'
       },
       {
-        label: '🌟 Tuyến vàng Hà Nội - Quảng Ninh (1.5–2.5tr)',
-        prompt: 'Tạo 10 cuốc xe tuyến Hà Nội đi Quảng Ninh, Hải Phòng, giá 1.5–2.5 triệu, xe 5–7 chỗ.'
+        label: '🏔️ Tuyến vàng vùng cao & Tây Bắc (2–3.5tr)',
+        prompt: 'Tạo 10 cuốc xe tuyến Hà Nội đi Lào Cai, Sơn La, Lạng Sơn, Quảng Ninh, giá 2–3.5 triệu, xe 7 chỗ.'
       },
       {
-        label: '🌴 Tuyến vàng Sài Gòn - Vũng Tàu (1.5–2.5tr)',
-        prompt: 'Tạo 10 cuốc xe tuyến TP.HCM đi Vũng Tàu, Cần Thơ, giá 1.5–2.5 triệu, xe 7 chỗ.'
+        label: '🌴 Tuyến vàng Nam Bộ & Miền Tây (1.8–3.5tr)',
+        prompt: 'Tạo 10 cuốc xe tuyến TP.HCM đi Tây Ninh, Vũng Tàu, Cần Thơ, An Giang, Kiên Giang, giá 1.8–3.5 triệu, xe 7 chỗ.'
       },
       {
-        label: '✈️ Đón trả Sân bay toàn quốc (800k–2tr)',
-        prompt: 'Tạo 10 cuốc xe đưa đón sân bay toàn quốc, giá 800k–2 triệu, xe 4–7 chỗ.'
+        label: '✈️ Đón trả Sân bay & Du lịch toàn quốc (1–2.5tr)',
+        prompt: 'Tạo 10 cuốc xe đưa đón sân bay và khu nghỉ dưỡng toàn quốc, giá 1–2.5 triệu, xe 4–7 chỗ.'
       }
     ]
   }
@@ -262,25 +419,29 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
     setShowConfig(false);
   };
 
-  // ── Engine Nội Bộ (Offline Fallback) ──
+  // ── Engine Nội Bộ (Offline Fallback Đa Dạng Hóa) ──
   const runLocalEngine = (requestedCount?: number): AiGeneratedRide[] => {
     const params = parsePromptParameters(prompt);
     const count = requestedCount !== undefined ? requestedCount : params.count;
     const { minPrice, maxPrice, preferredCarType, selectedRegions } = params;
 
-    // Thuật toán sinh danh sách & Chống trùng tuyến
+    // Thuật toán sinh danh sách & Chống trùng tuyến, xáo trộn họ tên và ghi chú
     const rides: AiGeneratedRide[] = [];
     const usedRoutes = new Set<string>();
 
+    // Xáo trộn Fisher-Yates để không bị lặp tên và ghi chú
+    const shuffledNames = [...VIETNAMESE_NAMES].sort(() => 0.5 - Math.random());
+    const shuffledNotes = [...TRIP_NOTES].sort(() => 0.5 - Math.random());
+
     for (let i = 0; i < count; i++) {
-      const region = selectedRegions[Math.floor(Math.random() * selectedRegions.length)];
-      const cities = SAMPLE_CITIES_BY_REGION[region];
+      const region = selectedRegions[i % selectedRegions.length];
+      const cities = SAMPLE_CITIES_BY_REGION[region] || SAMPLE_CITIES_BY_REGION.north;
 
       let start = cities[Math.floor(Math.random() * cities.length)];
       let end = cities[Math.floor(Math.random() * cities.length)];
       let attempts = 0;
 
-      while (attempts < 20 && (end === start || usedRoutes.has(`${start}__${end}`))) {
+      while (attempts < 30 && (end === start || usedRoutes.has(`${start}__${end}`))) {
         attempts++;
         end = cities[Math.floor(Math.random() * cities.length)];
       }
@@ -298,9 +459,9 @@ export const AiRideGeneratorTab: React.FC<{ onPublished?: (target: 'requests' | 
         carType = '4';
       }
 
-      const name = VIETNAMESE_NAMES[Math.floor(Math.random() * VIETNAMESE_NAMES.length)];
+      const name = shuffledNames[i % shuffledNames.length];
       const phone = generateRandomPhone();
-      const noteTemplate = TRIP_NOTES[Math.floor(Math.random() * TRIP_NOTES.length)];
+      const noteTemplate = shuffledNotes[i % shuffledNotes.length];
       const note = `Xe ${carType} chỗ · ${noteTemplate}`;
       const detectedRegion = detectRegionFromPlace(start, end);
       const isValid = Boolean(start && end && price > 0 && name && phone);
