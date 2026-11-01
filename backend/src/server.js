@@ -20,6 +20,11 @@ const allowedOrigins = [
   'https://driver-client-bice.vercel.app',
   'https://180-93-35-55.sslip.io',
   'https://us.180-93-35-55.sslip.io',
+  'http://driverapp.site',
+  'https://driverapp.site',
+  'http://www.driverapp.site',
+  'https://www.driverapp.site',
+  'http://180.93.35.55',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
@@ -27,7 +32,17 @@ const allowedOrigins = [
   'http://127.0.0.1:24326',
 ];
 app.use(cors({
-  origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('driverapp.site') ||
+      origin.includes('180.93.35.55')
+    ) {
+      return cb(null, true);
+    }
+    return cb(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
